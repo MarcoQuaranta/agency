@@ -1,5 +1,92 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import fs from 'fs';
+import path from 'path';
+
+// Funzione per controllare se l'IP ha già inviato un questionario incompleto
+function hasIncompleteQuestionnaireSentFromIP(clientIP: string): boolean {
+  const incompleteIPsFile = path.join(process.cwd(), 'incomplete-questionnaire-ips.json');
+  
+  try {
+    if (fs.existsSync(incompleteIPsFile)) {
+      const content = fs.readFileSync(incompleteIPsFile, 'utf8');
+      const ips = JSON.parse(content);
+      return ips.includes(clientIP);
+    }
+  } catch (error) {
+    console.log('Error reading incomplete IPs file:', error);
+  }
+  
+  return false;
+}
+
+// Funzione per salvare l'IP che ha inviato un questionario incompleto
+function addIncompleteQuestionnaireIP(clientIP: string): void {
+  const incompleteIPsFile = path.join(process.cwd(), 'incomplete-questionnaire-ips.json');
+  let ips: string[] = [];
+  
+  try {
+    if (fs.existsSync(incompleteIPsFile)) {
+      const content = fs.readFileSync(incompleteIPsFile, 'utf8');
+      ips = JSON.parse(content) || [];
+    }
+  } catch (error) {
+    console.log('Creating new incomplete IPs file');
+  }
+  
+  if (!ips.includes(clientIP)) {
+    ips.push(clientIP);
+    
+    try {
+      fs.writeFileSync(incompleteIPsFile, JSON.stringify(ips, null, 2));
+    } catch (error) {
+      console.error('Error writing incomplete IPs file:', error);
+    }
+  }
+}
+
+// Funzione per ottenere l'IP del client
+function getClientIP(req: NextRequest): string {
+  // Vercel forwarded IP
+  const forwardedFor = req.headers.get('x-forwarded-for');
+  if (forwardedFor) {
+    return forwardedFor.split(',')[0].trim();
+  }
+  
+  // Vercel real IP
+  const realIP = req.headers.get('x-real-ip');
+  if (realIP) {
+    return realIP;
+  }
+  
+  // Fallback
+  return req.headers.get('x-forwarded-for') || 'unknown';
+}
+
+// Funzione per generare ID progressivo
+function getNextCandidateId(): number {
+  const counterFile = path.join(process.cwd(), 'candidate-counter.txt');
+  let currentId = 1;
+
+  try {
+    if (fs.existsSync(counterFile)) {
+      const content = fs.readFileSync(counterFile, 'utf8');
+      currentId = parseInt(content) || 1;
+    }
+  } catch (error) {
+    console.log('Creating new counter file');
+  }
+
+  const nextId = currentId + 1;
+  
+  try {
+    fs.writeFileSync(counterFile, nextId.toString());
+  } catch (error) {
+    console.error('Error writing counter file:', error);
+  }
+
+  return currentId;
+}
 
 // Configurazione del trasporter per Gmail
 const transporter = nodemailer.createTransport({
@@ -13,9 +100,23 @@ const transporter = nodemailer.createTransport({
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { contactData, questionnaireData } = body;
+    const { contactData, questionnaireData, isIncomplete = false } = body;
 
-    // Formatta i dati per l'email
+    // Ottieni IP del client
+    const clientIP = getClientIP(req);
+
+    // Se è un questionario incompleto, controlla se l'IP ha già inviato
+    if (isIncomplete && hasIncompleteQuestionnaireSentFromIP(clientIP)) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Questionario incompleto già inviato da questo IP' 
+      });
+    }
+
+    // Genera ID progressivo
+    const candidateId = getNextCandidateId();
+
+    // Formatta i dati per l'email con HTML
     const formatQuestionnaireData = (data: any) => {
       const sections = [
         {
@@ -65,42 +166,70 @@ export async function POST(req: NextRequest) {
       ];
 
       return sections.map(section => {
-        const sectionText = `${section.title}\n${section.fields
-          .filter(field => field.value)
-          .map(field => `${field.label}: ${field.value}`)
-          .join('\n')}`;
-        return sectionText;
-      }).join('\n\n');
+        const sectionHtml = `
+          <div style="margin-bottom: 30px;">
+            <h3 style="font-size: 18px; color: #2563eb; margin-bottom: 15px; font-weight: bold;">${section.title}</h3>
+            <div style="margin-left: 20px;">
+              ${section.fields
+                .filter(field => field.value)
+                .map(field => `<div style="margin-bottom: 8px; font-size: 16px;"><strong>${field.label}:</strong> ${field.value}</div>`)
+                .join('')}
+            </div>
+          </div>
+        `;
+        return sectionHtml;
+      }).join('');
     };
 
-    // Costruisci il messaggio email
-    const emailContent = `
-📋 NUOVA CANDIDATURA SAFESCALE
+    // Costruisci il messaggio email in HTML
+    const emailHtml = `
+    <html>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: #f8fafc; padding: 30px; border-radius: 10px; margin-bottom: 30px;">
+          <h1 style="font-size: 28px; color: #1e40af; text-align: center; margin-bottom: 10px;">📋 NUOVA CANDIDATURA SAFESCALE${isIncomplete ? ' - INCOMPLETA' : ''}</h1>
+          <p style="text-align: center; font-size: 18px; color: #64748b; margin: 0;">ID Candidatura: <strong>#${candidateId.toString().padStart(4, '0')}</strong></p>
+          ${isIncomplete ? '<p style="text-align: center; font-size: 16px; color: #dc2626; margin: 10px 0 0 0; font-weight: bold;">⚠️ Questionario chiuso senza completamento</p>' : ''}
+        </div>
 
-📞 DATI DI CONTATTO:
-Nome: ${contactData.nome}
-Cognome: ${contactData.cognome}
-Telefono: ${contactData.telefono}
-Email: ${contactData.email}
+        <div style="background-color: #eff6ff; padding: 25px; border-radius: 8px; margin-bottom: 30px;">
+          <h2 style="font-size: 22px; color: #1e40af; margin-bottom: 20px;">📞 DATI DI CONTATTO</h2>
+          <div style="font-size: 16px; line-height: 1.8;">
+            <div style="margin-bottom: 8px;"><strong>Nome:</strong> ${contactData.nome}</div>
+            <div style="margin-bottom: 8px;"><strong>Cognome:</strong> ${contactData.cognome}</div>
+            <div style="margin-bottom: 8px;"><strong>Telefono:</strong> ${contactData.telefono}</div>
+            <div style="margin-bottom: 8px;"><strong>Email:</strong> ${contactData.email}</div>
+          </div>
+        </div>
 
-📝 QUESTIONARIO COMPLETO:
+        <div style="background-color: #f0f9ff; padding: 25px; border-radius: 8px; margin-bottom: 30px;">
+          <h2 style="font-size: 22px; color: #1e40af; margin-bottom: 25px;">📝 QUESTIONARIO COMPLETO</h2>
+          ${formatQuestionnaireData(questionnaireData)}
+        </div>
 
-${formatQuestionnaireData(questionnaireData)}
-
----
-Data di invio: ${new Date().toLocaleString('it-IT')}
-    `.trim();
+        <div style="text-align: center; padding: 20px; background-color: #f1f5f9; border-radius: 8px; margin-top: 30px;">
+          <p style="font-size: 14px; color: #64748b; margin: 0;">
+            <strong>Data di invio:</strong> ${new Date().toLocaleString('it-IT')}
+          </p>
+        </div>
+      </body>
+    </html>
+    `;
 
     // Configurazione del messaggio
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: 'candidature.safescale@gmail.com',
-      subject: `🚀 Nuova Candidatura SafeScale - ${contactData.nome} ${contactData.cognome}`,
-      text: emailContent,
+      subject: `🚀 ID#${candidateId.toString().padStart(4, '0')} - Candidatura ${contactData.nome} ${contactData.cognome}${isIncomplete ? ' - Questionario Incompleto' : ''}`,
+      html: emailHtml,
     };
 
     // Invia l'email
     await transporter.sendMail(mailOptions);
+
+    // Se è un questionario incompleto inviato con successo, salva l'IP
+    if (isIncomplete) {
+      addIncompleteQuestionnaireIP(clientIP);
+    }
 
     return NextResponse.json({ success: true, message: 'Email inviata con successo' });
   } catch (error) {

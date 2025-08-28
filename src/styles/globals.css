@@ -28,18 +28,9 @@
   /* #endregion  /**======== Primary Color =========== */
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
+
 @layer base {
-  /* inter var - latin */
-  @font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 100 900;
-    font-display: block;
-    src: url('/fonts/inter-var-latin.woff2') format('woff2');
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
-      U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212,
-      U+2215, U+FEFF, U+FFFD;
-  }
 
   .cursor-newtab {
     cursor: url('/images/new-tab.png') 10 10, pointer;
@@ -93,6 +84,61 @@
 }
 
 @layer utilities {
+  /* Gradient Text Utilities */
+  .gradient-text-primary {
+    @apply bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent;
+  }
+  
+  .gradient-text-secondary {
+    @apply bg-gradient-to-r from-green-500 via-teal-500 to-blue-600 bg-clip-text text-transparent;
+  }
+  
+  .gradient-text-accent {
+    @apply bg-gradient-to-r from-orange-500 via-pink-500 to-red-500 bg-clip-text text-transparent;
+  }
+
+  .gradient-text-hero {
+    @apply bg-gradient-to-r from-slate-800 via-blue-600 to-purple-600 bg-clip-text text-transparent;
+  }
+
+  .gradient-text-success {
+    @apply bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent;
+  }
+
+  /* Custom brand gradient */
+  .gradient-text-brand {
+    background: linear-gradient(135deg, #36a3e3 0%, #4f10e8 50%, #f712c5 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-bg-brand {
+    background: linear-gradient(135deg, #36a3e3 0%, #4f10e8 50%, #f712c5 100%);
+  }
+
+  .gradient-bg-brand-hover:hover {
+    background: linear-gradient(135deg, #2891d9 0%, #4109d4 50%, #e310b1 100%);
+  }
+
+  /* Custom text color */
+  .text-custom-dark {
+    color: #1c1a31;
+  }
+
+  /* Light theme background utilities */
+  .bg-light-section {
+    @apply bg-gradient-to-br from-gray-50 via-white to-gray-100;
+  }
+
+  .bg-light-card {
+    @apply bg-white border border-gray-200 shadow-sm;
+  }
+
+  .bg-light-hover {
+    @apply hover:bg-gray-50 hover:shadow-md;
+  }
+
   .animated-underline {
     background-image: linear-gradient(#33333300, #33333300),
       linear-gradient(
