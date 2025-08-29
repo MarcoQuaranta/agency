@@ -1,8 +1,10 @@
 'use client';
-
+import { useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { FC } from "react";
+import { CheckCircle, Settings, FileText, BarChart2, Gauge } from "lucide-react";
 import { 
   FaEnvelope, 
   FaRocket, 
@@ -33,7 +35,37 @@ import {
   FaShare
 } from 'react-icons/fa';
 import { FiUser } from 'react-icons/fi';
+interface FeatureCard {
+  icon: JSX.Element;
+  title: string;
+}
+interface Testimonial {
+  videoUrl: string;
+  companyLogo: string;
+  quote: string;
+  author: string;
+}
 
+const testimonials: Testimonial[] = [
+  {
+    videoUrl: "https://www.youtube.com/embed/1MEp8dCrp1w", // Convert More Buyers...
+    company: "DIGGS",
+    quote: "ClickUp is serving us so we can serve our pet guardians.",
+    author: "Samantha Dengate, Sr. Project Manager",
+  },
+  {
+    videoUrl: "https://www.youtube.com/embed/0A7u3plO4io", // Canva Slider example
+    company: "Finastra",
+    quote: "It's a low-code platform that helps us automate processes.",
+    author: "Joerg Klueckmann, VP of Marketing",
+  },
+  {
+    videoUrl: "https://www.youtube.com/embed/tIteRLz7Iac", // Creative Ways display
+    company: "Hawke Media",
+    quote: "ClickUp is the best thing I've rolled out in the past two years.",
+    author: "Lauren Makielski, Chief of Staff",
+  },
+];
 export default function HomePage() {
   const [showContactForm, setShowContactForm] = useState(false);
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
@@ -42,6 +74,38 @@ export default function HomePage() {
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [autoPlay, setAutoPlay] = useState(true);
+  const features: FeatureCard[] = [
+  { icon: <Settings className="w-5 h-5 text-gray-700" />, title: "Flexible workflows for every team" },
+  { icon: <FileText className="w-5 h-5 text-gray-700" />, title: "Tasks, docs, spreadsheets, and more" },
+  { icon: <Gauge className="w-5 h-5 text-gray-700" />, title: "Resource and workload optimization" },
+  { icon: <BarChart2 className="w-5 h-5 text-gray-700" />, title: "Dashboards and insights" },
+];
+  const clearTimers = () => {
+  if (autoPlayTimerRef.current) {
+    clearInterval(autoPlayTimerRef.current);
+    autoPlayTimerRef.current = null;
+  }
+  if (resumeTimeoutRef.current) {
+    clearTimeout(resumeTimeoutRef.current);
+    resumeTimeoutRef.current = null;
+  }
+};
+
+const pauseAutoPlay = (ms?: number) => {
+  setAutoPlay(false);
+  clearTimers();
+  if (typeof ms === 'number' && ms > 0) {
+    resumeTimeoutRef.current = setTimeout(() => {
+      setAutoPlay(true);
+    }, ms);
+  }
+};
+
+const [autoPlayDelay, setAutoPlayDelay] = useState(3500); // ms
+const autoPlayTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+const resumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+const carouselContainerRef = useRef<HTMLDivElement | null>(null);
   const [contactFormData, setContactFormData] = useState({
     nome: '',
     cognome: '',
@@ -76,6 +140,19 @@ export default function HomePage() {
   const [questionnaireSubmitted, setQuestionnaireSubmitted] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [activeStep, setActiveStep] = useState(1);
+  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
+
+  // Dati delle icone circolari - disposizione uniforme ogni 45°
+  const circularIcons = [
+    { id: 'phone', icon: FaPhone, color: 'text-blue-600', tooltip: '+39 123 456 7890', angle: 0 },
+    { id: 'chart', icon: FaChartBar, color: 'text-green-600', tooltip: 'Analytics & Reporting', angle: 45 },
+    { id: 'search', icon: FaSearch, color: 'text-purple-600', tooltip: 'SEO Optimization', angle: 90 },
+    { id: 'lightbulb', icon: FaLightbulb, color: 'text-yellow-600', tooltip: 'Strategic Consulting', angle: 135 },
+    { id: 'palette', icon: FaPalette, color: 'text-pink-600', tooltip: 'Creative Design', angle: 180 },
+    { id: 'bolt', icon: FaBolt, color: 'text-orange-600', tooltip: 'Fast Delivery', angle: 225 },
+    { id: 'rocket', icon: FaRocket, color: 'text-red-600', tooltip: 'Business Growth', angle: 270 },
+    { id: 'bullseye', icon: FaBullseye, color: 'text-indigo-600', tooltip: 'contatti@safescale.it', angle: 315 }
+  ];
 
   // Dati degli step
   const steps = [
@@ -83,7 +160,7 @@ export default function HomePage() {
       id: 1,
       title: "Creazione E-commerce, gestione ordini e spedizioni",
       description: "Creaiamo il sito di vendita, riceviamo gli ordini, curiamo la logistica e incassiamo i pagamenti in contrassegno.",
-      bgClass: "bg-gradient-to-br from-[#36a3e3] to-[#2691d9] border border-[#36a3e3]/50 text-white",
+      bgClass: "bg-gradient-to-b from-[#36a3e3] via-[#2b7db5] to-[#1a5291] border border-[#36a3e3]/50 text-white",
       borderClass: "border-[#36a3e3]/50",
       hoverClass: "hover:shadow-[#36a3e3]/30",
       iconBg: "bg-white text-[#36a3e3]",
@@ -94,7 +171,7 @@ export default function HomePage() {
       id: 2,
       title: "Ripaghiamo le campagne pubblicitarie",
       description: "Dall'incasso lordo copriamo i costi delle ads che abbiamo sostenuto e paghiamo le tasse.",
-      bgClass: "bg-gradient-to-br from-[#4f10e8] to-[#3d0bb3] border border-[#4f10e8]/50 text-white",
+      bgClass: "bg-gradient-to-b from-[#4f10e8] via-[#3a0bb8] to-[#250885] border border-[#4f10e8]/50 text-white",
       borderClass: "border-[#4f10e8]/50",
       hoverClass: "hover:shadow-[#4f10e8]/30",
       iconBg: "bg-white text-[#4f10e8]",
@@ -105,7 +182,7 @@ export default function HomePage() {
       id: 3,
       title: "Dividiamo i guadagni e ricevi la tua parte",
       description: "Il guadagno netto che rimane viene corrisposto a te, trattenendo solo la nostra percentuale concordata.",
-      bgClass: "bg-gradient-to-br from-[#f712c5] to-[#c20e9a] border border-[#f712c5]/50 text-white",
+      bgClass: "bg-gradient-to-b from-[#f712c5] via-[#c80ea3] to-[#8b0b70] border border-[#f712c5]/50 text-white",
       borderClass: "border-[#f712c5]/50",
       hoverClass: "hover:shadow-[#f712c5]/30",
       iconBg: "bg-white text-[#f712c5]",
@@ -181,6 +258,21 @@ export default function HomePage() {
       boxObserver.disconnect();
     };
   }, [isMounted]);
+
+  // Close tooltip when clicking outside on mobile
+  useEffect(() => {
+    if (!isMounted || isDesktop) return;
+    
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.circular-icon')) {
+        setActiveTooltip(null);
+      }
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [isMounted, isDesktop]);
 
   // Track screen size
   useEffect(() => {
@@ -449,12 +541,11 @@ const [active, setActive] = useState<number>(0);
 // --- Banner CTA (prima del return) ---
 const ctaHref = '#contact-form'; // cambia con l’anchor o il link che vuoi
 
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-blue-100/20 text-custom-dark">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-blue-100/20 text-custom-dark overflow-x-hidden">
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
-        <div className="w-full max-w-[2000px] mx-auto px-6 lg:px-12 py-4">
+        <div className="w-full max-w-7xl lg:max-w-[2000px] mx-auto px-4 sm:px-6 lg:px-12 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
               <Image
@@ -498,7 +589,7 @@ const ctaHref = '#contact-form'; // cambia con l’anchor o il link che vuoi
         
         {/* Mobile Menu Dropdown */}
         <div className={`md:hidden absolute top-full left-0 right-0 bg-white/98 backdrop-blur-md border-b border-gray-200 shadow-lg transition-all duration-300 ease-in-out ${mobileMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
-          <div className="container mx-auto px-6 py-6">
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-6">
             <nav className="flex flex-col space-y-4">
               <Link 
                 href="#servizi" 
@@ -544,8 +635,8 @@ const ctaHref = '#contact-form'; // cambia con l’anchor o il link che vuoi
         className="pt-24 sm:pt-20 pb-8 lg:px-12 min-h-screen flex items-center relative overflow-hidden bg-gradient-to-br from-blue-50/20 via-white to-blue-100/15"
       >
         {/* Blue glowing effect - oval shape spanning full width */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-[1600px] h-[600px] rounded-full blur-3xl animate-pulse" style={{backgroundColor: '#BAD9FE', opacity: 0.8, animationDuration: '4s'}}></div>
-        <div className="absolute top-1/3 right-1/4 w-[80%] max-w-[1200px] h-[500px] rounded-full blur-3xl animate-pulse" style={{backgroundColor: '#BAD9FE', opacity: 0.6, animationDuration: '6s', animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-6xl h-[400px] sm:h-[600px] rounded-full blur-3xl animate-pulse" style={{backgroundColor: '#BAD9FE', opacity: 0.8, animationDuration: '4s'}}></div>
+        <div className="absolute top-1/3 right-1/4 w-[70%] max-w-4xl h-[300px] sm:h-[500px] rounded-full blur-3xl animate-pulse" style={{backgroundColor: '#BAD9FE', opacity: 0.6, animationDuration: '6s', animationDelay: '2s'}}></div>
         
         {/* Subtle geometric pattern */}
         <div
@@ -563,7 +654,7 @@ const ctaHref = '#contact-form'; // cambia con l’anchor o il link che vuoi
         
         {/* Light gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-white/30 to-purple-50/50"></div>
-        <div className="w-full max-w-[2000px] mx-auto relative z-10 px-6 lg:px-12">
+        <div className="w-full max-w-7xl lg:max-w-[2000px] mx-auto relative z-10 px-4 sm:px-6 lg:px-12">
           <div className="grid lg:grid-cols-5 gap-8 lg:gap-12 items-center">
             <div className="space-y-6 lg:space-y-8 order-1 lg:order-1 lg:col-span-2">
               <div className="inline-block px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-200 rounded-full text-xs sm:text-sm font-medium gradient-text-brand">
@@ -597,7 +688,7 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
             
             {/* Circular Design */}
             <div className="relative flex justify-center lg:justify-end order-2 lg:order-2 mb-8 lg:mb-0 lg:col-span-3 lg:pr-4">
-              <div className="relative w-full max-w-md aspect-square sm:max-w-[450px] md:max-w-[550px] lg:max-w-[720px] xl:max-w-[820px]">
+              <div className="relative w-full max-w-sm aspect-square sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl">
                 {!showContactForm ? (
                   <>
                     {/* Animated outer rings */}
@@ -653,54 +744,59 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                       </div>
                     </div>
                     
-                    {/* Orbiting elements with responsive positioning */}
-                    <div className="absolute top-1 sm:top-2 md:top-4 left-1/2 transform -translate-x-1/2 animate-bounce hover:animate-pulse" style={{animationDelay: '0s', animationDuration: '3s'}}>
-                      <div className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 bg-white border-2 border-gray-200 shadow-md rounded-full flex items-center justify-center border-2 border-white/20 shadow-lg transform hover:scale-125 hover:rotate-12 transition-all duration-300">
-                        <FaPhone className="text-sm sm:text-lg md:text-xl text-blue-600" />
-                      </div>
-                    </div>
-                    
-                    <div className="absolute top-8 sm:top-12 md:top-16 right-2 sm:right-4 md:right-8 animate-bounce" style={{animationDelay: '0.5s', animationDuration: '3s'}}>
-                      <div className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 bg-white border-2 border-gray-200 shadow-md rounded-full flex items-center justify-center border-2 border-blue-400/40 shadow-lg">
-                        <FaChartBar className="text-sm sm:text-lg md:text-xl text-green-600" />
-                      </div>
-                    </div>
-                    
-                    <div className="absolute right-1 sm:right-2 md:right-4 top-1/2 transform -translate-y-1/2 animate-bounce" style={{animationDelay: '1s', animationDuration: '3s'}}>
-                      <div className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 bg-white border-2 border-gray-200 shadow-md rounded-full flex items-center justify-center border-2 border-green-400/40 shadow-lg">
-                        <FaSearch className="text-sm sm:text-lg md:text-xl text-purple-600" />
-                      </div>
-                    </div>
-                    
-                    <div className="absolute bottom-8 sm:bottom-12 md:bottom-16 right-2 sm:right-4 md:right-8 animate-bounce" style={{animationDelay: '1.5s', animationDuration: '3s'}}>
-                      <div className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 bg-white border-2 border-gray-200 shadow-md rounded-full flex items-center justify-center border-2 shadow-lg" style={{borderColor: 'rgba(238, 102, 34, 0.4)'}}>
-                        <FaLightbulb className="text-sm sm:text-lg md:text-xl text-yellow-600" />
-                      </div>
-                    </div>
-                    
-                    <div className="absolute bottom-1 sm:bottom-2 md:bottom-4 left-1/2 transform -translate-x-1/2 animate-bounce" style={{animationDelay: '2s', animationDuration: '3s'}}>
-                      <div className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 bg-white border-2 border-gray-200 shadow-md rounded-full flex items-center justify-center border-2 border-white/20 shadow-lg">
-                        <FaPalette className="text-sm sm:text-lg md:text-xl text-pink-600" />
-                      </div>
-                    </div>
-                    
-                    <div className="absolute bottom-8 sm:bottom-12 md:bottom-16 left-2 sm:left-4 md:left-8 animate-bounce" style={{animationDelay: '2.5s', animationDuration: '3s'}}>
-                      <div className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 bg-white border-2 border-gray-200 shadow-md rounded-full flex items-center justify-center border-2 border-blue-400/40 shadow-lg">
-                        <FaBolt className="text-sm sm:text-lg md:text-xl text-orange-600" />
-                      </div>
-                    </div>
-                    
-                    <div className="absolute left-1 sm:left-2 md:left-4 top-1/2 transform -translate-y-1/2 animate-bounce" style={{animationDelay: '3s', animationDuration: '3s'}}>
-                      <div className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 bg-white border-2 border-gray-200 shadow-md rounded-full flex items-center justify-center border-2 border-green-400/40 shadow-lg">
-                        <FaRocket className="text-sm sm:text-lg md:text-xl text-red-600" />
-                      </div>
-                    </div>
-                    
-                    <div className="absolute top-8 sm:top-12 md:top-16 left-2 sm:left-4 md:left-8 animate-bounce" style={{animationDelay: '3.5s', animationDuration: '3s'}}>
-                      <div className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 bg-white border-2 border-gray-200 shadow-md rounded-full flex items-center justify-center border-2 border-cyan-400/40 shadow-lg">
-                        <FaBullseye className="text-sm sm:text-lg md:text-xl text-indigo-600" />
-                      </div>
-                    </div>
+                    {/* Orbiting elements with organized circular positioning */}
+                    {circularIcons.map((iconData, index) => {
+                      const IconComponent = iconData.icon;
+                      const radius = 180; // Raggio originale in pixel
+                      const radiusMobile = 140; // Raggio mobile
+                      
+                      // Calcola posizione basata sull'angolo
+                      const x = Math.cos((iconData.angle * Math.PI) / 180) * (isDesktop ? radius : radiusMobile);
+                      const y = Math.sin((iconData.angle * Math.PI) / 180) * (isDesktop ? radius : radiusMobile);
+                      
+                      return (
+                        <div
+                          key={iconData.id}
+                          className="absolute cursor-pointer circular-icon"
+                          style={{
+                            left: `${50 + (x / (isDesktop ? 4 : 3))}%`,
+                            top: `${50 + (y / (isDesktop ? 4 : 3))}%`,
+                            transform: 'translate(-50%, -50%)'
+                          }}
+                          onMouseEnter={() => isDesktop ? setActiveTooltip(iconData.id) : null}
+                          onMouseLeave={() => isDesktop ? setActiveTooltip(null) : null}
+                          onClick={() => !isDesktop ? setActiveTooltip(activeTooltip === iconData.id ? null : iconData.id) : null}
+                        >
+                          <div className="relative">
+                            <div className={`w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 bg-white border-2 border-gray-200 shadow-md rounded-full flex items-center justify-center shadow-lg transform hover:scale-125 hover:rotate-12 transition-all duration-300 ${activeTooltip === iconData.id ? 'scale-125 rotate-12' : ''}`}>
+                              <IconComponent className={`text-sm sm:text-lg md:text-xl ${iconData.color}`} />
+                            </div>
+                            
+                            {/* Tooltip */}
+                            {activeTooltip === iconData.id && (
+                              <div className="absolute z-50 px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-nowrap animate-fade-in"
+                                style={{
+                                  bottom: iconData.angle >= 90 && iconData.angle <= 270 ? 'auto' : '120%',
+                                  top: iconData.angle >= 90 && iconData.angle <= 270 ? '120%' : 'auto',
+                                  left: '50%',
+                                  transform: 'translateX(-50%)'
+                                }}
+                              >
+                                {iconData.tooltip}
+                                <div className="absolute w-2 h-2 bg-gray-900 transform rotate-45"
+                                  style={{
+                                    top: iconData.angle >= 90 && iconData.angle <= 270 ? '-4px' : 'auto',
+                                    bottom: iconData.angle >= 90 && iconData.angle <= 270 ? 'auto' : '-4px',
+                                    left: '50%',
+                                    transform: 'translateX(-50%) rotate(45deg)'
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </>
                 ) : (
                   /* Contact Form - Mobile Responsive */
@@ -1367,16 +1463,21 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
 >
   {(() => {
     const apps = [
-      { src: '/icons/word.png', alt: 'Word', style: 'top-6 left-10 rotate-3' },
-      { src: '/icons/slack.png', alt: 'Slack', style: 'top-20 right-10 -rotate-6' },
-      { src: '/icons/notion.png', alt: 'Notion', style: 'top-40 left-4 rotate-2' },
-      { src: '/icons/trello.png', alt: 'Trello', style: 'bottom-10 left-16 -rotate-3' },
-      { src: '/icons/airtable.png', alt: 'Airtable', style: 'bottom-20 right-6 rotate-6' },
-      { src: '/icons/dropbox.png', alt: 'Dropbox', style: 'top-1/2 right-24 -rotate-2' },
-      { src: '/icons/jira.png', alt: 'Jira', style: 'top-28 left-1/3 rotate-6' },
-      { src: '/icons/figma.png', alt: 'Figma', style: 'bottom-24 left-1/2 -rotate-6' },
+      { src: 'images/icons/business.png', alt: 'Word', style: 'top-6 left-10 rotate-3' },
+      { src: 'images/icons/sitoweb.png', alt: 'Slack', style: 'top-20 right-10 -rotate-6' },
+      { src: 'images/icons/social.png', alt: 'Notion', style: 'top-40 left-4 rotate-2' },
+      { src: 'images/icons/ads.png', alt: 'Trello', style: 'bottom-10 left-16 -rotate-3' },
+      { src: 'images/icons/spam.png', alt: 'Airtable', style: 'bottom-20 right-6 rotate-6' },
+      { src: 'images/icons/soldi.png', alt: 'Dropbox', style: 'top-1/2 right-24 -rotate-2' },
     ];
-
+const labels = {
+  0: '?',
+  1: 'Error 404',
+  2: 'Ban',
+  3: 'Obsoleto',
+  4: 'Spam',
+  5: '-8.000€'
+};
     return (
      <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2 items-stretch">
   {/* LEFT – Work is broken */}
@@ -1388,7 +1489,7 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                 Il vecchio modello di Web Agency non è più sostenibile.
               </h2>
               <p className="mt-3 max-w-md text-slate-600">
-                Inutile continuare a investire soldi senza garanzie, rischiando grosse perdite economiche.
+                Inutile continuare a investire soldi senza garanzie e utilizzando tecniche obsolete, senza conoscere il potenziale reale e rischiando grosse perdite economiche.
               </p>
 
               {/* Cloud di iconcine */}
@@ -1411,7 +1512,8 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                       className="h-9 w-9 object-contain"
                     />
                     <span className="absolute -top-2 -right-2 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-rose-500 text-xs font-semibold text-white px-1">
-                      {i % 3 === 0 ? '!' : i % 3 === 1 ? '3' : '5'}
+                       {labels[i]}
+                       
                     </span>
                   </div>
                 ))}
@@ -1429,7 +1531,8 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                 Da oggi cambiamo rotta.
               </h3>
               <p className="relative mt-3 max-w-md text-slate-300">
-                Con SafeScale, investiamo noi nel tuo progetto, con metodi già testati e funzionanti.
+                Con SafeScale investiamo noi nel tuo progetto con strategie già collaudate e vincenti. <br />
+                Se funziona, cresciamo insieme. Se non funziona, il rischio è solo nostro.
               </p>
 
               {/* CTA */}
@@ -1458,16 +1561,16 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                 <div className="relative aspect-[16/10] w-full max-w-md rounded-3xl border border-fuchsia-500/30 bg-slate-900/50 p-4 shadow-[0_0_80px_rgba(217,70,239,0.25)]">
                   <div className="grid h-full grid-cols-2 grid-rows-2 gap-3">
                     <div className="rounded-2xl border border-fuchsia-400/40 bg-slate-900/60 backdrop-blur-sm grid place-items-center text-center text-sm text-slate-200">
-                      Project<br />management
+                      Creazione<br />E-Commerce
                     </div>
                     <div className="rounded-2xl border border-fuchsia-400/40 bg-slate-900/60 backdrop-blur-sm grid place-items-center text-center text-sm text-slate-200">
-                      Chat
+                      Gestione<br />Spedizioni
                     </div>
                     <div className="rounded-2xl border border-fuchsia-400/40 bg-slate-900/60 backdrop-blur-sm grid place-items-center text-center text-sm text-slate-200">
-                      Knowledge<br />management
+                      Campagne<br />Pubblicitarie
                     </div>
                     <div className="relative rounded-2xl border border-fuchsia-400/60 bg-slate-900/70 backdrop-blur grid place-items-center text-center text-sm font-semibold text-white">
-                      AI
+                      Divisione<br />Profitti
                       <span className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-fuchsia-500/40 shadow-[0_0_40px_rgba(217,70,239,0.35)_inset]" />
                     </div>
                   </div>
@@ -1489,8 +1592,9 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
 </section>
 
 
-<section id="use-cases" className="py-16 px-4 sm:px-6 lg:px-8">
-<div className="w-full max-w-7xl mx-auto px-6 lg:px-12">
+<section id="use-cases" className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-purple-50/8 via-white to-pink-50/5 relative">
+  <div className="absolute inset-0 bg-gradient-to-r from-purple-50/15 via-transparent to-pink-50/15"></div>
+<div className="w-full max-w-7xl lg:max-w-[1600px] mx-auto px-6 lg:px-12 relative z-10">
 
     {/* HEADER */}
     <div className="text-center mb-12">
@@ -1504,9 +1608,9 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
     </div>
 
     {/* CONTENUTO */}
-    <div className="grid gap-8 md:grid-cols-2 items-stretch">
+    <div className="grid gap-8 md:grid-cols-2 items-stretch min-h-[600px]">
       {/* SINISTRA */}
-      <div className="space-y-4 md:self-start">
+      <div className="space-y-4 flex flex-col justify-center">
         {ITEMS.map((it, idx) => {
           const isActive = active === idx;
           return (
@@ -1555,7 +1659,7 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
 
       {/* DESTRA: STAGE DESKTOP */}
       <div className="hidden md:block md:self-stretch">
-        <div className="h-full rounded-3xl border border-slate-200/70 bg-white shadow-xl overflow-hidden">
+        <div className="h-full min-h-[600px] rounded-3xl border border-slate-200/70 bg-white shadow-xl overflow-hidden">
           <div className="relative h-full">
             {ITEMS.map((it, idx) => {
               const show = active === idx;
@@ -1589,14 +1693,14 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
         data-section="three-steps"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-blue-50/30 via-transparent to-purple-50/30"></div>
-<div className="w-full max-w-7xl mx-auto relative z-10 px-6 lg:px-12">
+<div className="w-full max-w-7xl lg:max-w-[2000px] mx-auto relative z-10 px-6 lg:px-12">
 
           <div className={`text-center mb-16 slide-up-enter ${visibleSections.includes('three-steps') ? 'slide-up-visible' : ''}`}>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4" style={{color: '#1c1a31'}}>
-              <span className="gradient-text-success">3 Step</span>, <span className="gradient-text-primary">0 Rischi</span>
+              <span className="gradient-text-brand">3 Step</span>, <span className="gradient-text-success">0 Rischi</span>
             </h2>
             <p className="text-lg text-custom-dark max-w-3xl mx-auto">
-              Il nostro processo trasparente che <span className="font-semibold gradient-text-success">elimina ogni rischio</span> per il tuo business
+              Il nostro processo trasparente che <span className="font-semibold gradient-text-brand">elimina ogni rischio</span> per il tuo business
             </p>
           </div>
           
@@ -1720,13 +1824,13 @@ const apps = [
       {/* Google Ads Section */}
      <section 
   id="servizi" 
-className="bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10 relative"
+className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10 relative"
   data-section="google-ads"
 >
-  <div className="absolute inset-0 bg-gradient-to-br from-blue-950/8 via-slate-950/5 to-gray-950/10 animate-pulse" style={{animationDuration: '6s'}}></div>
+  <div className="absolute inset-0 bg-gradient-to-r from-blue-50/30 via-transparent to-purple-50/30"></div>
   
   
-<div className="w-full max-w-7xl mx-auto px-6 lg:px-12">
+<div className="w-full max-w-7xl mx-auto relative z-10 px-6 lg:px-12">
 
     <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             <div className={`space-y-6 lg:space-y-8 slide-up-enter slide-up-delay-1 ${visibleSections.includes('google-ads') ? 'slide-up-visible' : ''}`}>
@@ -1734,12 +1838,12 @@ className="bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10 relative"
                 Google Ads
               </div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{color: '#1c1a31'}}>
-                Strategie Pubblicitarie Su <span style={{color: '#EE6622'}}>Google Ads</span>
+                Strategie Pubblicitarie Su <span className="gradient-text-brand">Google Ads</span>
               </h2>
               <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-                Gestiamo e investiamo nelle campagne <span style={{color: '#EE6622'}}>Google ADS</span> per aumentare in modo diretto le vendite dei tuoi prodotti.  <br />
-Utilizziamo un sistema comprovato per individuare <span style={{color: '#EE6622'}}>keyword vincenti</span> e sviluppare <span style={{color: '#EE6622'}}>creatività</span> coinvolgenti, così da ottenere il massimo delle conversioni al minor costo possibile.  <br />
-E se la campagna non raggiunge i risultati attesi, <span style={{color: '#EE6622'}}>copriamo noi le perdite</span>.  
+                Gestiamo e investiamo nelle campagne <span className="gradient-text-brand">Google ADS</span> per aumentare in modo diretto le vendite dei tuoi prodotti.  <br />
+Utilizziamo un sistema comprovato per individuare <span className="gradient-text-brand">keyword vincenti</span> e sviluppare <span className="gradient-text-brand">creatività</span> coinvolgenti, così da ottenere il massimo delle conversioni al minor costo possibile.  <br />
+E se la campagna non raggiunge i risultati attesi, <span className="gradient-text-brand">copriamo noi le perdite</span>.  
 
               </p>
               <button 
@@ -1774,7 +1878,7 @@ E se la campagna non raggiunge i risultati attesi, <span style={{color: '#EE6622
                     <div className="text-xs sm:text-sm text-white/70">Views</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg sm:text-2xl font-bold" style={{color: '#EE6622'}}>€11.456</div>
+                    <div className="text-lg sm:text-2xl font-bold gradient-text-brand">€11.456</div>
                     <div className="text-xs sm:text-sm text-white/70">Spesa</div>
                   </div>
                   <div className="text-center">
@@ -1803,10 +1907,11 @@ E se la campagna non raggiunge i risultati attesi, <span style={{color: '#EE6622
 
       {/* SEO Section - COMMENTED OUT 
       <section 
-        className="py-12 sm:py-16 px-4 sm:px-6 bg-white"
+        className="py-12 sm:py-16 px-4 sm:px-6 bg-gradient-to-br from-green-50/8 via-white to-emerald-50/5 relative"
         data-section="seo"
       >
-        <div className="container mx-auto">
+        <div className="absolute inset-0 bg-gradient-to-r from-green-50/12 via-transparent to-emerald-50/12"></div>
+        <div className="container mx-auto relative z-10">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             <div className={`relative order-2 lg:order-1 transform hover:scale-105 transition-transform duration-300 slide-up-enter slide-up-delay-1 ${visibleSections.includes('seo') ? 'slide-up-visible' : ''}`}>
               <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-4 sm:p-6 rounded-2xl border border-gray-700 hover:border-green-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-green-500/20 text-white">
@@ -1826,13 +1931,13 @@ E se la campagna non raggiunge i risultati attesi, <span style={{color: '#EE6622
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-white text-sm sm:text-base">Backlinks</span>
-                    <span className="font-bold text-sm sm:text-base" style={{color: '#EE6622'}}>15,892</span>
+                    <span className="font-bold text-sm sm:text-base gradient-text-brand">15,892</span>
                   </div>
                 </div>
                 
                 <div className="bg-gradient-to-r from-blue-100 to-indigo-100 border border-blue-200 p-3 sm:p-4 rounded-lg">
                   <div className="text-center mb-2">
-                    <span className="text-xl sm:text-2xl font-bold" style={{color: '#EE6622'}}>over 1000%</span>
+                    <span className="text-xl sm:text-2xl font-bold gradient-text-brand">over 1000%</span>
                   </div>
                   <div className="text-center text-xs sm:text-sm text-custom-dark">Traffic Growth</div>
                 </div>
@@ -1851,10 +1956,10 @@ E se la campagna non raggiunge i risultati attesi, <span style={{color: '#EE6622
             <div className={`space-y-6 lg:space-y-8 order-1 lg:order-2 slide-up-enter slide-up-delay-2 ${visibleSections.includes('seo') ? 'slide-up-visible' : ''}`}>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{color: '#1c1a31'}}>
                 Ottimizzazione SEO: <br/>
-                <span style={{color: '#EE6622'}}>Tecnica</span>, <span className="text-blue-600">On-Page</span> E <span style={{color: '#EE6622'}}>Link Building</span>
+                <span className="gradient-text-brand">Tecnica</span>, <span className="gradient-text-brand">On-Page</span> E <span className="gradient-text-brand">Link Building</span>
               </h2>
               <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-                Ottimizzazione del ranking con <span style={{color: '#EE6622'}}>SEO tecnica</span>, ottimizzazione del <span className="text-blue-600">codice HTML</span> e <span style={{color: '#EE6622'}}>link building</span>, aumentando visibilità e traffico organico.
+                Ottimizzazione del ranking con <span className="gradient-text-brand">SEO tecnica</span>, ottimizzazione del <span className="gradient-text-brand">codice HTML</span> e <span className="gradient-text-brand">link building</span>, aumentando visibilità e traffico organico.
               </p>
               <button 
                 onClick={() => {
@@ -1891,11 +1996,11 @@ E se la campagna non raggiunge i risultati attesi, <span style={{color: '#EE6622
                 Social Media Management
               </div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{color: '#1c1a31'}}>
-                Gestione Strategica Dei <span className="text-blue-600">Social Media</span>
-                <br />Su <span style={{color: '#EE6622'}}>Meta</span>, <span className="text-blue-600">TikTok</span> E <span style={{color: '#EE6622'}}>LinkedIn</span>
+                Gestione Strategica Dei <span className="gradient-text-brand">Social Media</span>
+                <br />Su <span className="gradient-text-brand">Meta</span>, <span className="gradient-text-brand">TikTok</span> E <span className="gradient-text-brand">LinkedIn</span>
               </h2>
               <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-                Sviluppo di strategie di <span className="text-blue-600">social media marketing</span> basate su <span style={{color: '#EE6622'}}>data analytics</span>, advertising mirato e <span className="text-blue-600">content curation</span> per ottimizzare l'engagement.
+                Sviluppo di strategie di <span className="gradient-text-brand">social media marketing</span> basate su <span className="gradient-text-brand">data analytics</span>, advertising mirato e <span className="gradient-text-brand">content curation</span> per ottimizzare l'engagement.
               </p>
               <button 
                 onClick={() => {
@@ -1967,34 +2072,46 @@ E se la campagna non raggiunge i risultati attesi, <span style={{color: '#EE6622
       */}
 
 
-      {/* About Section */}
-      <section 
-        id="chi-siamo" 
-        className="w-full max-w-7xl mx-auto px-6 lg:px-12 py-12 sm:py-16 px-4 sm:px-6 bg-gradient-to-br from-blue-50/10 via-white to-blue-100/5"
-        data-section="about"
-      >
-        <div className="container mx-auto">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <div className={`space-y-6 lg:space-y-8 slide-up-enter slide-up-delay-1 ${visibleSections.includes('about') ? 'slide-up-visible' : ''}`}>
-              <div className="inline-block px-3 py-2 bg-gradient-to-r from-blue-100 to-indigo-100 border border-blue-200 rounded-full text-xs sm:text-sm">
-                SafeScale
-              </div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{color: '#1c1a31'}}>
-                <span className="text-green-500">Risultati Concreti Verificabili</span> e <span className="text-blue-600">Massima Trasparenza</span>
-              </h2>
-              <div className="space-y-3 sm:space-y-4 text-base sm:text-lg text-gray-600 leading-relaxed">
-                <p>
-                
-  Sempre più <span style={{color: '#EE6622'}}> aziende e imprenditori </span> stanno affidando il loro business al nuovo sistema <span className="text-custom-dark font-bold"> SafeScale </span>, per crescere senza rischi e con un modello sostenibile.  
-</p>
-<p>
-  Le nostre <span style={{color: '#EE6622'}}> metodologie proprietarie </span> sono certificate e testate su migliaia di campagne pubblicitarie. Monitoriamo ogni KPI in tempo reale attraverso <span style={{color: '#EE6622'}}> dashboard personalizzate </span> che garantiscono la massima trasparenza sui risultati ottenuti.  
-</p>
-<p className="hidden sm:block">
-  <span className="text-green-400 font-semibold"> Trasparenza totale: </span> riceverai report dettagliati con metriche verificabili, analisi competitive e proiezioni di crescita basate su dati reali di mercato. <br />In più avrai libero accesso a vendite, spedizioni e guadagni in tempo reale.
+     {/* About Section */}
+<section
+  id="chi-siamo"
+  className="py-12 sm:py-16 px-4 sm:px-6 bg-gradient-to-br from-green-50/8 via-white to-blue-50/8 relative"
+  data-section="about"
+>
+  <div className="absolute inset-0 bg-gradient-to-r from-green-50/12 via-transparent to-blue-50/12"></div>
+  <div className="w-full max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
+    <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <div className={`space-y-6 lg:space-y-8 slide-up-enter slide-up-delay-1 order-2 lg:order-2 ${visibleSections.includes('about') ? 'slide-up-visible' : ''}`}>
+        <div className="inline-block px-3 py-2 bg-gradient-to-r from-blue-100 to-indigo-100 border border-blue-200 rounded-full text-xs sm:text-sm">
+          SafeScale
+        </div>
 
- </p>
-              </div>
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{ color: '#1c1a31' }}>
+          Risultati Concreti <span className="gradient-text-brand">Verificabili</span> e
+          {' '}
+          Massima<span className="gradient-text-brand"> Trasparenza</span>
+        </h2>
+
+        <div className="space-y-3 sm:space-y-4 text-base sm:text-lg text-gray-600 leading-relaxed">
+          <p>
+            Sempre più <span className="gradient-text-brand">aziende e imprenditori</span> stanno affidando il loro business al nuovo sistema
+            {' '}
+            <span className="gradient-text-brand font-bold">SafeScale</span>, per crescere senza rischi e con un modello sostenibile.
+          </p>
+
+          <p>
+            Le nostre <span className="gradient-text-brand">metodologie proprietarie</span> sono certificate e testate su migliaia di campagne pubblicitarie.
+            Monitoriamo ogni KPI in tempo reale attraverso
+            {' '}
+            <span className="gradient-text-brand">dashboard personalizzate</span> che garantiscono la massima trasparenza sui risultati ottenuti.
+          </p>
+
+          <p className="hidden sm:block">
+            <span className="gradient-text-brand font-semibold">Trasparenza totale:</span>
+            {' '}riceverai report dettagliati con metriche verificabili, analisi competitive e proiezioni di crescita basate su dati reali di mercato.
+            <br />In più avrai libero accesso a vendite, spedizioni e guadagni in tempo reale.
+          </p>
+        </div>
               
               
 
@@ -2042,7 +2159,7 @@ E se la campagna non raggiunge i risultati attesi, <span style={{color: '#EE6622
               </div>
             </div>
             
-            <div className={`grid grid-cols-2 gap-3 sm:gap-4 order-first lg:order-last group slide-up-enter slide-up-delay-2 ${visibleSections.includes('about') ? 'slide-up-visible' : ''}`}>
+            <div className={`grid grid-cols-2 gap-3 sm:gap-4 order-first lg:order-first group slide-up-enter slide-up-delay-2 ${visibleSections.includes('about') ? 'slide-up-visible' : ''}`}>
               <div className="space-y-3 sm:space-y-4">
                 <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl sm:rounded-2xl p-6 aspect-square transform group-hover:scale-105 group-hover:rotate-1 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 relative overflow-hidden flex items-center justify-center text-white">
                   <Image
@@ -2100,7 +2217,56 @@ E se la campagna non raggiunge i risultati attesi, <span style={{color: '#EE6622
         </div>
       </section>
 
+
+<section className="py-12 bg-gray-50">
+    {/* Titolo */}
+    <div className="max-w-[1200px] mx-auto text-center mb-8 px-4">
+      <h2 className="text-3xl font-bold">Don’t just take it from us</h2>
+      <p className="text-gray-600">
+        Loved by teams. Backed by awards. Trusted worldwide.
+      </p>
+    </div>
+
+    {/* Box */}
+    <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
+      {testimonials.map((t, idx) => (
+        <div
+          key={idx}
+          className="flex flex-col rounded-lg overflow-hidden shadow-lg bg-white"
+        >
+          {/* Video full width verticale */}
+          <div className="w-full relative pb-[177%]">
+            <iframe
+              className="absolute inset-0 w-full h-full rounded-lg"
+              src={t.videoUrl}
+              title={`Testimonial ${t.company}`}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
+
+          {/* Testo sotto */}
+          <div className="p-6 flex flex-col justify-between flex-grow text-center">
+            <div>
+              <p className="uppercase font-semibold text-sm text-gray-500 mb-2">
+                {t.company}
+              </p>
+              <p className="italic mb-2">&ldquo;{t.quote}&rdquo;</p>
+            </div>
+            <p className="text-sm font-medium">{t.author}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+
+
    {/* --- Banner stile ClickUp (singolo blocco) --- */}
+   <section className="py-12 sm:py-16 px-4 sm:px-6 bg-gradient-to-br from-pink-50/8 via-white to-violet-50/5 relative">
+     <div className="absolute inset-0 bg-gradient-to-r from-pink-50/12 via-transparent to-violet-50/12"></div>
+<div className="relative z-10">
 <section
   className="relative mx-auto max-w-6xl rounded-[28px] p-10 sm:p-12"
   aria-label="Call to action"
@@ -2145,15 +2311,81 @@ E se la campagna non raggiunge i risultati attesi, <span style={{color: '#EE6622
   {/* ombra esterna morbida */}
   <div className="pointer-events-none absolute inset-0 -z-10 rounded-[32px] shadow-[0_40px_80px_-20px_rgba(109,40,217,0.45)]" />
 </section>
+</div>
+</section>
 
+  <section className="w-full px-6 py-12">
+      <div className="max-w-[1200px] mx-auto bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col md:flex-row">
+        
+        {/* Left side */}
+        <div className="flex-1 p-8">
+          <h2 className="text-2xl font-bold mb-3">Deliver projects on time, every time</h2>
+          <p className="text-gray-600 mb-6">
+            Get teams running more efficiently with a complete project management solution.
+          </p>
 
+          <ul className="space-y-3 mb-6">
+            <li className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-purple-600" />
+              <span>Reduce delivery time with custom templates</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-purple-600" />
+              <span>Track effort to impact with OKR planning</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-purple-600" />
+              <span>Manage complex projects at scale</span>
+            </li>
+          </ul>
+
+          {/* Testimonial */}
+          <div className="flex items-center gap-4">
+            <img
+              src="https://randomuser.me/api/portraits/women/44.jpg"
+              alt="User"
+              className="w-14 h-14 rounded-full"
+            />
+            <div>
+              <p className="text-yellow-500">★★★★★</p>
+              <p className="text-sm text-gray-700">
+                <strong>“ClickUp brings all of our teams together into one place</strong> so that they can stay on track, collaborate and communicate.” 
+              </p>
+              <p className="text-xs text-gray-500 mt-1">— Convene</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right side */}
+        <div className="flex-1 p-8 bg-gradient-to-br from-gray-50 to-white border-l border-gray-200 flex flex-col justify-between">
+          <div className="space-y-4">
+            {features.map((f, idx) => (
+              <div
+                key={idx}
+                className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+              >
+                {f.icon}
+                <span className="text-gray-800">{f.title}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6">
+            <button className="w-full py-3 rounded-lg text-white font-medium bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90 transition">
+              Use this solution →
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
 
       {/* Reviews Section */}
       <section 
-        className="py-12 sm:py-16 px-4 sm:px-6 bg-gradient-to-br from-blue-50/10 via-white to-blue-100/5"
+        className="py-12 sm:py-16 px-4 sm:px-6 bg-gradient-to-br from-indigo-50/8 via-white to-violet-50/5 relative"
         data-section="reviews"
       >
-        <div className="container mx-auto">
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-50/12 via-transparent to-violet-50/12"></div>
+        <div className="container mx-auto relative z-10">
           <div className={`text-center mb-8 lg:mb-12 slide-up-enter slide-up-delay-1 ${visibleSections.includes('reviews') ? 'slide-up-visible' : ''}`}>
             <div className="inline-block px-3 py-2 bg-gradient-to-r from-blue-100 to-indigo-100 border border-blue-200 rounded-full text-xs sm:text-sm mb-4">
               Recensioni Clienti
@@ -2251,6 +2483,7 @@ E se la campagna non raggiunge i risultati attesi, <span style={{color: '#EE6622
 
       {/* Footer */}
       <footer className="py-8 sm:py-12 px-4 sm:px-6 bg-gradient-to-br from-blue-50/10 via-white to-blue-100/5 border-t border-gray-200 footer-geometric">
+      
         {/* Geometric Elements */}
         <div className="geometric-triangles"></div>
         <div className="geometric-squares"></div>
@@ -2308,6 +2541,7 @@ E se la campagna non raggiunge i risultati attesi, <span style={{color: '#EE6622
             <p className="text-sm sm:text-base">&copy; 2025 SafeScale Agency. Tutti i diritti riservati.</p>
           </div>
         </div>
+        
       </footer>
 
       {/* Image Modal */}
