@@ -76,6 +76,7 @@ export default function HomePage() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const [autoPlay, setAutoPlay] = useState(true);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const features: FeatureCard[] = [
   { icon: <Settings className="w-5 h-5 text-gray-700" />, title: "Flexible workflows for every team" },
   { icon: <FileText className="w-5 h-5 text-gray-700" />, title: "Tasks, docs, spreadsheets, and more" },
@@ -104,6 +105,8 @@ const pauseAutoPlay = (ms?: number) => {
 };
 
 const [autoPlayDelay, setAutoPlayDelay] = useState(3500); // ms
+const [activeProjectTab, setActiveProjectTab] = useState('marketing');
+const [contentKey, setContentKey] = useState(0);
 const autoPlayTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 const resumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 const carouselContainerRef = useRef<HTMLDivElement | null>(null);
@@ -154,6 +157,82 @@ const carouselContainerRef = useRef<HTMLDivElement | null>(null);
     { id: 'rocket', icon: FaRocket, color: 'text-red-600', tooltip: 'Business Growth', angle: 270 },
     { id: 'bullseye', icon: FaBullseye, color: 'text-indigo-600', tooltip: 'contatti@safescale.it', angle: 315 }
   ];
+
+  // Project tabs data for interactive section
+  const projectTabs = {
+    marketing: {
+      title: "Marketing Teams",
+      subtitle: "Strategia e campagne su misura per il tuo brand",
+      description: "Ottimizza le tue campagne marketing con strumenti avanzati di pianificazione e tracking.",
+      features: [
+        "Campaign planning e calendario editoriale",
+        "Analytics in tempo reale per ROI tracking",
+        "Automazione email e social media marketing",
+        "A/B testing per ottimizzazione continua"
+      ],
+      testimonial: {
+        name: "Marco Rossi",
+        company: "Digital Marketing Manager",
+        avatar: "https://randomuser.me/api/portraits/men/32.jpg",
+        quote: "SafeScale ha trasformato il nostro approccio al marketing digitale, permettendoci di ottimizzare ogni campagna."
+      },
+      ctaText: "Scopri la soluzione Marketing"
+    },
+    ecommerce: {
+      title: "E-commerce Solutions",
+      subtitle: "Piattaforme complete per vendite online",
+      description: "Gestisci il tuo negozio online con strumenti professionali per massimizzare le conversioni.",
+      features: [
+        "Gestione catalogo e inventory management",
+        "Sistema pagamenti sicuri e multi-gateway",
+        "Analytics vendite e comportamento clienti",
+        "Integrazione con marketplace e social commerce"
+      ],
+      testimonial: {
+        name: "Laura Bianchi",
+        company: "E-commerce Manager",
+        avatar: "https://randomuser.me/api/portraits/women/45.jpg",
+        quote: "Con SafeScale abbiamo aumentato le conversioni del 300% e ottimizzato tutti i processi di vendita online."
+      },
+      ctaText: "Esplora l'E-commerce Suite"
+    },
+    seo: {
+      title: "SEO & Analytics",
+      subtitle: "Visibilità garantita sui motori di ricerca",
+      description: "Domina i risultati di ricerca con strategie SEO data-driven e monitoraggio continuo.",
+      features: [
+        "Audit SEO completo e competitor analysis",
+        "Ottimizzazione tecnica e contenuti",
+        "Local SEO e Google My Business",
+        "Reporting dettagliato e KPI tracking"
+      ],
+      testimonial: {
+        name: "Giuseppe Verde",
+        company: "SEO Specialist",
+        avatar: "https://randomuser.me/api/portraits/men/28.jpg",
+        quote: "Grazie a SafeScale siamo passati dalla seconda alla prima pagina Google per tutte le keyword principali."
+      },
+      ctaText: "Migliora il tuo SEO"
+    },
+    development: {
+      title: "Web Development",
+      subtitle: "Soluzioni tecniche su misura",
+      description: "Sviluppiamo applicazioni web scalabili e performanti con tecnologie all'avanguardia.",
+      features: [
+        "Sviluppo custom con React, Next.js, Node.js",
+        "API integration e microservizi",
+        "Database design e ottimizzazione",
+        "Deploy automatico e monitoring"
+      ],
+      testimonial: {
+        name: "Alice Neri",
+        company: "CTO",
+        avatar: "https://randomuser.me/api/portraits/women/30.jpg",
+        quote: "Il team SafeScale ha sviluppato la nostra piattaforma in tempi record mantenendo la massima qualità del codice."
+      },
+      ctaText: "Richiedi sviluppo custom"
+    }
+  };
 
   // Dati degli step
   const steps = [
@@ -392,14 +471,9 @@ const carouselContainerRef = useRef<HTMLDivElement | null>(null);
   const generateCaptcha = () => {
     if (typeof window === 'undefined') return;
     
-    const operations = [
-      { op: '+', calc: (a: number, b: number) => a + b },
-      { op: '-', calc: (a: number, b: number) => a - b },
-      { op: '×', calc: (a: number, b: number) => a * b }
-    ];
-    const num1 = Math.floor(Math.random() * 10) + 1;
-    const num2 = Math.floor(Math.random() * 10) + 1;
-    const operation = operations[Math.floor(Math.random() * operations.length)];
+    const num1 = Math.floor(Math.random() * 9) + 1; // Single digit 1-9
+    const num2 = Math.floor(Math.random() * 9) + 1; // Single digit 1-9
+    const operation = { op: '+', calc: (a: number, b: number) => a + b };
     
     const question = `${num1} ${operation.op} ${num2} = ?`;
     const answer = operation.calc(num1, num2);
@@ -546,7 +620,7 @@ const ctaHref = '#contact-form'; // cambia con l’anchor o il link che vuoi
     <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-blue-100/20 text-custom-dark overflow-x-hidden">
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
-        <div className="w-full max-w-7xl lg:max-w-[2000px] mx-auto px-4 sm:px-6 lg:px-12 py-4">
+        <div className="w-full max-w-7xl lg:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-12 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
               <Image
@@ -589,7 +663,7 @@ const ctaHref = '#contact-form'; // cambia con l’anchor o il link che vuoi
         </div>
         
         {/* Mobile Menu Dropdown */}
-        <div className={`md:hidden absolute top-full left-0 right-0 bg-white/98 backdrop-blur-md border-b border-gray-200 shadow-lg transition-all duration-300 ease-in-out ${mobileMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
+        <div className={`md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-lg transition-all duration-300 ease-in-out ${mobileMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-6">
             <nav className="flex flex-col space-y-4">
               <Link 
@@ -655,18 +729,18 @@ const ctaHref = '#contact-form'; // cambia con l’anchor o il link che vuoi
         
         {/* Light gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-white/30 to-purple-50/50"></div>
-        <div className="w-full max-w-7xl lg:max-w-[2000px] mx-auto relative z-10 px-4 sm:px-6 lg:px-12">
+        <div className="w-full max-w-7xl lg:max-w-[1600px] mx-auto relative z-10 px-4 sm:px-6 lg:px-12">
           <div className="grid lg:grid-cols-5 gap-8 lg:gap-12 items-center">
             <div className="space-y-6 lg:space-y-8 order-1 lg:order-1 lg:col-span-2">
-              <div className="inline-block px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-200 rounded-full text-xs sm:text-sm font-medium gradient-text-brand">
+              <div className="inline-block px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-200 rounded-full text-xs sm:text-sm font-medium gradient-text-brand mt-4 sm:mt-0">
                 🚀 Investiamo sul tuo progetto
               </div>
-              <h1 className="text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight" style={{color: '#1c1a31'}}>
-                <span>Noi</span> <span>Investiamo</span>
+              <h1 className="text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-tight" style={{color: '#1c1a31', lineHeight: 'calc(1.25em + 1px)'}}>
+                <span>Noi</span> <span className="gradient-text-brand">Investiamo</span>
                 <br /><span>Tu</span> 
-                <span> Guadagni</span> 
+                <span className="gradient-text-brand"> Guadagni</span> 
                 <br />
-                 <span>Zero Rischi</span>
+                 <span>Zero </span><span className="gradient-text-brand">Rischi</span>
               </h1>
               <p className="text-base sm:text-lg lg:text-xl text-custom-dark leading-relaxed">
                 Proponici la tua <span className="font-semibold gradient-text-brand">idea di Business</span> con <span className="font-semibold gradient-text-brand">E-Commerce</span>: se la riterremo valida, <span className="font-semibold gradient-text-brand">creeremo</span> il sistema di consegne, gestiremo il <span className="font-semibold gradient-text-brand">marketing</span> e <span className="font-semibold gradient-text-brand">investiremo</span> nel progetto con campagne pubblicitarie mirate.  
@@ -820,7 +894,7 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                       <form className="space-y-3 sm:space-y-4 relative z-10" onSubmit={handleContactSubmit}>
                         <div className="grid grid-cols-2 gap-2 sm:gap-4">
                           <div>
-                            <label htmlFor="nome" className="block text-xs sm:text-sm font-medium text-blue-200 mb-1 sm:mb-2">
+                            <label htmlFor="nome" className="block text-xs sm:text-sm font-medium text-gray-100 mb-1 sm:mb-2">
                               Nome
                             </label>
                             <input
@@ -832,7 +906,7 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                             />
                           </div>
                           <div>
-                            <label htmlFor="cognome" className="block text-xs sm:text-sm font-medium text-blue-200 mb-1 sm:mb-2">
+                            <label htmlFor="cognome" className="block text-xs sm:text-sm font-medium text-gray-100 mb-1 sm:mb-2">
                               Cognome
                             </label>
                             <input
@@ -846,7 +920,7 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                         </div>
                         
                         <div>
-                          <label htmlFor="telefono" className="block text-xs sm:text-sm font-medium text-blue-200 mb-1 sm:mb-2">
+                          <label htmlFor="telefono" className="block text-xs sm:text-sm font-medium text-gray-100 mb-1 sm:mb-2">
                             Telefono
                           </label>
                           <input
@@ -882,7 +956,7 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                         </div>
                         
                         <div>
-                          <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-blue-200 mb-1 sm:mb-2">
+                          <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-100 mb-1 sm:mb-2">
                             Email
                           </label>
                           <input
@@ -917,10 +991,10 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                       }
                     }}
                   >
-                    <div className="bg-gradient-to-br from-slate-900 via-blue-900/90 to-slate-900 p-6 sm:p-8 rounded-2xl border-2 border-blue-500/30 shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto mt-4">
+                    <div className="p-6 sm:p-8 rounded-2xl border-2 border-purple-500/30 shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto mt-4" style={{background: 'linear-gradient(135deg, #1a4a5c 0%, #2a0a5c 50%, #4a0833 100%)'}}>
                       <div className="flex justify-between items-center mb-6">
                         <div>
-                          <h3 className="text-xl sm:text-2xl font-bold text-cyan-300 mb-2">
+                          <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">
                             <FaClipboardList className="inline mr-2" /> Candidatura SafeScale
                           </h3>
                         </div>
@@ -940,24 +1014,24 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                         <form className="space-y-6" onSubmit={handleQuestionnaireSubmit}>
                         {/* Sezione 1 - Chi sei */}
                         <div className="bg-blue-800/20 p-4 rounded-lg">
-                          <h4 className="text-lg font-bold text-cyan-300 mb-4">🔹 Sezione 1 – Chi sei</h4>
+                          <h4 className="text-lg font-bold text-white mb-4">🔹 Sezione 1 – Chi sei</h4>
                           
                           <div className="space-y-4">
                             <div>
-                              <label className="block text-sm font-medium text-blue-200 mb-2">
+                              <label className="block text-sm font-medium text-gray-100 mb-2">
                                 1. Nome del tuo brand / azienda
                               </label>
                               <input
                                 type="text"
                                 value={questionnaireData.brandName}
                                 onChange={(e) => setQuestionnaireData({...questionnaireData, brandName: e.target.value})}
-                                className="w-full px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-blue-100"
+                                className="w-full px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-white"
                                 required
                               />
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-blue-200 mb-2">
+                              <label className="block text-sm font-medium text-gray-100 mb-2">
                                 2. Inserisci il link al tuo sito web
                               </label>
                               <input
@@ -965,12 +1039,12 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                                 value={questionnaireData.website}
                                 onChange={(e) => setQuestionnaireData({...questionnaireData, website: e.target.value})}
                                 placeholder="https://..."
-                                className="w-full px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-blue-100 placeholder-blue-300/50"
+                                className="w-full px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-white placeholder-blue-300/50"
                               />
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-blue-200 mb-2">
+                              <label className="block text-sm font-medium text-gray-100 mb-2">
                                 3. Inserisci il link al tuo profilo Instagram
                               </label>
                               <input
@@ -978,12 +1052,12 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                                 value={questionnaireData.instagram}
                                 onChange={(e) => setQuestionnaireData({...questionnaireData, instagram: e.target.value})}
                                 placeholder="https://instagram.com/..."
-                                className="w-full px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-blue-100 placeholder-blue-300/50"
+                                className="w-full px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-white placeholder-blue-300/50"
                               />
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-blue-200 mb-2">
+                              <label className="block text-sm font-medium text-gray-100 mb-2">
                                 4. In quale settore operi principalmente?
                               </label>
                               <div className="space-y-1">
@@ -998,7 +1072,7 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                                       className="w-4 h-4 text-cyan-500 border-blue-400 focus:ring-cyan-400"
                                       required
                                     />
-                                    <span className="text-blue-100 text-sm">{option}</span>
+                                    <span className="text-white text-sm">{option}</span>
                                   </label>
                                 ))}
                               </div>
@@ -1008,7 +1082,7 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                                   value={questionnaireData.sectorOther}
                                   onChange={(e) => setQuestionnaireData({...questionnaireData, sectorOther: e.target.value})}
                                   placeholder="Specifica..."
-                                  className="w-full mt-2 px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-blue-100 placeholder-blue-300/50"
+                                  className="w-full mt-2 px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-white placeholder-blue-300/50"
                                 />
                               )}
                             </div>
@@ -1017,11 +1091,11 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
 
                         {/* Sezione 2 - I tuoi prodotti */}
                         <div className="bg-blue-800/20 p-4 rounded-lg">
-                          <h4 className="text-lg font-bold text-cyan-300 mb-4">🔹 Sezione 2 – I tuoi prodotti</h4>
+                          <h4 className="text-lg font-bold text-white mb-4">🔹 Sezione 2 – I tuoi prodotti</h4>
                           
                           <div className="space-y-4">
                             <div>
-                              <label className="block text-sm font-medium text-blue-200 mb-2">
+                              <label className="block text-sm font-medium text-gray-100 mb-2">
                                 5. Chi produce i tuoi prodotti?
                               </label>
                               <div className="space-y-1">
@@ -1036,27 +1110,27 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                                       className="w-4 h-4 text-cyan-500 border-blue-400 focus:ring-cyan-400"
                                       required
                                     />
-                                    <span className="text-blue-100 text-sm">{option}</span>
+                                    <span className="text-white text-sm">{option}</span>
                                   </label>
                                 ))}
                               </div>
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-blue-200 mb-2">
+                              <label className="block text-sm font-medium text-gray-100 mb-2">
                                 6. Qual è il tuo prodotto best seller e il prezzo medio di vendita?
                               </label>
                               <textarea
                                 value={questionnaireData.bestSeller}
                                 onChange={(e) => setQuestionnaireData({...questionnaireData, bestSeller: e.target.value})}
-                                className="w-full px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-blue-100 resize-none"
+                                className="w-full px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-white resize-none"
                                 rows={2}
                                 required
                               />
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-blue-200 mb-2">
+                              <label className="block text-sm font-medium text-gray-100 mb-2">
                                 7. Margine medio lordo sui tuoi prodotti (in %)?
                               </label>
                               <div className="space-y-1">
@@ -1071,14 +1145,14 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                                       className="w-4 h-4 text-cyan-500 border-blue-400 focus:ring-cyan-400"
                                       required
                                     />
-                                    <span className="text-blue-100 text-sm">{option}</span>
+                                    <span className="text-white text-sm">{option}</span>
                                   </label>
                                 ))}
                               </div>
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-blue-200 mb-2">
+                              <label className="block text-sm font-medium text-gray-100 mb-2">
                                 8. Come gestisci la disponibilità del prodotto?
                               </label>
                               <div className="space-y-1">
@@ -1093,7 +1167,7 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                                       className="w-4 h-4 text-cyan-500 border-blue-400 focus:ring-cyan-400"
                                       required
                                     />
-                                    <span className="text-blue-100 text-sm">{option}</span>
+                                    <span className="text-white text-sm">{option}</span>
                                   </label>
                                 ))}
                               </div>
@@ -1103,11 +1177,11 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
 
                         {/* Sezione 3 - Esperienza di vendita */}
                         <div className="bg-blue-800/20 p-4 rounded-lg">
-                          <h4 className="text-lg font-bold text-cyan-300 mb-4">🔹 Sezione 3 – Esperienza di vendita</h4>
+                          <h4 className="text-lg font-bold text-white mb-4">🔹 Sezione 3 – Esperienza di vendita</h4>
                           
                           <div className="space-y-4">
                             <div>
-                              <label className="block text-sm font-medium text-blue-200 mb-2">
+                              <label className="block text-sm font-medium text-gray-100 mb-2">
                                 9. Hai già venduto online?
                               </label>
                               <div className="space-y-1">
@@ -1122,14 +1196,14 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                                       className="w-4 h-4 text-cyan-500 border-blue-400 focus:ring-cyan-400"
                                       required
                                     />
-                                    <span className="text-blue-100 text-sm">{option}</span>
+                                    <span className="text-white text-sm">{option}</span>
                                   </label>
                                 ))}
                               </div>
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-blue-200 mb-2">
+                              <label className="block text-sm font-medium text-gray-100 mb-2">
                                 10. Ordini mensili medi attuali
                               </label>
                               <div className="space-y-1">
@@ -1144,14 +1218,14 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                                       className="w-4 h-4 text-cyan-500 border-blue-400 focus:ring-cyan-400"
                                       required
                                     />
-                                    <span className="text-blue-100 text-sm">{option}</span>
+                                    <span className="text-white text-sm">{option}</span>
                                   </label>
                                 ))}
                               </div>
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-blue-200 mb-2">
+                              <label className="block text-sm font-medium text-gray-100 mb-2">
                                 11. Quanto hai investito in advertising digitale in passato?
                               </label>
                               <div className="space-y-1">
@@ -1166,14 +1240,14 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                                       className="w-4 h-4 text-cyan-500 border-blue-400 focus:ring-cyan-400"
                                       required
                                     />
-                                    <span className="text-blue-100 text-sm">{option}</span>
+                                    <span className="text-white text-sm">{option}</span>
                                   </label>
                                 ))}
                               </div>
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-blue-200 mb-2">
+                              <label className="block text-sm font-medium text-gray-100 mb-2">
                                 12. Canali di vendita attuali (selezione multipla)
                               </label>
                               <div className="space-y-1">
@@ -1191,7 +1265,7 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                                       }}
                                       className="w-4 h-4 text-cyan-500 border-blue-400 focus:ring-cyan-400"
                                     />
-                                    <span className="text-blue-100 text-sm">{option}</span>
+                                    <span className="text-white text-sm">{option}</span>
                                   </label>
                                 ))}
                               </div>
@@ -1201,11 +1275,11 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
 
                         {/* Sezione 4 - Logistica & operatività */}
                         <div className="bg-blue-800/20 p-4 rounded-lg">
-                          <h4 className="text-lg font-bold text-cyan-300 mb-4">🔹 Sezione 4 – Logistica & operatività</h4>
+                          <h4 className="text-lg font-bold text-white mb-4">🔹 Sezione 4 – Logistica & operatività</h4>
                           
                           <div className="space-y-4">
                             <div>
-                              <label className="block text-sm font-medium text-blue-200 mb-2">
+                              <label className="block text-sm font-medium text-gray-100 mb-2">
                                 13. Come gestisci attualmente le spedizioni?
                               </label>
                               <div className="space-y-1">
@@ -1220,7 +1294,7 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                                       className="w-4 h-4 text-cyan-500 border-blue-400 focus:ring-cyan-400"
                                       required
                                     />
-                                    <span className="text-blue-100 text-sm">{option}</span>
+                                    <span className="text-white text-sm">{option}</span>
                                   </label>
                                 ))}
                               </div>
@@ -1230,13 +1304,13 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                                   value={questionnaireData.shippingOther}
                                   onChange={(e) => setQuestionnaireData({...questionnaireData, shippingOther: e.target.value})}
                                   placeholder="Specifica..."
-                                  className="w-full mt-2 px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-blue-100 placeholder-blue-300/50"
+                                  className="w-full mt-2 px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-white placeholder-blue-300/50"
                                 />
                               )}
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-blue-200 mb-2">
+                              <label className="block text-sm font-medium text-gray-100 mb-2">
                                 14. % media di resi/mancata consegna (RTO)
                               </label>
                               <div className="space-y-1">
@@ -1251,20 +1325,20 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                                       className="w-4 h-4 text-cyan-500 border-blue-400 focus:ring-cyan-400"
                                       required
                                     />
-                                    <span className="text-blue-100 text-sm">{option}</span>
+                                    <span className="text-white text-sm">{option}</span>
                                   </label>
                                 ))}
                               </div>
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-blue-200 mb-2">
+                              <label className="block text-sm font-medium text-gray-100 mb-2">
                                 15. In quali Paesi vendi o vorresti vendere?
                               </label>
                               <textarea
                                 value={questionnaireData.countries}
                                 onChange={(e) => setQuestionnaireData({...questionnaireData, countries: e.target.value})}
-                                className="w-full px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-blue-100 resize-none"
+                                className="w-full px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-white resize-none"
                                 rows={2}
                                 required
                               />
@@ -1274,37 +1348,37 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
 
                         {/* Sezione 5 - Potenziale del brand */}
                         <div className="bg-blue-800/20 p-4 rounded-lg">
-                          <h4 className="text-lg font-bold text-cyan-300 mb-4">🔹 Sezione 5 – Potenziale del brand</h4>
+                          <h4 className="text-lg font-bold text-white mb-4">🔹 Sezione 5 – Potenziale del brand</h4>
                           
                           <div className="space-y-4">
                             <div>
-                              <label className="block text-sm font-medium text-blue-200 mb-2">
+                              <label className="block text-sm font-medium text-gray-100 mb-2">
                                 16. Obiettivo principale nei prossimi 12 mesi
                               </label>
                               <textarea
                                 value={questionnaireData.objective}
                                 onChange={(e) => setQuestionnaireData({...questionnaireData, objective: e.target.value})}
-                                className="w-full px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-blue-100 resize-none"
+                                className="w-full px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-white resize-none"
                                 rows={3}
                                 required
                               />
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-blue-200 mb-2">
+                              <label className="block text-sm font-medium text-gray-100 mb-2">
                                 17. Fatturato medio mensile negli ultimi 6 mesi (€)
                               </label>
                               <input
                                 type="number"
                                 value={questionnaireData.revenue}
                                 onChange={(e) => setQuestionnaireData({...questionnaireData, revenue: e.target.value})}
-                                className="w-full px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-blue-100"
+                                className="w-full px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-white"
                                 required
                               />
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-blue-200 mb-2">
+                              <label className="block text-sm font-medium text-gray-100 mb-2">
                                 18. Composizione del tuo team attuale
                               </label>
                               <div className="space-y-1">
@@ -1319,20 +1393,20 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                                       className="w-4 h-4 text-cyan-500 border-blue-400 focus:ring-cyan-400"
                                       required
                                     />
-                                    <span className="text-blue-100 text-sm">{option}</span>
+                                    <span className="text-white text-sm">{option}</span>
                                   </label>
                                 ))}
                               </div>
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-blue-200 mb-2">
+                              <label className="block text-sm font-medium text-gray-100 mb-2">
                                 19. Quali sono oggi i principali ostacoli che ti impediscono di crescere?
                               </label>
                               <textarea
                                 value={questionnaireData.obstacles}
                                 onChange={(e) => setQuestionnaireData({...questionnaireData, obstacles: e.target.value})}
-                                className="w-full px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-blue-100 resize-none"
+                                className="w-full px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-white resize-none"
                                 rows={3}
                                 required
                               />
@@ -1342,13 +1416,13 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
 
                         {/* Captcha */}
                         <div className="bg-blue-900/30 p-4 rounded-lg border border-blue-500/30">
-                          <label className="block text-sm font-medium text-blue-200 mb-3">
+                          <label className="block text-sm font-medium text-gray-100 mb-3">
                             🔐 Conferma che sei umano - Risolvi questa operazione:
                           </label>
                           <div className="flex items-center space-x-4" suppressHydrationWarning>
                             {isMounted ? (
                               <>
-                                <span className="text-lg font-bold text-cyan-300">{captchaQuestion.question}</span>
+                                <span className="text-lg font-bold text-white">{captchaQuestion.question}</span>
                                 <input
                                   type="number"
                                   value={captchaAnswer}
@@ -1360,14 +1434,14 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                                 <button
                                   type="button"
                                   onClick={generateCaptcha}
-                                  className="text-blue-300 hover:text-cyan-300 transition-colors text-sm underline"
+                                  className="text-blue-300 hover:text-white transition-colors text-sm underline"
                                 >
                                   🔄 Nuova domanda
                                 </button>
                               </>
                             ) : (
                               <div className="flex items-center space-x-4">
-                                <span className="text-lg font-bold text-cyan-300">Caricamento...</span>
+                                <span className="text-lg font-bold text-white">Caricamento...</span>
                                 <div className="w-20 h-10 bg-blue-800/30 border border-blue-500/50 rounded-lg animate-pulse"></div>
                                 <div className="w-24 h-6 bg-blue-800/30 rounded animate-pulse"></div>
                               </div>
@@ -1389,7 +1463,7 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                             <h3 className="text-2xl font-bold text-green-400 mb-4">
                               Candidatura Inviata con Successo!
                             </h3>
-                            <p className="text-blue-200 text-lg leading-relaxed mb-6">
+                            <p className="text-gray-100 text-lg leading-relaxed mb-6">
                               Grazie per aver completato il questionario.<br />
                               Se il tuo brand è idoneo, un nostro commerciale ti contatterà entro <span className="text-cyan-400 font-semibold">48 ore</span> per valutare la collaborazione.
                             </p>
@@ -1397,7 +1471,7 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
                               <p className="text-green-300 font-semibold mb-2">
                                 <FaBullseye className="inline mr-2" /> Prossimi passi:
                               </p>
-                              <ul className="text-blue-200 text-left space-y-2">
+                              <ul className="text-gray-100 text-left space-y-2">
                                 <li>• Analizzeremo il tuo profilo aziendale</li>
                                 <li>• Valuteremo il potenziale del tuo brand</li>
                                 <li>• Ti contatteremo per un colloquio preliminare</li>
@@ -1461,6 +1535,7 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
   id="comparison"
   className="py-16 px-4 sm:px-6 lg:px-8"
   aria-label="Work is broken vs Let's fix it"
+  data-section="comparison"
 >
   {(() => {
     const apps = [
@@ -1482,7 +1557,7 @@ const labels: { [key: number]: string } = {
     return (
      <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2 items-stretch">
   {/* LEFT – Work is broken */}
-  <div className="flex justify-center">
+  <div className={`flex justify-center slide-in-left ${visibleSections.includes('comparison') ? 'slide-in-visible' : ''}`}>
     <div className="w-full max-w-lg">
       <div className="relative h-full overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-8 shadow-sm">
   
@@ -1523,8 +1598,8 @@ const labels: { [key: number]: string } = {
           </div>
         </div>
 
-        {/* RIGHT – Let’s fix it */}
-       <div className="flex justify-center">
+        {/* RIGHT – Let's fix it */}
+       <div className={`flex justify-center slide-in-right ${visibleSections.includes('comparison') ? 'slide-in-visible' : ''}`}>
     <div className="w-full max-w-lg">
       <div className="relative h-full overflow-hidden rounded-3xl border border-slate-800/50 bg-slate-950 p-8">
         <div className="pointer-events-none absolute -inset-1 bg-[radial-gradient(1200px_500px_at_80%_20%,rgba(168,85,247,0.25),transparent_60%)]" />
@@ -1593,15 +1668,15 @@ const labels: { [key: number]: string } = {
 </section>
 
 
-<section id="use-cases" className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-purple-50/8 via-white to-pink-50/5 relative">
+<section id="use-cases" className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-purple-50/8 via-white to-pink-50/5 relative" data-section="use-cases">
   <div className="absolute inset-0 bg-gradient-to-r from-purple-50/15 via-transparent to-pink-50/15"></div>
 <div className="w-full max-w-7xl lg:max-w-[1600px] mx-auto px-6 lg:px-12 relative z-10">
 
     {/* HEADER */}
-    <div className="text-center mb-12">
+    <div className={`text-center mb-12 slide-up-enter ${visibleSections.includes('use-cases') ? 'slide-up-visible' : ''}`}>
       <p className="text-sm font-semibold text-violet-600">Perché funziona</p>
       <h2 className="mt-2 text-3xl sm:text-5xl font-bold tracking-tight text-slate-900">
-        Un innovativo sistema testato e sicuro
+        Un <span className="gradient-text-brand">innovativo</span> sistema <span className="gradient-text-brand">testato</span> e <span className="gradient-text-brand">sicuro</span>
       </h2>
       <p className="mt-3 text-slate-600">
         Ecco perché siamo convinti che questo sistema sia funzionale per te e per noi.
@@ -1694,7 +1769,7 @@ const labels: { [key: number]: string } = {
         data-section="three-steps"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-blue-50/30 via-transparent to-purple-50/30"></div>
-<div className="w-full max-w-7xl lg:max-w-[2000px] mx-auto relative z-10 px-6 lg:px-12">
+<div className="w-full max-w-7xl lg:max-w-[1600px] mx-auto relative z-10 px-6 lg:px-12">
 
           <div className={`text-center mb-16 slide-up-enter ${visibleSections.includes('three-steps') ? 'slide-up-visible' : ''}`}>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4" style={{color: '#1c1a31'}}>
@@ -1875,15 +1950,15 @@ E se la campagna non raggiunge i risultati attesi, <span className="gradient-tex
                 
                 <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
                   <div className="text-center">
-                    <div className="text-lg sm:text-2xl font-bold text-green-500">378.416</div>
+                    <div className="text-lg sm:text-2xl font-bold text-white">378.416</div>
                     <div className="text-xs sm:text-sm text-white/70">Views</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg sm:text-2xl font-bold gradient-text-brand">€11.456</div>
+                    <div className="text-lg sm:text-2xl font-bold text-white">€11.456</div>
                     <div className="text-xs sm:text-sm text-white/70">Spesa</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg sm:text-2xl font-bold text-green-500">€238.554</div>
+                    <div className="text-lg sm:text-2xl font-bold text-white">€238.554</div>
                     <div className="text-xs sm:text-sm text-white/70">Ricavi</div>
                   </div>
                 </div>
@@ -2088,7 +2163,7 @@ E se la campagna non raggiunge i risultati attesi, <span className="gradient-tex
         </div>
 
         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{ color: '#1c1a31' }}>
-          <span className="gradient-text-brand">Risultati Concreti Verificabili</span> e <span className="gradient-text-brand">Massima Trasparenza</span>
+          <span className="gradient-text-brand">Risultati </span>Concreti Verificabili e Massima <span className="gradient-text-brand">Trasparenza</span>
         </h2>
 
         <div className="space-y-3 sm:space-y-4 text-base sm:text-lg text-gray-600 leading-relaxed">
@@ -2217,26 +2292,29 @@ E se la campagna non raggiunge i risultati attesi, <span className="gradient-tex
       </section>
 
 
-<section className="py-12 bg-gray-50">
+<section className="py-12 bg-gray-50" data-section="testimonials">
     {/* Titolo */}
-    <div className="max-w-[1200px] mx-auto text-center mb-8 px-4">
-      <h2 className="text-3xl font-bold">Don’t just take it from us</h2>
-      <p className="text-gray-600">
-        Loved by teams. Backed by awards. Trusted worldwide.
+    <div className={`max-w-[1200px] mx-auto text-center mb-12 px-4 slide-up-enter ${visibleSections.includes('testimonials') ? 'slide-up-visible' : ''}`}>
+      <p className="text-sm font-semibold text-violet-600">Don't just take it from us</p>
+      <h2 className="mt-2 text-3xl sm:text-5xl font-bold tracking-tight text-slate-900">
+        Un innovativo sistema <span className="gradient-text-brand">testato</span> e <span className="gradient-text-brand">sicuro</span>
+      </h2>
+      <p className="mt-3 text-slate-600">
+        Ecco perché siamo convinti che questo sistema sia funzionale per te e per noi.
       </p>
     </div>
 
-    {/* Box */}
-    <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
+    {/* Desktop: Grid layout */}
+    <div className="max-w-[1200px] mx-auto hidden md:grid grid-cols-3 gap-8 px-4">
       {testimonials.map((t, idx) => (
         <div
           key={idx}
-          className="flex flex-col rounded-lg overflow-hidden shadow-lg bg-white"
+          className={`flex flex-col rounded-3xl overflow-hidden shadow-lg bg-white slide-up-enter slide-up-delay-${idx + 1} ${visibleSections.includes('testimonials') ? 'slide-up-visible' : ''}`}
         >
           {/* Video full width verticale */}
-          <div className="w-full relative pb-[177%]">
+          <div className="w-full relative pb-[120%]">
             <iframe
-              className="absolute inset-0 w-full h-full rounded-lg"
+              className="absolute inset-0 w-full h-full rounded-t-3xl"
               src={t.videoUrl}
               title={`Testimonial ${t.company}`}
               frameBorder="0"
@@ -2257,6 +2335,83 @@ E se la campagna non raggiunge i risultati attesi, <span className="gradient-tex
           </div>
         </div>
       ))}
+    </div>
+
+    {/* Mobile: Slider layout */}
+    <div className="max-w-[1200px] mx-auto md:hidden px-4">
+      <div className="relative">
+        {/* Slider container */}
+        <div className="overflow-hidden rounded-3xl">
+          <div 
+            className="flex transition-transform duration-300 ease-in-out"
+            style={{ transform: `translateX(-${currentVideoIndex * 100}%)` }}
+          >
+            {testimonials.map((t, idx) => (
+              <div
+                key={idx}
+                className="w-full flex-shrink-0"
+              >
+                <div className="flex flex-col rounded-3xl overflow-hidden shadow-lg bg-white mx-2">
+                  {/* Video full width verticale */}
+                  <div className="w-full relative pb-[120%]">
+                    <iframe
+                      className="absolute inset-0 w-full h-full rounded-t-3xl"
+                      src={t.videoUrl}
+                      title={`Testimonial ${t.company}`}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
+                  </div>
+
+                  {/* Testo sotto */}
+                  <div className="p-6 flex flex-col justify-between flex-grow text-center">
+                    <div>
+                      <p className="uppercase font-semibold text-sm text-gray-500 mb-2">
+                        {t.company}
+                      </p>
+                      <p className="italic mb-2">&ldquo;{t.quote}&rdquo;</p>
+                    </div>
+                    <p className="text-sm font-medium">{t.author}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Navigation arrows */}
+        <button
+          onClick={() => setCurrentVideoIndex(prev => prev > 0 ? prev - 1 : testimonials.length - 1)}
+          className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-4 bg-white/90 hover:bg-white rounded-full p-3 shadow-lg transition-all z-10"
+        >
+          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        
+        <button
+          onClick={() => setCurrentVideoIndex(prev => prev < testimonials.length - 1 ? prev + 1 : 0)}
+          className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-4 bg-white/90 hover:bg-white rounded-full p-3 shadow-lg transition-all z-10"
+        >
+          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+
+        {/* Dots indicator */}
+        <div className="flex justify-center mt-6 space-x-2">
+          {testimonials.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentVideoIndex(idx)}
+              className={`w-2 h-2 rounded-full transition-all ${
+                idx === currentVideoIndex ? 'bg-blue-600 w-6' : 'bg-gray-300'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   </section>
 
@@ -2293,8 +2448,13 @@ E se la campagna non raggiunge i risultati attesi, <span className="gradient-tex
     </p>
 
     <div className="mt-8">
-      <a
-        href={ctaHref}
+      <button
+        onClick={() => {
+          setShowContactForm(true);
+          setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }, 100);
+        }}
         className="inline-flex items-center gap-2 rounded-xl bg-white/95 px-6 py-3 font-semibold text-slate-900 shadow-lg hover:bg-white transition"
       >
         {/* icona a razzo semplice, inline svg (niente import) */}
@@ -2303,9 +2463,30 @@ E se la campagna non raggiunge i risultati attesi, <span className="gradient-tex
           <path d="M14 6l4 4" />
         </svg>
         Candidati ora – Verifica se sei idoneo
-      </a>
+      </button>
     </div>
+
   </div>
+
+  {/* Rocket image in top left corner */}
+  <div className="absolute top-4 left-4 opacity-40 z-20">
+    <Image
+      src="/images/razzo.png"
+      alt="Rocket"
+      width={40}
+      height={40}
+      className="w-8 h-8 sm:w-10 sm:h-10 object-contain"
+    />
+  </div>
+
+  {/* Brand image in bottom right corner */}
+  <Image
+    src="/images/brand.png"
+    alt="Brand"
+    width={220}
+    height={220}
+    className="absolute bottom-0 right-0 opacity-30 w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 lg:w-44 lg:h-44 xl:w-50 xl:h-50 object-contain z-20"
+  />
 
   {/* ombra esterna morbida */}
   <div className="pointer-events-none absolute inset-0 -z-10 rounded-[32px] shadow-[0_40px_80px_-20px_rgba(109,40,217,0.45)]" />
@@ -2313,72 +2494,203 @@ E se la campagna non raggiunge i risultati attesi, <span className="gradient-tex
 </div>
 </section>
 
-  <section className="w-full px-6 py-12">
-      <div className="max-w-[1200px] mx-auto bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col md:flex-row">
-        
-        {/* Left side */}
-        <div className="flex-1 p-8">
-          <h2 className="text-2xl font-bold mb-3">Deliver projects on time, every time</h2>
-          <p className="text-gray-600 mb-6">
-            Get teams running more efficiently with a complete project management solution.
-          </p>
+  {/* Interactive Project Solutions Section */}
+  <section className="w-full px-6 py-12 bg-gradient-to-br from-blue-50/8 via-white to-purple-50/5 relative" data-section="accelera-business">
+    <div className="absolute inset-0 bg-gradient-to-r from-blue-50/12 via-transparent to-purple-50/12"></div>
+    <div className="max-w-[1400px] mx-auto relative z-10">
+      
+      {/* Section Header */}
+      <div className={`text-center mb-12 slide-up-enter ${visibleSections.includes('accelera-business') ? 'slide-up-visible' : ''}`}>
+        <p className="text-sm font-semibold text-violet-600">Soluzioni Su Misura</p>
+        <h2 className="mt-2 text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-slate-900" style={{lineHeight: '1.8'}}>
+          <span className="gradient-text-brand">Accelera</span> il tuo <span className="gradient-text-brand">business</span>, ogni volta
+        </h2>
+        <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+          Soluzioni complete e personalizzate per far crescere la tua azienda con strumenti professionali.
+        </p>
+      </div>
 
-          <ul className="space-y-3 mb-6">
-            <li className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-purple-600" />
-              <span>Reduce delivery time with custom templates</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-purple-600" />
-              <span>Track effort to impact with OKR planning</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-purple-600" />
-              <span>Manage complex projects at scale</span>
-            </li>
-          </ul>
+      {/* Interactive Tabs */}
+      <div className="flex flex-wrap justify-center gap-2 mb-8 bg-white p-2 rounded-2xl shadow-sm border border-gray-200 max-w-2xl mx-auto">
+        {Object.entries(projectTabs).map(([key, tab]) => (
+          <button
+            key={key}
+            onClick={() => {
+              setActiveProjectTab(key);
+              setContentKey(prev => prev + 1);
+            }}
+            className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 text-sm md:text-base ${
+              activeProjectTab === key
+                ? 'bg-gradient-bg-brand gradient-text-brand shadow-lg transform scale-105'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+            }`}
+          >
+            {tab.title.split(' ')[0]}
+          </button>
+        ))}
+      </div>
 
-          {/* Testimonial */}
-          <div className="flex items-center gap-4">
-            <img
-              src="https://randomuser.me/api/portraits/women/44.jpg"
-              alt="User"
-              className="w-14 h-14 rounded-full"
-            />
-            <div>
-              <p className="text-yellow-500">★★★★★</p>
-              <p className="text-sm text-gray-700">
-                <strong>“ClickUp brings all of our teams together into one place</strong> so that they can stay on track, collaborate and communicate.” 
+      {/* Content Area */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-visible relative">
+        <div className="flex flex-col lg:flex-row">
+
+          {/* Mobile Navigation Arrows */}
+          <button
+            onClick={() => {
+              const keys = Object.keys(projectTabs);
+              const currentIndex = keys.indexOf(activeProjectTab);
+              const prevIndex = currentIndex === 0 ? keys.length - 1 : currentIndex - 1;
+              setActiveProjectTab(keys[prevIndex]);
+              setContentKey(prev => prev + 1);
+            }}
+            className="lg:hidden absolute -left-2 top-1/2 transform -translate-y-1/2 z-10 w-8 h-8 bg-white rounded-full shadow-md border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+          >
+            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          <button
+            onClick={() => {
+              const keys = Object.keys(projectTabs);
+              const currentIndex = keys.indexOf(activeProjectTab);
+              const nextIndex = currentIndex === keys.length - 1 ? 0 : currentIndex + 1;
+              setActiveProjectTab(keys[nextIndex]);
+              setContentKey(prev => prev + 1);
+            }}
+            className="lg:hidden absolute -right-2 top-1/2 transform -translate-y-1/2 z-10 w-8 h-8 bg-white rounded-full shadow-md border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+          >
+            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+          
+          {/* Left Content */}
+          <div key={contentKey} className="flex-1 p-6 lg:p-12">
+            <div className="mb-4 lg:mb-6 transition-all duration-500 ease-in-out transform">
+              <h3 className="text-xl lg:text-3xl font-bold mb-2 text-gray-900 animate-fade-in">
+                {projectTabs[activeProjectTab as keyof typeof projectTabs].title}
+              </h3>
+              <h4 className="text-base lg:text-lg text-blue-600 font-medium mb-3 lg:mb-4 animate-fade-in" style={{animationDelay: '0.1s'}}>
+                {projectTabs[activeProjectTab as keyof typeof projectTabs].subtitle}
+              </h4>
+              <p className="text-gray-600 text-base lg:text-lg animate-fade-in" style={{animationDelay: '0.2s'}}>
+                {projectTabs[activeProjectTab as keyof typeof projectTabs].description}
               </p>
-              <p className="text-xs text-gray-500 mt-1">— Convene</p>
+            </div>
+
+            {/* Features List */}
+            <ul className="space-y-3 lg:space-y-4 mb-6 lg:mb-8">
+              {projectTabs[activeProjectTab as keyof typeof projectTabs].features.map((feature, idx) => (
+                <li 
+                  key={idx} 
+                  className="flex items-start gap-3 animate-fade-in"
+                  style={{animationDelay: `${0.3 + idx * 0.1}s`}}
+                >
+                  <CheckCircle className="w-5 h-5 lg:w-6 lg:h-6 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 text-sm lg:text-base">{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            {/* Testimonial */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 lg:p-6 rounded-xl border border-blue-100 animate-fade-in mb-6 lg:mb-0" style={{animationDelay: '0.7s'}}>
+              <div className="flex items-center gap-3 lg:gap-4 mb-3 lg:mb-4">
+                <img
+                  src={projectTabs[activeProjectTab as keyof typeof projectTabs].testimonial.avatar}
+                  alt="Testimonial"
+                  className="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-white shadow-sm"
+                />
+                <div>
+                  <div className="text-yellow-500 text-xs lg:text-sm mb-1">★★★★★</div>
+                  <p className="font-semibold text-gray-900 text-sm lg:text-base">
+                    {projectTabs[activeProjectTab as keyof typeof projectTabs].testimonial.name}
+                  </p>
+                  <p className="text-xs lg:text-sm text-gray-600">
+                    {projectTabs[activeProjectTab as keyof typeof projectTabs].testimonial.company}
+                  </p>
+                </div>
+              </div>
+              <p className="text-gray-700 italic text-sm lg:text-base">
+                "{projectTabs[activeProjectTab as keyof typeof projectTabs].testimonial.quote}"
+              </p>
+            </div>
+
+            {/* Mobile CTA Button */}
+            <div className="lg:hidden">
+              <button 
+                onClick={() => {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  setTimeout(() => setShowContactForm(true), 300);
+                }}
+                className="w-full py-3 px-6 rounded-xl text-white font-semibold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 hover:from-blue-700 hover:via-purple-700 hover:to-blue-900 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2"
+              >
+                <FaRocket className="w-4 h-4" />
+                {projectTabs[activeProjectTab as keyof typeof projectTabs].ctaText}
+              </button>
+              
+              <p className="text-center text-xs text-gray-500 mt-3">
+                Consulenza gratuita • Setup incluso • Supporto 24/7
+              </p>
             </div>
           </div>
-        </div>
 
-        {/* Right side */}
-        <div className="flex-1 p-8 bg-gradient-to-br from-gray-50 to-white border-l border-gray-200 flex flex-col justify-between">
-          <div className="space-y-4">
-            {features.map((f, idx) => (
-              <div
-                key={idx}
-                className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-              >
-                {f.icon}
-                <span className="text-gray-800">{f.title}</span>
+          {/* Right Side - Visual/CTA */}
+          <div className="hidden lg:flex flex-1 p-8 lg:p-12 bg-gradient-to-br from-gray-50 to-white border-l border-gray-200 flex-col justify-center">
+            
+            {/* Icon Grid */}
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-md text-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <FaRocket className="w-6 h-6 text-white" />
+                </div>
+                <p className="text-sm font-medium text-gray-700">Crescita Rapida</p>
               </div>
-            ))}
-          </div>
+              
+              <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-md text-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <FaChartBar className="w-6 h-6 text-white" />
+                </div>
+                <p className="text-sm font-medium text-gray-700">ROI Garantito</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-md text-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <FaBolt className="w-6 h-6 text-white" />
+                </div>
+                <p className="text-sm font-medium text-gray-700">Automazione</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-md text-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <FaBullseye className="w-6 h-6 text-white" />
+                </div>
+                <p className="text-sm font-medium text-gray-700">Precisione</p>
+              </div>
+            </div>
 
-          <div className="mt-6">
-            <button className="w-full py-3 rounded-lg text-white font-medium bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90 transition">
-              Use this solution →
+            {/* CTA Button */}
+            <button 
+              onClick={() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setTimeout(() => setShowContactForm(true), 300);
+              }}
+              className="w-full py-4 px-6 rounded-xl text-white font-semibold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 hover:from-blue-700 hover:via-purple-700 hover:to-blue-900 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2"
+            >
+              <FaRocket className="w-5 h-5" />
+              {projectTabs[activeProjectTab as keyof typeof projectTabs].ctaText}
             </button>
+            
+            <p className="text-center text-sm text-gray-500 mt-4">
+              Consulenza gratuita • Setup incluso • Supporto 24/7
+            </p>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-      {/* Reviews Section */}
+      {/* Reviews Section 
       <section 
         className="py-12 sm:py-16 px-4 sm:px-6 bg-gradient-to-br from-indigo-50/8 via-white to-violet-50/5 relative"
         data-section="reviews"
@@ -2397,7 +2709,6 @@ E se la campagna non raggiunge i risultati attesi, <span className="gradient-tex
             </p>
           </div>
           
-          {/* Reviews Carousel */}
           <div className={`slide-up-enter slide-up-delay-2 ${visibleSections.includes('reviews') ? 'slide-up-visible' : ''}`}>
             <div className="reviews-container">
               <div 
@@ -2432,7 +2743,6 @@ E se la campagna non raggiunge i risultati attesi, <span className="gradient-tex
               </div>
             </div>
             
-            {/* Navigation arrows */}
             <div className="flex justify-center mt-8 space-x-4">
               <button
                 onClick={prevReview}
@@ -2443,7 +2753,6 @@ E se la campagna non raggiunge i risultati attesi, <span className="gradient-tex
                 </svg>
               </button>
               
-              {/* Desktop indicators */}
               <div className="hidden md:flex items-center space-x-2">
                 {Array.from({ length: reviews.length - 2 }).map((_, index) => (
                   <div
@@ -2455,7 +2764,6 @@ E se la campagna non raggiunge i risultati attesi, <span className="gradient-tex
                 ))}
               </div>
               
-              {/* Mobile indicators */}
               <div className="md:hidden flex items-center space-x-2">
                 {reviews.map((_, index) => (
                   <div
@@ -2479,6 +2787,7 @@ E se la campagna non raggiunge i risultati attesi, <span className="gradient-tex
           </div>
         </div>
       </section>
+      */}
 
       {/* Footer */}
       <footer className="py-8 sm:py-12 px-4 sm:px-6 bg-gradient-to-br from-blue-50/10 via-white to-blue-100/5 border-t border-gray-200 footer-geometric">
@@ -2488,9 +2797,9 @@ E se la campagna non raggiunge i risultati attesi, <span className="gradient-tex
         <div className="geometric-squares"></div>
         <div className="geometric-circles"></div>
         
-        <div className="w-full max-w-7xl lg:max-w-[2000px] mx-auto px-6 lg:px-12 relative z-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
-            <div className="col-span-2 md:col-span-1 space-y-3 sm:space-y-4">
+        <div className="w-full max-w-7xl lg:max-w-[1600px] mx-auto px-6 lg:px-12 relative z-10">
+          <div className="flex flex-col lg:flex-row items-start" style={{gap: 'clamp(1rem, 8vw, 8rem)'}}>
+            <div className="space-y-3 sm:space-y-4 pt-8 flex-1 lg:max-w-[22%]">
               <div className="flex items-center">
                 <Image
                   src="/images/logo.png"
@@ -2500,13 +2809,13 @@ E se la campagna non raggiunge i risultati attesi, <span className="gradient-tex
                   className="h-10 w-auto"
                 />
               </div>
-              <p className="text-gray-400 text-sm sm:text-base">
+              <p className="text-gray-400 text-sm sm:text-base max-w-xs">
                 We risk, you profit. <br />
                 La prima agenzia di marketing che investe su di te e sui tuoi progetti.
               </p>
             </div>
             
-            <div>
+            <div className="pt-8 flex-1 lg:max-w-[22%]">
               <h4 className="font-bold mb-3 sm:mb-4 text-sm sm:text-base">Servizi</h4>
               <ul className="space-y-1 sm:space-y-2 text-gray-400 text-sm sm:text-base">
                 <li><Link href="#" className="hover:text-green-400 transition-colors">Google Ads</Link></li>
@@ -2516,7 +2825,7 @@ E se la campagna non raggiunge i risultati attesi, <span className="gradient-tex
               </ul>
             </div>
             
-            <div>
+            <div className="pt-8 flex-1 lg:max-w-[22%]">
               <h4 className="font-bold mb-3 sm:mb-4 text-sm sm:text-base">Azienda</h4>
               <ul className="space-y-1 sm:space-y-2 text-gray-400 text-sm sm:text-base">
                 <li><Link href="#" className="hover:text-green-400 transition-colors">Chi Siamo</Link></li>
@@ -2526,7 +2835,7 @@ E se la campagna non raggiunge i risultati attesi, <span className="gradient-tex
               </ul>
             </div>
             
-            <div>
+            <div className="pt-8 lg:flex-none">
               <h4 className="font-bold mb-3 sm:mb-4 text-sm sm:text-base">Contatti</h4>
               <ul className="space-y-1 sm:space-y-2 text-gray-400 text-sm sm:text-base">
                 <li>info@safescale.com</li>
