@@ -41,7 +41,8 @@ interface FeatureCard {
 }
 interface Testimonial {
   videoUrl: string;
-  companyLogo: string;
+  company: string;
+  companyLogo?: string;
   quote: string;
   author: string;
 }
@@ -160,7 +161,7 @@ const carouselContainerRef = useRef<HTMLDivElement | null>(null);
       id: 1,
       title: "Creazione E-commerce, gestione ordini e spedizioni",
       description: "Creaiamo il sito di vendita, riceviamo gli ordini, curiamo la logistica e incassiamo i pagamenti in contrassegno.",
-      bgClass: "bg-gradient-to-b from-[#36a3e3] via-[#2b7db5] to-[#1a5291] border border-[#36a3e3]/50 text-white",
+      bgClass: "bg-gradient-to-b from-[#36a3e3] via-[#2871a8] to-[#154a85] border border-[#36a3e3]/50 text-white",
       borderClass: "border-[#36a3e3]/50",
       hoverClass: "hover:shadow-[#36a3e3]/30",
       iconBg: "bg-white text-[#36a3e3]",
@@ -171,7 +172,7 @@ const carouselContainerRef = useRef<HTMLDivElement | null>(null);
       id: 2,
       title: "Ripaghiamo le campagne pubblicitarie",
       description: "Dall'incasso lordo copriamo i costi delle ads che abbiamo sostenuto e paghiamo le tasse.",
-      bgClass: "bg-gradient-to-b from-[#4f10e8] via-[#3a0bb8] to-[#250885] border border-[#4f10e8]/50 text-white",
+      bgClass: "bg-gradient-to-b from-[#4f10e8] via-[#3609a4] to-[#1f0672] border border-[#4f10e8]/50 text-white",
       borderClass: "border-[#4f10e8]/50",
       hoverClass: "hover:shadow-[#4f10e8]/30",
       iconBg: "bg-white text-[#4f10e8]",
@@ -182,7 +183,7 @@ const carouselContainerRef = useRef<HTMLDivElement | null>(null);
       id: 3,
       title: "Dividiamo i guadagni e ricevi la tua parte",
       description: "Il guadagno netto che rimane viene corrisposto a te, trattenendo solo la nostra percentuale concordata.",
-      bgClass: "bg-gradient-to-b from-[#f712c5] via-[#c80ea3] to-[#8b0b70] border border-[#f712c5]/50 text-white",
+      bgClass: "bg-gradient-to-b from-[#f712c5] via-[#b80c90] to-[#750a5d] border border-[#f712c5]/50 text-white",
       borderClass: "border-[#f712c5]/50",
       hoverClass: "hover:shadow-[#f712c5]/30",
       iconBg: "bg-white text-[#f712c5]",
@@ -2087,9 +2088,7 @@ E se la campagna non raggiunge i risultati attesi, <span className="gradient-tex
         </div>
 
         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{ color: '#1c1a31' }}>
-          Risultati Concreti <span className="gradient-text-brand">Verificabili</span> e
-          {' '}
-          Massima<span className="gradient-text-brand"> Trasparenza</span>
+          <span className="gradient-text-brand">Risultati Concreti Verificabili</span> e <span className="gradient-text-brand">Massima Trasparenza</span>
         </h2>
 
         <div className="space-y-3 sm:space-y-4 text-base sm:text-lg text-gray-600 leading-relaxed">
@@ -2489,7 +2488,7 @@ E se la campagna non raggiunge i risultati attesi, <span className="gradient-tex
         <div className="geometric-squares"></div>
         <div className="geometric-circles"></div>
         
-        <div className="container mx-auto relative z-10">
+        <div className="w-full max-w-7xl lg:max-w-[2000px] mx-auto px-6 lg:px-12 relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
             <div className="col-span-2 md:col-span-1 space-y-3 sm:space-y-4">
               <div className="flex items-center">
