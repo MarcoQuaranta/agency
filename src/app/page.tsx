@@ -1471,7 +1471,7 @@ Tranquillo, <span className="font-semibold gradient-text-brand">copriremo eventu
       { src: 'images/icons/spam.png', alt: 'Airtable', style: 'bottom-20 right-6 rotate-6' },
       { src: 'images/icons/soldi.png', alt: 'Dropbox', style: 'top-1/2 right-24 -rotate-2' },
     ];
-const labels = {
+const labels: { [key: number]: string } = {
   0: '?',
   1: 'Error 404',
   2: 'Ban',
