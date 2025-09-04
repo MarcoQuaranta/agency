@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run typecheck:*)",
+      "Bash(npm install:*)",
+      "Bash(npx @anthropic-ai/claude-code auth:*)",
+      "Bash(claude-code auth login)",
+      "Bash(npm --version)",
+      "Bash(claude-code --version)",
+      "Bash(npx:*)",
+      "WebFetch(domain:loomia.it)",
+      "Bash(npm run dev:*)",
+      "Bash(grep:*)",
+      "Bash(npm run build:*)",
+      "Bash(git checkout:*)",
+      "WebFetch(domain:www.safescale.it)",
+      "Bash(taskkill:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

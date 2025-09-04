@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:piedefelice.com)",
+      "Read(/C:\\agency\\src\\lib/**)",
+      "Read(/C:\\agency\\src/**)",
+      "Read(/C:\\agency\\src\\components\\providers/**)",
+      "Read(/C:\\agency\\src\\components\\providers/**)",
+      "Bash(npx tsc:*)",
+      "Read(/C:\\agency\\src\\styles/**)",
+      "Bash(npm run dev:*)",
+      "Read(C:\\agency\\src\\styles/**)",
+      "Read(C:\\agency\\src\\styles/**)",
+      "WebFetch(domain:scalex.digital)",
+      "Read(C:\\agency\\public\\images/**)",
+      "Bash(npm install:*)",
+      "Read(C:\\agency/**)",
+      "WebFetch(domain:clickup.com)",
+      "Read(C:\\agency\\src/**)",
+      "Read(C:\\agency\\src\\styles/**)",
+      "Read(C:\\agency/**)",
+      "Bash(npm run build:*)",
+      "Read(C:\\agency\\src\\lib/**)",
+      "Read(C:\\agency\\src\\styles/**)",
+      "Read(C:\\agency\\src\\styles/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
