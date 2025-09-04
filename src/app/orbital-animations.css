@@ -1,0 +1,73 @@
+/* Orbital animations for 7 icons evenly distributed */
+@keyframes orbit1 {
+  from { transform: rotate(0deg) translateX(150px) rotate(0deg); }
+  to { transform: rotate(360deg) translateX(150px) rotate(-360deg); }
+}
+
+@keyframes orbit2 {
+  from { transform: rotate(51.4deg) translateX(150px) rotate(-51.4deg); }
+  to { transform: rotate(411.4deg) translateX(150px) rotate(-411.4deg); }
+}
+
+@keyframes orbit3 {
+  from { transform: rotate(102.8deg) translateX(150px) rotate(-102.8deg); }
+  to { transform: rotate(462.8deg) translateX(150px) rotate(-462.8deg); }
+}
+
+@keyframes orbit4 {
+  from { transform: rotate(154.2deg) translateX(150px) rotate(-154.2deg); }
+  to { transform: rotate(514.2deg) translateX(150px) rotate(-514.2deg); }
+}
+
+@keyframes orbit5 {
+  from { transform: rotate(205.6deg) translateX(150px) rotate(-205.6deg); }
+  to { transform: rotate(565.6deg) translateX(150px) rotate(-565.6deg); }
+}
+
+@keyframes orbit6 {
+  from { transform: rotate(257deg) translateX(150px) rotate(-257deg); }
+  to { transform: rotate(617deg) translateX(150px) rotate(-617deg); }
+}
+
+@keyframes orbit7 {
+  from { transform: rotate(308.4deg) translateX(150px) rotate(-308.4deg); }
+  to { transform: rotate(668.4deg) translateX(150px) rotate(-668.4deg); }
+}
+
+/* Mobile versions */
+@media (max-width: 640px) {
+  @keyframes orbit1 {
+    from { transform: rotate(0deg) translateX(130px) rotate(0deg); }
+    to { transform: rotate(360deg) translateX(130px) rotate(-360deg); }
+  }
+  
+  @keyframes orbit2 {
+    from { transform: rotate(51.4deg) translateX(130px) rotate(-51.4deg); }
+    to { transform: rotate(411.4deg) translateX(130px) rotate(-411.4deg); }
+  }
+  
+  @keyframes orbit3 {
+    from { transform: rotate(102.8deg) translateX(130px) rotate(-102.8deg); }
+    to { transform: rotate(462.8deg) translateX(130px) rotate(-462.8deg); }
+  }
+  
+  @keyframes orbit4 {
+    from { transform: rotate(154.2deg) translateX(130px) rotate(-154.2deg); }
+    to { transform: rotate(514.2deg) translateX(130px) rotate(-514.2deg); }
+  }
+  
+  @keyframes orbit5 {
+    from { transform: rotate(205.6deg) translateX(130px) rotate(-205.6deg); }
+    to { transform: rotate(565.6deg) translateX(130px) rotate(-565.6deg); }
+  }
+  
+  @keyframes orbit6 {
+    from { transform: rotate(257deg) translateX(130px) rotate(-257deg); }
+    to { transform: rotate(617deg) translateX(130px) rotate(-617deg); }
+  }
+  
+  @keyframes orbit7 {
+    from { transform: rotate(308.4deg) translateX(130px) rotate(-308.4deg); }
+    to { transform: rotate(668.4deg) translateX(130px) rotate(-668.4deg); }
+  }
+}

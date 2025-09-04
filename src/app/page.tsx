@@ -880,7 +880,7 @@ const ctaHref = '#contact-form'; // cambia con l'anchor o il link che vuoi
           <div className="flex justify-between items-center">
             <div className="flex items-center">
               <Image
-                src="/images/logo.png"
+                src="/images/logo-2.png"
                 alt="SafeScale Agency Logo"
                 width={240}
                 height={80}
@@ -1990,31 +1990,318 @@ const labels: { [key: number]: string } = {
                 Inutile continuare a investire soldi senza garanzie e utilizzando tecniche obsolete, senza conoscere il potenziale reale e rischiando grosse perdite economiche.
               </p>
 
-              {/* Cloud di iconcine */}
-              <div className="relative mt-8 h-[280px] sm:h-[420px]">
+              {/* Cloud di iconcine con movimento fluido libero nell'area tratteggiata */}
+              <div 
+                ref={(el) => {
+                  if (!el) return;
+                  
+                  let animationFrame: number;
+                  const container = el;
+                  const icons = el.querySelectorAll('.chaos-icon') as NodeListOf<HTMLElement>;
+                  const startTime = Date.now();
+                  
+                  // Calcola dimensioni effettive del playfield con margini di sicurezza
+                  const getPlayfield = () => {
+                    const rect = container.getBoundingClientRect();
+                    const margin = 16; // Margine di sicurezza in px
+                    const iconSizePx = rect.width * 0.085; // ~8.5% della larghezza
+                    
+                    return {
+                      minX: margin + iconSizePx/2,
+                      maxX: rect.width - margin - iconSizePx/2,
+                      minY: margin + iconSizePx/2,
+                      maxY: rect.height - margin - iconSizePx/2,
+                      width: rect.width - (2 * margin) - iconSizePx,
+                      height: rect.height - (2 * margin) - iconSizePx,
+                      iconSize: iconSizePx
+                    };
+                  };
+                  
+                  const playfield = getPlayfield();
+                  
+                  // Funzione Simplex Noise semplificata per movimento fluido
+                  const noise2D = (x: number, y: number) => {
+                    const dot = (g: number[], x: number, y: number) => g[0]*x + g[1]*y;
+                    const grad = [[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]];
+                    const perm = [151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225];
+                    
+                    const i = Math.floor(x) & 255;
+                    const j = Math.floor(y) & 255;
+                    const gi = perm[i + perm[j & 15] & 15] & 7;
+                    
+                    return dot(grad[gi], x - Math.floor(x), y - Math.floor(y));
+                  };
+                  
+                  // Genera posizioni iniziali con Poisson-disk sampling
+                  const generateInitialPositions = () => {
+                    const positions: Array<{x: number, y: number}> = [];
+                    const minDist = playfield.iconSize * 1.5; // Distanza minima tra icone
+                    const maxAttempts = 30;
+                    
+                    for (let i = 0; i < apps.length; i++) {
+                      let placed = false;
+                      let attempts = 0;
+                      
+                      while (!placed && attempts < maxAttempts) {
+                        const x = playfield.minX + Math.random() * (playfield.maxX - playfield.minX);
+                        const y = playfield.minY + Math.random() * (playfield.maxY - playfield.minY);
+                        
+                        let valid = true;
+                        for (const pos of positions) {
+                          const dist = Math.sqrt(Math.pow(x - pos.x, 2) + Math.pow(y - pos.y, 2));
+                          if (dist < minDist) {
+                            valid = false;
+                            break;
+                          }
+                        }
+                        
+                        if (valid) {
+                          positions.push({ x, y });
+                          placed = true;
+                        }
+                        attempts++;
+                      }
+                      
+                      // Fallback se non trova posizione
+                      if (!placed) {
+                        const angle = (i / apps.length) * Math.PI * 2;
+                        const radius = Math.min(playfield.width, playfield.height) * 0.3;
+                        positions.push({
+                          x: playfield.minX + playfield.width/2 + Math.cos(angle) * radius,
+                          y: playfield.minY + playfield.height/2 + Math.sin(angle) * radius
+                        });
+                      }
+                    }
+                    
+                    return positions;
+                  };
+                  
+                  const initialPositions = generateInitialPositions();
+                  
+                  // Parametri movimento per ogni icona
+                  const iconData = initialPositions.map((pos, index) => ({
+                    currentX: pos.x,
+                    currentY: pos.y,
+                    targetX: pos.x,
+                    targetY: pos.y,
+                    // Parametri unici per movimento Perlin/Simplex noise
+                    noiseOffsetX: index * 100,
+                    noiseOffsetY: index * 100 + 50,
+                    noiseScale: 0.003 + (index % 3) * 0.001, // Scala del noise
+                    speed: 0.3 + (index % 4) * 0.1, // Velocità 14-22s per ciclo
+                    amplitude: playfield.width * (0.12 + (index % 3) * 0.03), // 12-15% ampiezza
+                    phase: (index / apps.length) * Math.PI * 2 // Fase diversa per ogni icona
+                  }));
+                  
+                  // Calcola posizione con steering verso i bordi
+                  const calculatePosition = (data: any, time: number) => {
+                    const t = time * data.speed;
+                    
+                    // Movimento basato su noise 2D
+                    const noiseX = noise2D(t * data.noiseScale + data.noiseOffsetX, data.noiseOffsetY);
+                    const noiseY = noise2D(data.noiseOffsetX, t * data.noiseScale + data.noiseOffsetY);
+                    
+                    // Posizione target basata su noise
+                    let targetX = data.currentX + noiseX * data.amplitude * 0.1;
+                    let targetY = data.currentY + noiseY * data.amplitude * 0.1;
+                    
+                    // Steering morbido verso l'interno quando vicino ai bordi
+                    const edgeMargin = playfield.iconSize;
+                    const steerStrength = 0.1;
+                    
+                    if (targetX < playfield.minX + edgeMargin) {
+                      targetX += (playfield.minX + edgeMargin - targetX) * steerStrength;
+                    } else if (targetX > playfield.maxX - edgeMargin) {
+                      targetX -= (targetX - (playfield.maxX - edgeMargin)) * steerStrength;
+                    }
+                    
+                    if (targetY < playfield.minY + edgeMargin) {
+                      targetY += (playfield.minY + edgeMargin - targetY) * steerStrength;
+                    } else if (targetY > playfield.maxY - edgeMargin) {
+                      targetY -= (targetY - (playfield.maxY - edgeMargin)) * steerStrength;
+                    }
+                    
+                    // Interpolazione smooth verso il target
+                    data.currentX += (targetX - data.currentX) * 0.05;
+                    data.currentY += (targetY - data.currentY) * 0.05;
+                    
+                    // Clamp finale per sicurezza
+                    data.currentX = Math.max(playfield.minX, Math.min(playfield.maxX, data.currentX));
+                    data.currentY = Math.max(playfield.minY, Math.min(playfield.maxY, data.currentY));
+                    
+                    return { x: data.currentX, y: data.currentY };
+                  };
+                  
+                  // Collision detection con repulsione soft
+                  const applyRepulsion = (positions: Array<{x: number, y: number}>) => {
+                    const repulsionRadius = playfield.iconSize * 0.9;
+                    const repulsionStrength = 0.3;
+                    
+                    for (let i = 0; i < positions.length; i++) {
+                      for (let j = i + 1; j < positions.length; j++) {
+                        const dx = positions[i].x - positions[j].x;
+                        const dy = positions[i].y - positions[j].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < repulsionRadius && distance > 0) {
+                          const force = (repulsionRadius - distance) / distance * repulsionStrength;
+                          const pushX = dx * force;
+                          const pushY = dy * force;
+                          
+                          positions[i].x += pushX;
+                          positions[i].y += pushY;
+                          positions[j].x -= pushX;
+                          positions[j].y -= pushY;
+                          
+                          // Mantieni dentro il playfield
+                          positions[i].x = Math.max(playfield.minX, Math.min(playfield.maxX, positions[i].x));
+                          positions[i].y = Math.max(playfield.minY, Math.min(playfield.maxY, positions[i].y));
+                          positions[j].x = Math.max(playfield.minX, Math.min(playfield.maxX, positions[j].x));
+                          positions[j].y = Math.max(playfield.minY, Math.min(playfield.maxY, positions[j].y));
+                        }
+                      }
+                    }
+                    return positions;
+                  };
+                  
+                  // Animation loop
+                  const animate = () => {
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    
+                    // Calcola nuove posizioni con noise
+                    let positions = iconData.map(data => calculatePosition(data, elapsed));
+                    
+                    // Applica repulsione soft
+                    positions = applyRepulsion(positions);
+                    
+                    // Aggiorna posizioni DOM
+                    icons.forEach((icon, index) => {
+                      const pos = positions[index];
+                      // Converti da pixel a percentuale per responsive
+                      const xPercent = (pos.x / container.offsetWidth) * 100;
+                      const yPercent = (pos.y / container.offsetHeight) * 100;
+                      icon.style.left = `${xPercent}%`;
+                      icon.style.top = `${yPercent}%`;
+                      icon.style.transform = `translate(-50%, -50%)`;
+                    });
+                    
+                    animationFrame = requestAnimationFrame(animate);
+                  };
+                  
+                  // IntersectionObserver per performance
+                  const observer = new IntersectionObserver(
+                    (entries) => {
+                      entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                          if (!animationFrame) animate();
+                        } else {
+                          if (animationFrame) {
+                            cancelAnimationFrame(animationFrame);
+                            animationFrame = 0;
+                          }
+                        }
+                      });
+                    },
+                    { threshold: 0.1 }
+                  );
+                  
+                  observer.observe(el);
+                  
+                  // Gestione resize
+                  const handleResize = () => {
+                    const newPlayfield = getPlayfield();
+                    // Riscala posizioni proporzionalmente
+                    iconData.forEach(data => {
+                      data.currentX = (data.currentX / playfield.width) * newPlayfield.width;
+                      data.currentY = (data.currentY / playfield.height) * newPlayfield.height;
+                      data.amplitude = newPlayfield.width * (0.12 + (Math.random() * 0.03));
+                    });
+                    Object.assign(playfield, newPlayfield);
+                  };
+                  
+                  window.addEventListener('resize', handleResize);
+                  
+                  // Check prefers-reduced-motion
+                  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                  
+                  if (!prefersReducedMotion) {
+                    animate();
+                  } else {
+                    // Posizioni statiche iniziali
+                    icons.forEach((icon, index) => {
+                      const pos = initialPositions[index];
+                      const xPercent = (pos.x / container.offsetWidth) * 100;
+                      const yPercent = (pos.y / container.offsetHeight) * 100;
+                      icon.style.left = `${xPercent}%`;
+                      icon.style.top = `${yPercent}%`;
+                      icon.style.transform = `translate(-50%, -50%)`;
+                    });
+                  }
+                  
+                  // Cleanup
+                  return () => {
+                    observer.disconnect();
+                    window.removeEventListener('resize', handleResize);
+                    if (animationFrame) cancelAnimationFrame(animationFrame);
+                  };
+                }}
+                className="relative mt-8 h-[280px] sm:h-[420px] overflow-hidden"
+              >
                 <div className="pointer-events-none absolute inset-0">
                   <div className="absolute inset-8 rounded-[48px] border-2 border-dashed border-slate-200" />
                   <div className="absolute inset-16 rounded-[36px] border-2 border-dashed border-slate-100" />
                 </div>
 
-                {apps.map((a, i) => (
-                  <div
-                    key={i}
-                    className={`absolute ${a.style} grid place-items-center rounded-xl sm:rounded-2xl bg-white/95 p-2 sm:p-5 shadow-lg sm:shadow-xl ring-1 ring-slate-200 backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:rotate-6 hover:z-10`}
-                  >
-                    <img
-                      src={a.src}
-                      alt={a.alt}
-                      width={48}
-                      height={48}
-                      className="h-8 w-8 sm:h-14 sm:w-14 object-contain"
-                    />
-                    <span className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 inline-flex h-6 min-w-6 sm:h-9 sm:min-w-9 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-rose-600 text-[10px] sm:text-sm font-bold text-white px-1 sm:px-2 shadow-lg animate-bounce" style={{animationDuration: '2s', animationDelay: `${i * 0.2}s`}}>
-                       {labels[i]}
-                       
-                    </span>
-                  </div>
-                ))}
+                {apps.map((a, i) => {
+                  const iconSize = 'clamp(56px, 8.5vw, 84px)';
+                  const badgeSize = 'clamp(24px, 3.2vw, 30px)';
+                  
+                  return (
+                    <div
+                      key={i}
+                      className="chaos-icon absolute grid place-items-center rounded-xl bg-white/95 shadow-lg ring-1 ring-slate-200 backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:z-10"
+                      style={{
+                        width: iconSize,
+                        height: iconSize,
+                        padding: 'clamp(8px, 1.2vw, 14px)',
+                        willChange: 'transform',
+                        left: '0',
+                        top: '0'
+                      }}
+                    >
+                      <img
+                        src={a.src}
+                        alt={a.alt}
+                        width={84}
+                        height={84}
+                        className="w-full h-full object-contain"
+                        loading="lazy"
+                        style={{
+                          maxWidth: 'calc(100% - 4px)',
+                          maxHeight: 'calc(100% - 4px)'
+                        }}
+                      />
+                      <span 
+                        className="absolute inline-flex items-center justify-center rounded-full bg-gradient-to-br from-red-600 to-rose-700 font-bold text-white shadow-xl"
+                        style={{
+                          top: '-6px',
+                          right: '-6px',
+                          width: badgeSize,
+                          height: badgeSize,
+                          fontSize: 'clamp(11px, 1.9vw, 13px)',
+                          fontWeight: 700,
+                          textShadow: '0 1px 3px rgba(0,0,0,0.4), 0 0 1px rgba(0,0,0,0.5)',
+                          zIndex: 20,
+                          padding: '5px',
+                          lineHeight: '1',
+                          border: '1.5px solid rgba(255,255,255,0.3)'
+                        }}
+                      >
+                        {labels[i]}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -2056,45 +2343,155 @@ const labels: { [key: number]: string } = {
               {/* Logo with Orbiting Icons */}
               <div className="relative mt-8 sm:mt-12 flex justify-center items-center">
                 <div className="relative w-80 h-80 sm:w-96 sm:h-96">
-                  {/* Orbital path - single orbit for all icons */}
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[260px] h-[260px] sm:w-[280px] sm:h-[280px] rounded-full border-2 border-fuchsia-500/40"></div>
                   
-                  {/* Central Logo */}
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+                  {/* Central Logo with Magnetic Field Effect */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
                     <div className="relative">
-                      <div className="absolute -inset-10 bg-gradient-to-r from-fuchsia-500/40 to-purple-500/40 rounded-full blur-2xl animate-pulse"></div>
+                      {/* Magnetic field layers - behind logo, in front of background */}
+                      
+                      {/* Outer magnetic ring */}
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] sm:w-[380px] sm:h-[380px]">
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-violet-400/5 via-purple-400/10 to-blue-400/5 blur-3xl animate-[pulse_6s_ease-in-out_infinite]"></div>
+                      </div>
+                      
+                      {/* Middle magnetic ring */}
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[240px] h-[240px] sm:w-[280px] sm:h-[280px]">
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500/10 via-violet-500/15 to-indigo-500/10 blur-2xl animate-[pulse_4s_ease-in-out_infinite]"></div>
+                      </div>
+                      
+                      {/* Inner magnetic ring */}
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[160px] h-[160px] sm:w-[200px] sm:h-[200px]">
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-fuchsia-400/15 via-purple-400/20 to-violet-400/15 blur-xl animate-[pulse_3s_ease-in-out_infinite]"></div>
+                      </div>
+                      
+                      {/* Radial gradient overlay for depth */}
+                      <div className="absolute -inset-32 bg-radial-gradient opacity-40">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,rgba(139,92,246,0.08)_50%,transparent_70%)]"></div>
+                      </div>
+                      
+                      {/* Core glow - closer to logo */}
+                      <div className="absolute -inset-12 bg-gradient-to-r from-fuchsia-500/25 to-purple-500/25 rounded-full blur-2xl animate-[pulse_2s_ease-in-out_infinite]"></div>
+                      
+                      {/* Orbital field lines effect */}
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] sm:w-[420px] sm:h-[420px] opacity-30">
+                        <svg className="w-full h-full animate-[spin_60s_linear_infinite]" viewBox="0 0 400 400">
+                          <defs>
+                            <radialGradient id="fieldGradient">
+                              <stop offset="0%" stopColor="rgba(168, 85, 247, 0)" />
+                              <stop offset="50%" stopColor="rgba(168, 85, 247, 0.3)" />
+                              <stop offset="100%" stopColor="rgba(168, 85, 247, 0)" />
+                            </radialGradient>
+                          </defs>
+                          <circle 
+                            cx="200" 
+                            cy="200" 
+                            r="160" 
+                            fill="none" 
+                            stroke="url(#fieldGradient)" 
+                            strokeWidth="2"
+                            strokeDasharray="10 20"
+                            opacity="0.5"
+                          />
+                          <circle 
+                            cx="200" 
+                            cy="200" 
+                            r="120" 
+                            fill="none" 
+                            stroke="url(#fieldGradient)" 
+                            strokeWidth="1.5"
+                            strokeDasharray="5 15"
+                            opacity="0.4"
+                          />
+                          <circle 
+                            cx="200" 
+                            cy="200" 
+                            r="80" 
+                            fill="none" 
+                            stroke="url(#fieldGradient)" 
+                            strokeWidth="1"
+                            strokeDasharray="3 10"
+                            opacity="0.3"
+                          />
+                        </svg>
+                      </div>
+                      
+                      {/* Logo with heartbeat animation */}
+                      <style jsx>{`
+                        @keyframes heartbeat {
+                          0% {
+                            transform: scale(1);
+                          }
+                          10% {
+                            transform: scale(1.06);
+                          }
+                          20% {
+                            transform: scale(1);
+                          }
+                          30% {
+                            transform: scale(1.03);
+                          }
+                          40% {
+                            transform: scale(1);
+                          }
+                          100% {
+                            transform: scale(1);
+                          }
+                        }
+                        
+                        .center-logo {
+                          animation: heartbeat 2.2s cubic-bezier(0.42, 0, 0.58, 1) infinite;
+                          transform-origin: center center;
+                          will-change: transform;
+                        }
+                        
+                        @media (prefers-reduced-motion: reduce) {
+                          .center-logo {
+                            animation: none;
+                          }
+                        }
+                      `}</style>
+                      
                       <Image
-                        src="/images/logo.png"
+                        src="/images/logo-4.png"
                         alt="SafeScale Logo"
-                        width={220}
-                        height={80}
-                        className="relative z-10 h-24 sm:h-28 w-auto filter brightness-0 invert"
+                        width={400}
+                        height={150}
+                        className="center-logo relative z-10 h-44 sm:h-52 w-auto"
                       />
                     </div>
                   </div>
                   
                   {/* Orbiting Icons Container */}
-                  <div className="absolute inset-0">
+                  <div className="absolute inset-0 z-20" style={{ transformStyle: 'preserve-3d', perspective: '1000px' }}>
                     <style jsx>{`
+                      /* Simple orbit animations for 7 icons */
                       @keyframes orbit1 {
-                        from { transform: rotate(0deg) translateX(140px) rotate(0deg); }
-                        to { transform: rotate(360deg) translateX(140px) rotate(-360deg); }
+                        from { transform: rotate(0deg) translateX(150px) rotate(0deg); }
+                        to { transform: rotate(360deg) translateX(150px) rotate(-360deg); }
                       }
                       @keyframes orbit2 {
-                        from { transform: rotate(72deg) translateX(140px) rotate(-72deg); }
-                        to { transform: rotate(432deg) translateX(140px) rotate(-432deg); }
+                        from { transform: rotate(51.4deg) translateX(150px) rotate(-51.4deg); }
+                        to { transform: rotate(411.4deg) translateX(150px) rotate(-411.4deg); }
                       }
                       @keyframes orbit3 {
-                        from { transform: rotate(144deg) translateX(140px) rotate(-144deg); }
-                        to { transform: rotate(504deg) translateX(140px) rotate(-504deg); }
+                        from { transform: rotate(102.8deg) translateX(150px) rotate(-102.8deg); }
+                        to { transform: rotate(462.8deg) translateX(150px) rotate(-462.8deg); }
                       }
                       @keyframes orbit4 {
-                        from { transform: rotate(216deg) translateX(140px) rotate(-216deg); }
-                        to { transform: rotate(576deg) translateX(140px) rotate(-576deg); }
+                        from { transform: rotate(154.2deg) translateX(150px) rotate(-154.2deg); }
+                        to { transform: rotate(514.2deg) translateX(150px) rotate(-514.2deg); }
                       }
                       @keyframes orbit5 {
-                        from { transform: rotate(288deg) translateX(140px) rotate(-288deg); }
-                        to { transform: rotate(648deg) translateX(140px) rotate(-648deg); }
+                        from { transform: rotate(205.6deg) translateX(150px) rotate(-205.6deg); }
+                        to { transform: rotate(565.6deg) translateX(150px) rotate(-565.6deg); }
+                      }
+                      @keyframes orbit6 {
+                        from { transform: rotate(257deg) translateX(150px) rotate(-257deg); }
+                        to { transform: rotate(617deg) translateX(150px) rotate(-617deg); }
+                      }
+                      @keyframes orbit7 {
+                        from { transform: rotate(308.4deg) translateX(150px) rotate(-308.4deg); }
+                        to { transform: rotate(668.4deg) translateX(150px) rotate(-668.4deg); }
                       }
                       
                       @media (max-width: 640px) {
@@ -2103,75 +2500,169 @@ const labels: { [key: number]: string } = {
                           to { transform: rotate(360deg) translateX(130px) rotate(-360deg); }
                         }
                         @keyframes orbit2 {
-                          from { transform: rotate(72deg) translateX(130px) rotate(-72deg); }
-                          to { transform: rotate(432deg) translateX(130px) rotate(-432deg); }
+                          from { transform: rotate(51.4deg) translateX(130px) rotate(-51.4deg); }
+                          to { transform: rotate(411.4deg) translateX(130px) rotate(-411.4deg); }
                         }
                         @keyframes orbit3 {
-                          from { transform: rotate(144deg) translateX(130px) rotate(-144deg); }
-                          to { transform: rotate(504deg) translateX(130px) rotate(-504deg); }
+                          from { transform: rotate(102.8deg) translateX(130px) rotate(-102.8deg); }
+                          to { transform: rotate(462.8deg) translateX(130px) rotate(-462.8deg); }
                         }
                         @keyframes orbit4 {
-                          from { transform: rotate(216deg) translateX(130px) rotate(-216deg); }
-                          to { transform: rotate(576deg) translateX(130px) rotate(-576deg); }
+                          from { transform: rotate(154.2deg) translateX(130px) rotate(-154.2deg); }
+                          to { transform: rotate(514.2deg) translateX(130px) rotate(-514.2deg); }
                         }
                         @keyframes orbit5 {
-                          from { transform: rotate(288deg) translateX(130px) rotate(-288deg); }
-                          to { transform: rotate(648deg) translateX(130px) rotate(-648deg); }
+                          from { transform: rotate(205.6deg) translateX(130px) rotate(-205.6deg); }
+                          to { transform: rotate(565.6deg) translateX(130px) rotate(-565.6deg); }
+                        }
+                        @keyframes orbit6 {
+                          from { transform: rotate(257deg) translateX(130px) rotate(-257deg); }
+                          to { transform: rotate(617deg) translateX(130px) rotate(-617deg); }
+                        }
+                        @keyframes orbit7 {
+                          from { transform: rotate(308.4deg) translateX(130px) rotate(-308.4deg); }
+                          to { transform: rotate(668.4deg) translateX(130px) rotate(-668.4deg); }
                         }
                       }
                     `}</style>
                     
-                    {/* E-Commerce Icon */}
-                    <div className="absolute top-1/2 left-1/2 -ml-6 -mt-6 sm:-ml-7 sm:-mt-7 w-12 h-12 sm:w-14 sm:h-14" 
-                         style={{ animation: 'orbit1 25s linear infinite' }}>
-                      <div className="group relative w-full h-full bg-gradient-to-br from-fuchsia-500 to-purple-600 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(217,70,239,0.6)] hover:shadow-[0_0_30px_rgba(217,70,239,0.9)] transition-all cursor-pointer hover:scale-110">
-                        <span className="text-xl sm:text-2xl">🛍️</span>
-                        <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/90 px-3 py-1.5 rounded text-xs text-white font-medium">
-                          E-Commerce
+                    
+                    {/* Shipping Icon - Position 1 */}
+                    <div 
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[70px] h-[70px] sm:w-[75px] sm:h-[75px] md:w-[80px] md:h-[80px] -ml-[35px] -mt-[35px] sm:-ml-[37.5px] sm:-mt-[37.5px] md:-ml-[40px] md:-mt-[40px]" 
+                      style={{ 
+                        animation: 'orbit1 15s linear infinite'
+                      }}>
+                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-110">
+                        <Image
+                          src="/images/icons/shipping-logo.png"
+                          alt="Shipping"
+                          width={80}
+                          height={80}
+                          className="w-full h-full object-contain"
+                        />
+                        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/90 px-3 py-1.5 rounded text-xs text-white font-medium z-50">
+                          Shipping
                         </div>
                       </div>
                     </div>
                     
-                    {/* Shipping Icon */}
-                    <div className="absolute top-1/2 left-1/2 -ml-6 -mt-6 sm:-ml-7 sm:-mt-7 w-12 h-12 sm:w-14 sm:h-14" 
-                         style={{ animation: 'orbit2 25s linear infinite' }}>
-                      <div className="group relative w-full h-full bg-gradient-to-br from-blue-500 to-cyan-600 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:shadow-[0_0_30px_rgba(59,130,246,0.9)] transition-all cursor-pointer hover:scale-110">
-                        <span className="text-xl sm:text-2xl">📦</span>
-                        <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/90 px-3 py-1.5 rounded text-xs text-white font-medium">
-                          Spedizioni
+                    {/* Google Ads Icon - Position 2 */}
+                    <div 
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[70px] h-[70px] sm:w-[75px] sm:h-[75px] md:w-[80px] md:h-[80px] -ml-[35px] -mt-[35px] sm:-ml-[37.5px] sm:-mt-[37.5px] md:-ml-[40px] md:-mt-[40px]" 
+                      style={{ 
+                        animation: 'orbit2 15s linear infinite'
+                      }}>
+                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-110">
+                        <Image
+                          src="/images/icons/googleads-logo.png"
+                          alt="Google Ads"
+                          width={80}
+                          height={80}
+                          className="w-full h-full object-contain"
+                        />
+                        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/90 px-3 py-1.5 rounded text-xs text-white font-medium z-50">
+                          Google Ads
                         </div>
                       </div>
                     </div>
                     
-                    {/* Marketing Icon */}
-                    <div className="absolute top-1/2 left-1/2 -ml-6 -mt-6 sm:-ml-7 sm:-mt-7 w-12 h-12 sm:w-14 sm:h-14" 
-                         style={{ animation: 'orbit3 25s linear infinite' }}>
-                      <div className="group relative w-full h-full bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.6)] hover:shadow-[0_0_30px_rgba(34,197,94,0.9)] transition-all cursor-pointer hover:scale-110">
-                        <span className="text-xl sm:text-2xl">📈</span>
-                        <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/90 px-3 py-1.5 rounded text-xs text-white font-medium">
-                          Marketing
+                    {/* Shopify Icon - Position 3 */}
+                    <div 
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[70px] h-[70px] sm:w-[75px] sm:h-[75px] md:w-[80px] md:h-[80px] -ml-[35px] -mt-[35px] sm:-ml-[37.5px] sm:-mt-[37.5px] md:-ml-[40px] md:-mt-[40px]" 
+                      style={{ 
+                        animation: 'orbit3 15s linear infinite'
+                      }}>
+                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-110">
+                        <Image
+                          src="/images/icons/shopify-logo.png"
+                          alt="Shopify"
+                          width={80}
+                          height={80}
+                          className="w-full h-full object-contain"
+                        />
+                        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/90 px-3 py-1.5 rounded text-xs text-white font-medium z-50">
+                          Shopify
                         </div>
                       </div>
                     </div>
                     
-                    {/* Revenue Icon */}
-                    <div className="absolute top-1/2 left-1/2 -ml-6 -mt-6 sm:-ml-7 sm:-mt-7 w-12 h-12 sm:w-14 sm:h-14" 
-                         style={{ animation: 'orbit4 25s linear infinite' }}>
-                      <div className="group relative w-full h-full bg-gradient-to-br from-yellow-500 to-orange-600 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(251,191,36,0.6)] hover:shadow-[0_0_30px_rgba(251,191,36,0.9)] transition-all cursor-pointer hover:scale-110">
-                        <span className="text-xl sm:text-2xl">💰</span>
-                        <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/90 px-3 py-1.5 rounded text-xs text-white font-medium">
-                          Revenue Sharing
+                    {/* SEO Icon - Position 4 */}
+                    <div 
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[70px] h-[70px] sm:w-[75px] sm:h-[75px] md:w-[80px] md:h-[80px] -ml-[35px] -mt-[35px] sm:-ml-[37.5px] sm:-mt-[37.5px] md:-ml-[40px] md:-mt-[40px]" 
+                      style={{ 
+                        animation: 'orbit4 15s linear infinite'
+                      }}>
+                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-110">
+                        <Image
+                          src="/images/icons/seo-logo.png"
+                          alt="SEO"
+                          width={80}
+                          height={80}
+                          className="w-full h-full object-contain"
+                        />
+                        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/90 px-3 py-1.5 rounded text-xs text-white font-medium z-50">
+                          SEO
                         </div>
                       </div>
                     </div>
                     
-                    {/* Analytics Icon */}
-                    <div className="absolute top-1/2 left-1/2 -ml-6 -mt-6 sm:-ml-7 sm:-mt-7 w-12 h-12 sm:w-14 sm:h-14" 
-                         style={{ animation: 'orbit5 25s linear infinite' }}>
-                      <div className="group relative w-full h-full bg-gradient-to-br from-indigo-500 to-violet-600 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.6)] hover:shadow-[0_0_30px_rgba(99,102,241,0.9)] transition-all cursor-pointer hover:scale-110">
-                        <span className="text-xl sm:text-2xl">📊</span>
-                        <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/90 px-3 py-1.5 rounded text-xs text-white font-medium">
-                          Analytics
+                    {/* AI Icon - Position 5 */}
+                    <div 
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[70px] h-[70px] sm:w-[75px] sm:h-[75px] md:w-[80px] md:h-[80px] -ml-[35px] -mt-[35px] sm:-ml-[37.5px] sm:-mt-[37.5px] md:-ml-[40px] md:-mt-[40px]" 
+                      style={{ 
+                        animation: 'orbit5 15s linear infinite'
+                      }}>
+                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-110">
+                        <Image
+                          src="/images/icons/ai-logo.png"
+                          alt="AI"
+                          width={80}
+                          height={80}
+                          className="w-full h-full object-contain"
+                        />
+                        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/90 px-3 py-1.5 rounded text-xs text-white font-medium z-50">
+                          AI Tools
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* TikTok Icon - Position 6 */}
+                    <div 
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[70px] h-[70px] sm:w-[75px] sm:h-[75px] md:w-[80px] md:h-[80px] -ml-[35px] -mt-[35px] sm:-ml-[37.5px] sm:-mt-[37.5px] md:-ml-[40px] md:-mt-[40px]" 
+                      style={{ 
+                        animation: 'orbit6 15s linear infinite'
+                      }}>
+                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-110">
+                        <Image
+                          src="/images/icons/tiktok-logo.png"
+                          alt="TikTok"
+                          width={80}
+                          height={80}
+                          className="w-full h-full object-contain"
+                        />
+                        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/90 px-3 py-1.5 rounded text-xs text-white font-medium z-50">
+                          TikTok Ads
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Meta Icon - Position 7 */}
+                    <div 
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[70px] h-[70px] sm:w-[75px] sm:h-[75px] md:w-[80px] md:h-[80px] -ml-[35px] -mt-[35px] sm:-ml-[37.5px] sm:-mt-[37.5px] md:-ml-[40px] md:-mt-[40px]" 
+                      style={{ 
+                        animation: 'orbit7 15s linear infinite'
+                      }}>
+                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-110">
+                        <Image
+                          src="/images/icons/logo-meta.png"
+                          alt="Meta"
+                          width={80}
+                          height={80}
+                          className="w-full h-full object-contain"
+                        />
+                        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/90 px-3 py-1.5 rounded text-xs text-white font-medium z-50">
+                          Meta Ads
                         </div>
                       </div>
                     </div>
@@ -3426,7 +3917,7 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
             <div className="relative">
               <div className="absolute -inset-6 bg-gradient-to-r from-blue-200/30 to-blue-300/30 rounded-full blur-xl"></div>
               <Image
-                src="/images/logo.png"
+                src="/images/logo-2.png"
                 alt="SafeScale Agency Logo"
                 width={280}
                 height={90}
