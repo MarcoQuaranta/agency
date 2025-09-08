@@ -1,40 +1,31 @@
 'use client';
-import { useRef } from 'react';
+
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect, useCallback } from 'react';
-import { FC } from "react";
-import { CheckCircle, Settings, FileText, BarChart2, Gauge } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { 
-  FaEnvelope, 
-  FaRocket, 
-  FaLock, 
-  FaEuroSign, 
-  FaPhone, 
-  FaChartBar, 
-  FaSearch, 
-  FaLightbulb, 
-  FaPalette, 
-  FaBolt, 
-  FaBullseye, 
-  FaClipboardList, 
-  FaCheckCircle, 
-  FaTimesCircle, 
-  FaExclamationTriangle,
-  FaChartLine,
-  FaStar,
-  FaHeart,
-  FaUser,
-  FaUserTie,
-  FaUserGraduate,
-  FaRunning,
+  FaBolt,
   FaBriefcase,
+  FaBullseye,
+  FaChartBar,
+  FaChartLine,
+  FaCheckCircle,
+  FaClipboardList,
+  FaEnvelope,
+  FaLightbulb,
+  FaPalette,
+  FaPhone,
+  FaRocket,
+  FaRunning,
+  FaSearch,
   FaUserCheck,
-  FaMusic,
-  FaComment,
-  FaShare
+  FaUserGraduate,
+  FaUserTie
 } from 'react-icons/fa';
-import { FiUser } from 'react-icons/fi';
+import { BarChart2, CheckCircle, FileText, Gauge, Settings } from "lucide-react";
+
+import OldAgencyBrokenBox from '@/components/OldAgencyBrokenBox';
+
 interface FeatureCard {
   icon: JSX.Element;
   title: string;
@@ -68,7 +59,7 @@ const testimonials: Testimonial[] = [
   },
 ];
 // Custom hook for counting animation
-const useCountUp = (end: number, duration: number = 2000, isVisible: boolean = false) => {
+const useCountUp = (end: number, duration = 2000, isVisible = false) => {
   const [count, setCount] = useState(0);
   
   useEffect(() => {
@@ -81,7 +72,7 @@ const useCountUp = (end: number, duration: number = 2000, isVisible: boolean = f
       if (!startTime) startTime = currentTime;
       const progress = Math.min((currentTime - startTime) / duration, 1);
       
-      // Easing function for smooth animation
+      // Easing function for smooth animation  
       const easeOutQuart = 1 - Math.pow(1 - progress, 4);
       const currentCount = Math.floor(easeOutQuart * (end - startValue) + startValue);
       
@@ -98,50 +89,80 @@ const useCountUp = (end: number, duration: number = 2000, isVisible: boolean = f
   return count;
 };
 
+type Item = {
+  id: number;
+  title: string;
+  desc: string;
+  image: string;
+};
+
+const ITEMS: Item[] = [
+  {
+    id: 0,
+    title: 'Scalabilità immediata',
+    desc: 'Più vendi, più investiamo. Più investiamo, più guadagniamo.',
+    image: '/images/item1.png',
+  },
+  {
+    id: 1,
+    title: 'Zero rischio',
+    desc: 'Non metti budget pubblicitario, ci assumiamo noi tutti i rischi.',
+    image: '/images/item2.png',
+  },
+  {
+    id: 2,
+    title: 'Cashflow sicuro',
+    desc: 'Conoscerai da subito i tuoi margini di guadagno e riceverai i profitti netti.',
+    image: '/images/item3.png',
+  },
+];
+
 export default function HomePage() {
   const [showContactForm, setShowContactForm] = useState(false);
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [visibleSections, setVisibleSections] = useState<string[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [_currentReviewIndex, setCurrentReviewIndex] = useState(0);
+  const [_isTransitioning, _setIsTransitioning] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
-  const [autoPlay, setAutoPlay] = useState(true);
+  const [_autoPlay, setAutoPlay] = useState(true);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [stepBoxProgress, setStepBoxProgress] = useState(0);
-  const features: FeatureCard[] = [
+  const _features: FeatureCard[] = [
   { icon: <Settings className="w-5 h-5 text-gray-700" />, title: "Flexible workflows for every team" },
   { icon: <FileText className="w-5 h-5 text-gray-700" />, title: "Tasks, docs, spreadsheets, and more" },
   { icon: <Gauge className="w-5 h-5 text-gray-700" />, title: "Resource and workload optimization" },
   { icon: <BarChart2 className="w-5 h-5 text-gray-700" />, title: "Dashboards and insights" },
 ];
+  
+  const autoPlayTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const resumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
   const clearTimers = () => {
-  if (autoPlayTimerRef.current) {
-    clearInterval(autoPlayTimerRef.current);
-    autoPlayTimerRef.current = null;
-  }
-  if (resumeTimeoutRef.current) {
-    clearTimeout(resumeTimeoutRef.current);
-    resumeTimeoutRef.current = null;
-  }
-};
+    if (autoPlayTimerRef.current) {
+      clearInterval(autoPlayTimerRef.current);
+      autoPlayTimerRef.current = null;
+    }
+    if (resumeTimeoutRef.current) {
+      clearTimeout(resumeTimeoutRef.current);
+      resumeTimeoutRef.current = null;
+    }
+  };
 
-const pauseAutoPlay = (ms?: number) => {
-  setAutoPlay(false);
-  clearTimers();
-  if (typeof ms === 'number' && ms > 0) {
-    resumeTimeoutRef.current = setTimeout(() => {
-      setAutoPlay(true);
-    }, ms);
-  }
-};
+  const _pauseAutoPlay = (ms?: number) => {
+    setAutoPlay(false);
+    clearTimers();
+    if (typeof ms === 'number' && ms > 0) {
+      resumeTimeoutRef.current = setTimeout(() => {
+        setAutoPlay(true);
+      }, ms);
+    }
+  };
 
-const [autoPlayDelay, setAutoPlayDelay] = useState(3500); // ms
-const [activeProjectTab, setActiveProjectTab] = useState('marketing');
-const [contentKey, setContentKey] = useState(0);
-const autoPlayTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-const resumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-const carouselContainerRef = useRef<HTMLDivElement | null>(null);
+  const [_autoPlayDelay, _setAutoPlayDelay] = useState(3500); // ms
+  const [activeProjectTab, setActiveProjectTab] = useState('marketing');
+  const [contentKey, setContentKey] = useState(0);
+  const _carouselContainerRef = useRef<HTMLDivElement | null>(null);
   const [contactFormData, setContactFormData] = useState({
     nome: '',
     cognome: '',
@@ -175,8 +196,8 @@ const carouselContainerRef = useRef<HTMLDivElement | null>(null);
   const [captchaQuestion, setCaptchaQuestion] = useState({ question: 'Caricamento...', answer: 0 });
   const [questionnaireSubmitted, setQuestionnaireSubmitted] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [activeStep, setActiveStep] = useState(1);
-  const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
+  const [_activeStep, _setActiveStep] = useState(1);
+  const [_activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const [neonTime, setNeonTime] = useState(0);
   const [displayedTexts, setDisplayedTexts] = useState<string[]>(['', '', '']);
   const [currentPhase, setCurrentPhase] = useState<'typing' | 'deleting'>('typing');
@@ -184,11 +205,11 @@ const carouselContainerRef = useRef<HTMLDivElement | null>(null);
   const [currentCharIndex, setCurrentCharIndex] = useState(0);
   const [deleteCharIndex, setDeleteCharIndex] = useState(0);
   
-  const fullTexts = [
+  const fullTexts = useMemo(() => [
     'Noi Investiamo',
     'Tu Guadagni', 
     'Zero Rischi'
-  ];
+  ], []);
   
   const renderTextWithColors = (text: string) => {
     const parts = text.split(' ');
@@ -208,7 +229,7 @@ const carouselContainerRef = useRef<HTMLDivElement | null>(null);
   };
 
   // Dati delle icone circolari - disposizione uniforme ogni 45°
-  const circularIcons = [
+  const _circularIcons = [
     { id: 'phone', icon: FaPhone, color: 'text-blue-600', tooltip: '+39 123 456 7890', angle: 0 },
     { id: 'chart', icon: FaChartBar, color: 'text-green-600', tooltip: 'Analytics & Reporting', angle: 45 },
     { id: 'search', icon: FaSearch, color: 'text-purple-600', tooltip: 'SEO Optimization', angle: 90 },
@@ -384,7 +405,7 @@ const carouselContainerRef = useRef<HTMLDivElement | null>(null);
           setDeleteCharIndex(prev => prev - 1);
           
           // Calcola quale testo mostrare - cancella dall'ultima riga
-          let totalCharsToShow = newDeleteIndex;
+          const totalCharsToShow = newDeleteIndex;
           const newTexts = [...fullTexts];
           
           // Cancella caratteri partendo dall'ultima riga
@@ -417,7 +438,7 @@ const carouselContainerRef = useRef<HTMLDivElement | null>(null);
 
     const timer = setTimeout(animate, currentPhase === 'typing' ? typeSpeed : deleteSpeed);
     return () => clearTimeout(timer);
-  }, [isMounted, currentPhase, currentTextIndex, currentCharIndex, deleteCharIndex]);
+  }, [isMounted, currentPhase, currentTextIndex, currentCharIndex, deleteCharIndex, fullTexts]);
 
   // Effect per bloccare lo scroll quando il questionario è aperto
   useEffect(() => {
@@ -511,7 +532,7 @@ const carouselContainerRef = useRef<HTMLDivElement | null>(null);
       
       // Calculate progress: animation starts when section enters viewport
       const sectionTop = rect.top;
-      const sectionHeight = rect.height;
+      const _sectionHeight = rect.height;
       
       if (sectionTop <= windowHeight && rect.bottom >= 0) {
         // Animation starts when section enters viewport
@@ -621,14 +642,14 @@ const carouselContainerRef = useRef<HTMLDivElement | null>(null);
   ];
 
 
-  const nextReview = () => {
+  const _nextReview = () => {
     setCurrentReviewIndex((prev) => {
       const maxIndex = isDesktop ? reviews.length - 3 : reviews.length - 1;
       return prev >= maxIndex ? 0 : prev + 1;
     });
   };
 
-  const prevReview = () => {
+  const _prevReview = () => {
     setCurrentReviewIndex((prev) => {
       const maxIndex = isDesktop ? reviews.length - 3 : reviews.length - 1;
       return prev <= 0 ? maxIndex : prev - 1;
@@ -705,7 +726,7 @@ const carouselContainerRef = useRef<HTMLDivElement | null>(null);
         alert('Errore nell\'invio della candidatura. Riprova più tardi.');
       }
     } catch (error) {
-      console.error('Errore invio candidatura:', error);
+      // Errore invio candidatura
       alert('Errore nell\'invio della candidatura. Riprova più tardi.');
     }
   };
@@ -746,12 +767,12 @@ const carouselContainerRef = useRef<HTMLDivElement | null>(null);
       
       // Il controllo IP è ora gestito lato server
       if (result.success) {
-        console.log('Questionario incompleto inviato con successo');
+        // Questionario incompleto inviato con successo
       } else {
-        console.log('Questionario incompleto già inviato da questo IP');
+        // Questionario incompleto già inviato da questo IP
       }
     } catch (error) {
-      console.error('Errore invio questionario incompleto:', error);
+      // Errore invio questionario incompleto
     }
   };
 
@@ -767,10 +788,8 @@ const carouselContainerRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (typeof window === 'undefined' || !isMounted) return;
     
-    let intervalId: ReturnType<typeof setInterval>;
-    
     // Update every 16ms for ~60fps smooth animation
-    intervalId = setInterval(() => {
+    const intervalId = setInterval(() => {
       setNeonTime(Date.now());
     }, 16);
     
@@ -837,40 +856,12 @@ const carouselContainerRef = useRef<HTMLDivElement | null>(null);
     };
   };
 
-type Item = {
-  id: number;
-  title: string;
-  desc: string;
-  image: string;
-};
+  const [active, setActive] = useState<number>(0);
+  const [playingVideos, setPlayingVideos] = useState<{[key: number]: boolean}>({});
+  const videoRefs = useRef<{[key: number]: HTMLVideoElement | null}>({});
 
-const ITEMS: Item[] = [
-  {
-    id: 0,
-    title: 'Scalabilità immediata',
-    desc: 'Più vendi, più investiamo. Più investiamo, più guadagniamo.',
-    image: '/images/item1.png',
-  },
-  {
-    id: 1,
-    title: 'Zero rischio',
-    desc: 'Non metti budget pubblicitario, ci assumiamo noi tutti i rischi.',
-    image: '/images/item2.png',
-  },
-  {
-    id: 2,
-    title: 'Cashflow sicuro',
-    desc: 'Conoscerai da subito i tuoi margini di guadagno e riceverai i profitti netti.',
-    image: '/images/item3.png',
-  },
-];
-
-const [active, setActive] = useState<number>(0);
-const [playingVideos, setPlayingVideos] = useState<{[key: number]: boolean}>({});
-const videoRefs = useRef<{[key: number]: HTMLVideoElement | null}>({});
-
-// --- Banner CTA (prima del return) ---
-const ctaHref = '#contact-form'; // cambia con l'anchor o il link che vuoi
+  // --- Banner CTA (prima del return) ---
+  const _ctaHref = '#contact-form'; // cambia con l'anchor o il link che vuoi
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-blue-100/20 text-custom-dark overflow-x-hidden">
@@ -1002,28 +993,15 @@ const ctaHref = '#contact-form'; // cambia con l'anchor o il link che vuoi
                   ))}
                 </div>
               </h1>
-              <p className="text-base sm:text-lg lg:text-xl text-custom-dark leading-relaxed">
-                Proponici la tua <span className="font-bold">idea di Business</span> con <span className="font-bold">E-Commerce</span>: se la riterremo valida, <span className="font-bold">creeremo</span> il sistema di consegne, gestiremo il <span className="font-bold">marketing</span> e <span className="font-bold">investiremo</span> nel progetto con campagne pubblicitarie mirate.  
-Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</span> e ci prenderemo tutti i<span className="font-bold"> rischi</span>.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <button 
-                  onClick={scrollToContactForm}
-                  className="w-full sm:w-auto gradient-bg-brand gradient-bg-brand-hover text-white px-6 sm:px-8 py-3 rounded-full font-semibold transition-all text-sm sm:text-base transform hover:scale-105"
-                  style={getButtonStyles()}
-                >
-                  <FaEnvelope className="inline mr-2" /> Candidati
-                </button>
-              </div>
-            </div>
-            
-            {/* Rotating Icons Animation */}
-            <div id="contact-circle" className="relative flex justify-center lg:justify-end order-2 lg:order-2 mb-8 lg:mb-0 lg:col-span-3 lg:pr-4">
-              <div className="relative w-full max-w-sm aspect-square sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl">
-                {!showContactForm ? (
+              
+              {/* Mobile Icons - shown only on mobile between title and paragraph */}
+              <div className="block lg:hidden">
+                <div id="contact-circle-mobile" className="relative flex justify-center items-center mb-6 -mt-4 mx-auto min-h-[400px] sm:min-h-[450px]">
+                  <div className="relative w-72 h-72 sm:w-80 sm:h-80 aspect-square flex items-center justify-center mx-auto -translate-x-6 lg:translate-x-0">
+                    {!showContactForm ? (
                   <>
                     {/* Step-by-Step Circular Rotation Icons Animation */}
-                    <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="absolute inset-0 flex items-center justify-center z-10">
                       <style jsx>{`
                         @keyframes expandCard {
                           0% {
@@ -1044,93 +1022,93 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                         @media (max-width: 640px) {
                           @keyframes stepCircular1 {
                             0%, 10% {
-                              transform: translate(-50%, -50%) rotate(0deg) translateX(70px) rotate(0deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(0deg) translateX(90px) rotate(0deg) scale(1.5);
                               z-index: 3;
                             }
                             15%, 25% {
-                              transform: translate(-50%, -50%) rotate(120deg) translateX(70px) rotate(-120deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(120deg) translateX(90px) rotate(-120deg) scale(0.8);
                               z-index: 1;
                             }
                             30%, 43.33% {
-                              transform: translate(-50%, -50%) rotate(120deg) translateX(70px) rotate(-120deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(120deg) translateX(90px) rotate(-120deg) scale(0.8);
                               z-index: 1;
                             }
                             48.33%, 58.33% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(70px) rotate(-240deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
                               z-index: 1;
                             }
                             63.33%, 76.66% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(70px) rotate(-240deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
                               z-index: 1;
                             }
                             81.66%, 91.66% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(70px) rotate(-360deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
                               z-index: 3;
                             }
                             96.66%, 100% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(70px) rotate(-360deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
                               z-index: 3;
                             }
                           }
                           
                           @keyframes stepCircular2 {
                             0%, 10% {
-                              transform: translate(-50%, -50%) rotate(120deg) translateX(70px) rotate(-120deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(120deg) translateX(90px) rotate(-120deg) scale(0.8);
                               z-index: 1;
                             }
                             15%, 25% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(70px) rotate(-240deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
                               z-index: 1;
                             }
                             30%, 43.33% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(70px) rotate(-240deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
                               z-index: 1;
                             }
                             48.33%, 58.33% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(70px) rotate(-360deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
                               z-index: 3;
                             }
                             63.33%, 76.66% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(70px) rotate(-360deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
                               z-index: 3;
                             }
                             81.66%, 91.66% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(70px) rotate(-480deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
                               z-index: 1;
                             }
                             96.66%, 100% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(70px) rotate(-480deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
                               z-index: 1;
                             }
                           }
                           
                           @keyframes stepCircular3 {
                             0%, 10% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(70px) rotate(-240deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
                               z-index: 1;
                             }
                             15%, 25% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(70px) rotate(-360deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
                               z-index: 3;
                             }
                             30%, 43.33% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(70px) rotate(-360deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
                               z-index: 3;
                             }
                             48.33%, 58.33% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(70px) rotate(-480deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
                               z-index: 1;
                             }
                             63.33%, 76.66% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(70px) rotate(-480deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
                               z-index: 1;
                             }
                             81.66%, 91.66% {
-                              transform: translate(-50%, -50%) rotate(600deg) translateX(70px) rotate(-600deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(600deg) translateX(90px) rotate(-600deg) scale(0.8);
                               z-index: 1;
                             }
                             96.66%, 100% {
-                              transform: translate(-50%, -50%) rotate(600deg) translateX(70px) rotate(-600deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(600deg) translateX(90px) rotate(-600deg) scale(0.8);
                               z-index: 1;
                             }
                           }
@@ -1140,93 +1118,93 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                         @media (min-width: 641px) {
                           @keyframes stepCircular1 {
                           0%, 10% {
-                            transform: translate(-50%, -50%) rotate(0deg) translateX(140px) rotate(0deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(0deg) translateX(130px) rotate(0deg) scale(1.5);
                             z-index: 3;
                           }
                           15%, 25% {
-                            transform: translate(-50%, -50%) rotate(120deg) translateX(140px) rotate(-120deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(120deg) translateX(130px) rotate(-120deg) scale(0.8);
                             z-index: 1;
                           }
                           30%, 43.33% {
-                            transform: translate(-50%, -50%) rotate(120deg) translateX(140px) rotate(-120deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(120deg) translateX(130px) rotate(-120deg) scale(0.8);
                             z-index: 1;
                           }
                           48.33%, 58.33% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
                             z-index: 1;
                           }
                           63.33%, 76.66% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
                             z-index: 1;
                           }
                           81.66%, 91.66% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
                             z-index: 3;
                           }
                           96.66%, 100% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
                             z-index: 3;
                           }
                         }
                         
                         @keyframes stepCircular2 {
                           0%, 10% {
-                            transform: translate(-50%, -50%) rotate(120deg) translateX(140px) rotate(-120deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(120deg) translateX(130px) rotate(-120deg) scale(0.8);
                             z-index: 1;
                           }
                           15%, 25% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
                             z-index: 1;
                           }
                           30%, 43.33% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
                             z-index: 1;
                           }
                           48.33%, 58.33% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
                             z-index: 3;
                           }
                           63.33%, 76.66% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
                             z-index: 3;
                           }
                           81.66%, 91.66% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(480deg) translateX(130px) rotate(-480deg) scale(0.8);
                             z-index: 1;
                           }
                           96.66%, 100% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(480deg) translateX(130px) rotate(-480deg) scale(0.8);
                             z-index: 1;
                           }
                         }
                         
                         @keyframes stepCircular3 {
                           0%, 10% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
                             z-index: 1;
                           }
                           15%, 25% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
                             z-index: 3;
                           }
                           30%, 43.33% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
                             z-index: 3;
                           }
                           48.33%, 58.33% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(480deg) translateX(130px) rotate(-480deg) scale(0.8);
                             z-index: 1;
                           }
                           63.33%, 76.66% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(480deg) translateX(130px) rotate(-480deg) scale(0.8);
                             z-index: 1;
                           }
                           81.66%, 91.66% {
-                            transform: translate(-50%, -50%) rotate(600deg) translateX(140px) rotate(-600deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(600deg) translateX(130px) rotate(-600deg) scale(0.8);
                             z-index: 1;
                           }
                           96.66%, 100% {
-                            transform: translate(-50%, -50%) rotate(600deg) translateX(140px) rotate(-600deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(600deg) translateX(130px) rotate(-600deg) scale(0.8);
                             z-index: 1;
                           }
                         }
@@ -1265,14 +1243,12 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                       <div className="relative w-full h-full flex items-center justify-center">
                         {(() => {
                           const icons = [
-                            { icon: FaRocket, color: 'from-blue-500 to-purple-600' },
-                            { icon: FaChartLine, color: 'from-green-500 to-blue-600' },
-                            { icon: FaBullseye, color: 'from-orange-500 to-red-600' }
+                            { src: '/images/icons/money-logo.png' },
+                            { src: '/images/icons/shield-logo.png' },
+                            { src: '/images/icons/handshake-logo.png' }
                           ];
                           
                           return icons.map((item, index) => {
-                            const Icon = item.icon;
-                            
                             return (
                               <div
                                 key={index}
@@ -1282,11 +1258,15 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                                   top: '50%',
                                 }}
                               >
-                                <div 
-                                  className={`w-20 h-20 sm:w-28 sm:h-28 md:w-36 md:h-36 lg:w-44 lg:h-44 xl:w-52 xl:h-52 bg-gradient-to-br ${item.color} rounded-full shadow-2xl flex items-center justify-center`}
-                                >
-                                  <Icon className="text-white text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl" />
-                                </div>
+                                <Image 
+                                  src={item.src} 
+                                  alt={`Icon ${index + 1}`}
+                                  width={1200}
+                                  height={1200}
+                                  className="w-44 h-44 sm:w-48 sm:h-48 md:w-52 md:h-52 lg:w-52 lg:h-52 xl:w-60 xl:h-60 object-contain"
+                                  quality={100}
+                                  priority
+                                />
                               </div>
                             );
                           });
@@ -1296,6 +1276,410 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                   </>
                 ) : (
                   /* Contact Form - Mobile Responsive */
+                  <div className="absolute inset-0 flex items-center justify-center p-2 sm:p-6 z-20">
+                    <div className="bg-white p-5 sm:p-6 md:p-8 rounded-2xl border border-gray-200 backdrop-blur-sm w-full max-w-none sm:max-w-lg shadow-2xl relative mx-auto">
+                      {/* Decorative background elements */}
+                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-100/20 to-transparent rounded-full"></div>
+                      <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-100/20 to-transparent rounded-full"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-50/5 via-transparent to-purple-50/5"></div>
+                      <div className="flex justify-between items-center mb-4 sm:mb-6 relative z-10">
+                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">Contattaci</h3>
+                        <button 
+                          onClick={() => setShowContactForm(false)}
+                          className="text-gray-600 hover:text-gray-800 transition-colors text-lg sm:text-xl"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      
+                      <form className="space-y-3 sm:space-y-4 relative z-10" onSubmit={handleContactSubmit}>
+                        <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                          <div>
+                            <label htmlFor="nome" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                              Nome
+                            </label>
+                            <input
+                              type="text"
+                              id="nome"
+                              name="nome"
+                              className="w-full px-2 sm:px-3 md:px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="cognome" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                              Cognome
+                            </label>
+                            <input
+                              type="text"
+                              id="cognome"
+                              name="cognome"
+                              className="w-full px-2 sm:px-3 md:px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400"
+                              required
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <label htmlFor="telefono" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                            Telefono
+                          </label>
+                          <input
+                            type="tel"
+                            id="telefono"
+                            name="telefono"
+                            pattern=".*[0-9].*"
+                            placeholder="es: +39 123 456 7890"
+                            className="w-full px-2 sm:px-3 md:px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400"
+                            onInput={(e) => {
+                              const target = e.target as HTMLInputElement;
+                              // Rimuovi caratteri non validi
+                              target.value = target.value.replace(/[^0-9+\-\s()]/g, '');
+                              
+                              // Reset validità personalizzata
+                              target.setCustomValidity('');
+                              
+                              // Controlla se contiene almeno un numero
+                              if (target.value.length > 0 && !/\d/.test(target.value)) {
+                                target.setCustomValidity('Il telefono deve contenere almeno un numero');
+                              }
+                            }}
+                            onInvalid={(e) => {
+                              const target = e.target as HTMLInputElement;
+                              if (!target.value) {
+                                target.setCustomValidity('Il numero di telefono è obbligatorio');
+                              } else if (!/\d/.test(target.value)) {
+                                target.setCustomValidity('Il telefono deve contenere almeno un numero');
+                              }
+                            }}
+                            required
+                          />
+                        </div>
+                        
+                        <div>
+                          <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                            Email
+                          </label>
+                          <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            className="w-full px-2 sm:px-3 md:px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400"
+                            required
+                          />
+                        </div>
+                        
+                        <button
+                          type="submit"
+                          className="w-full gradient-bg-brand gradient-bg-brand-hover text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
+                          style={getButtonStyles()}
+                        >
+                          Invia Richiesta
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                )}
+                  </div>
+                </div>
+              </div>
+              
+              <p className="text-base sm:text-lg lg:text-xl text-custom-dark leading-relaxed">
+                Proponici la tua <span className="font-bold">idea di Business</span> con <span className="font-bold">E-Commerce</span>: se la riterremo valida, <span className="font-bold">creeremo</span> il sistema di consegne, gestiremo il <span className="font-bold">marketing</span> e <span className="font-bold">investiremo</span> nel progetto con campagne pubblicitarie mirate.  
+Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</span> e ci prenderemo tutti i<span className="font-bold"> rischi</span>.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <button 
+                  onClick={scrollToContactForm}
+                  className="w-full sm:w-auto gradient-bg-brand gradient-bg-brand-hover text-white px-6 sm:px-8 py-3 rounded-full font-semibold transition-all text-sm sm:text-base transform hover:scale-105"
+                  style={getButtonStyles()}
+                >
+                  <FaEnvelope className="inline mr-2" /> Candidati
+                </button>
+              </div>
+            </div>
+            
+            {/* Rotating Icons Animation - Desktop Only */}
+            <div id="contact-circle" className="relative hidden lg:flex justify-center lg:justify-end order-2 lg:order-2 mb-8 lg:mb-0 lg:col-span-3 lg:pr-4">
+              <div className="relative w-full max-w-sm aspect-square sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl">
+                {!showContactForm ? (
+                  <>
+                    {/* Step-by-Step Circular Rotation Icons Animation */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <style jsx>{`
+                        @keyframes expandCard {
+                          0% {
+                            transform: scale(0.5);
+                            opacity: 0;
+                          }
+                          60% {
+                            transform: scale(1.05);
+                            opacity: 1;
+                          }
+                          100% {
+                            transform: scale(1);
+                            opacity: 1;
+                          }
+                        }
+                        
+                        /* Mobile distance */
+                        @media (max-width: 640px) {
+                          @keyframes stepCircular1 {
+                            0%, 10% {
+                              transform: translate(-50%, -50%) rotate(0deg) translateX(90px) rotate(0deg) scale(1.5);
+                              z-index: 3;
+                            }
+                            15%, 25% {
+                              transform: translate(-50%, -50%) rotate(120deg) translateX(90px) rotate(-120deg) scale(0.8);
+                              z-index: 1;
+                            }
+                            30%, 43.33% {
+                              transform: translate(-50%, -50%) rotate(120deg) translateX(90px) rotate(-120deg) scale(0.8);
+                              z-index: 1;
+                            }
+                            48.33%, 58.33% {
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
+                              z-index: 1;
+                            }
+                            63.33%, 76.66% {
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
+                              z-index: 1;
+                            }
+                            81.66%, 91.66% {
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
+                              z-index: 3;
+                            }
+                            96.66%, 100% {
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
+                              z-index: 3;
+                            }
+                          }
+                          
+                          @keyframes stepCircular2 {
+                            0%, 10% {
+                              transform: translate(-50%, -50%) rotate(120deg) translateX(90px) rotate(-120deg) scale(0.8);
+                              z-index: 1;
+                            }
+                            15%, 25% {
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
+                              z-index: 1;
+                            }
+                            30%, 43.33% {
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
+                              z-index: 1;
+                            }
+                            48.33%, 58.33% {
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
+                              z-index: 3;
+                            }
+                            63.33%, 76.66% {
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
+                              z-index: 3;
+                            }
+                            81.66%, 91.66% {
+                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
+                              z-index: 1;
+                            }
+                            96.66%, 100% {
+                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
+                              z-index: 1;
+                            }
+                          }
+                          
+                          @keyframes stepCircular3 {
+                            0%, 10% {
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
+                              z-index: 1;
+                            }
+                            15%, 25% {
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
+                              z-index: 3;
+                            }
+                            30%, 43.33% {
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
+                              z-index: 3;
+                            }
+                            48.33%, 58.33% {
+                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
+                              z-index: 1;
+                            }
+                            63.33%, 76.66% {
+                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
+                              z-index: 1;
+                            }
+                            81.66%, 91.66% {
+                              transform: translate(-50%, -50%) rotate(600deg) translateX(90px) rotate(-600deg) scale(0.8);
+                              z-index: 1;
+                            }
+                            96.66%, 100% {
+                              transform: translate(-50%, -50%) rotate(600deg) translateX(90px) rotate(-600deg) scale(0.8);
+                              z-index: 1;
+                            }
+                          }
+                        }
+                        
+                        /* Desktop distance */
+                        @media (min-width: 641px) {
+                          @keyframes stepCircular1 {
+                          0%, 10% {
+                            transform: translate(-50%, -50%) rotate(0deg) translateX(130px) rotate(0deg) scale(1.5);
+                            z-index: 3;
+                          }
+                          15%, 25% {
+                            transform: translate(-50%, -50%) rotate(120deg) translateX(130px) rotate(-120deg) scale(0.8);
+                            z-index: 1;
+                          }
+                          30%, 43.33% {
+                            transform: translate(-50%, -50%) rotate(120deg) translateX(130px) rotate(-120deg) scale(0.8);
+                            z-index: 1;
+                          }
+                          48.33%, 58.33% {
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
+                            z-index: 1;
+                          }
+                          63.33%, 76.66% {
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
+                            z-index: 1;
+                          }
+                          81.66%, 91.66% {
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
+                            z-index: 3;
+                          }
+                          96.66%, 100% {
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
+                            z-index: 3;
+                          }
+                        }
+                        
+                        @keyframes stepCircular2 {
+                          0%, 10% {
+                            transform: translate(-50%, -50%) rotate(120deg) translateX(130px) rotate(-120deg) scale(0.8);
+                            z-index: 1;
+                          }
+                          15%, 25% {
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
+                            z-index: 1;
+                          }
+                          30%, 43.33% {
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
+                            z-index: 1;
+                          }
+                          48.33%, 58.33% {
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
+                            z-index: 3;
+                          }
+                          63.33%, 76.66% {
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
+                            z-index: 3;
+                          }
+                          81.66%, 91.66% {
+                            transform: translate(-50%, -50%) rotate(480deg) translateX(130px) rotate(-480deg) scale(0.8);
+                            z-index: 1;
+                          }
+                          96.66%, 100% {
+                            transform: translate(-50%, -50%) rotate(480deg) translateX(130px) rotate(-480deg) scale(0.8);
+                            z-index: 1;
+                          }
+                        }
+                        
+                        @keyframes stepCircular3 {
+                          0%, 10% {
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
+                            z-index: 1;
+                          }
+                          15%, 25% {
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
+                            z-index: 3;
+                          }
+                          30%, 43.33% {
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
+                            z-index: 3;
+                          }
+                          48.33%, 58.33% {
+                            transform: translate(-50%, -50%) rotate(480deg) translateX(130px) rotate(-480deg) scale(0.8);
+                            z-index: 1;
+                          }
+                          63.33%, 76.66% {
+                            transform: translate(-50%, -50%) rotate(480deg) translateX(130px) rotate(-480deg) scale(0.8);
+                            z-index: 1;
+                          }
+                          81.66%, 91.66% {
+                            transform: translate(-50%, -50%) rotate(600deg) translateX(130px) rotate(-600deg) scale(0.8);
+                            z-index: 1;
+                          }
+                          96.66%, 100% {
+                            transform: translate(-50%, -50%) rotate(600deg) translateX(130px) rotate(-600deg) scale(0.8);
+                            z-index: 1;
+                          }
+                        }
+                        }
+                        
+                        @media (max-width: 640px) {
+                          .icon-1 {
+                            animation: stepCircular1 9s ease-in-out infinite;
+                          }
+                          
+                          .icon-2 {
+                            animation: stepCircular2 9s ease-in-out infinite;
+                          }
+                          
+                          .icon-3 {
+                            animation: stepCircular3 9s ease-in-out infinite;
+                          }
+                        }
+                        
+                        @media (min-width: 641px) {
+                          .icon-1 {
+                            animation: stepCircular1 9s ease-in-out infinite;
+                          }
+                          
+                          .icon-2 {
+                            animation: stepCircular2 9s ease-in-out infinite;
+                          }
+                          
+                          .icon-3 {
+                            animation: stepCircular3 9s ease-in-out infinite;
+                          }
+                        }
+                      `}</style>
+                      
+                      {/* Icons Container */}
+                      <div className="relative w-full h-full flex items-center justify-center">
+                        {(() => {
+                          const icons = [
+                            { src: '/images/icons/money-logo.png' },
+                            { src: '/images/icons/shield-logo.png' },
+                            { src: '/images/icons/handshake-logo.png' }
+                          ];
+                          
+                          return icons.map((item, index) => {
+                            return (
+                              <div
+                                key={index}
+                                className={`icon-${index + 1} absolute`}
+                                style={{
+                                  left: '50%',
+                                  top: '50%',
+                                }}
+                              >
+                                <Image 
+                                  src={item.src} 
+                                  alt={`Icon ${index + 1}`}
+                                  width={1200}
+                                  height={1200}
+                                  className="w-36 h-36 sm:w-40 sm:h-40 md:w-44 md:h-44 lg:w-52 lg:h-52 xl:w-60 xl:h-60 object-contain"
+                                  quality={100}
+                                  priority
+                                />
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  /* Contact Form - Desktop */
                   <div className="absolute inset-0 flex items-center justify-center p-0 sm:p-6">
                     <div className="bg-white p-6 sm:p-6 md:p-8 rounded-2xl border border-gray-200 backdrop-blur-sm w-full h-auto sm:max-w-lg shadow-2xl relative">
                       {/* Decorative background elements */}
@@ -1400,25 +1784,31 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-                {/* Questionnaire Popup */}
-                {showQuestionnaire && (
-                  <div 
-                    className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start justify-center z-[60] p-4 pt-20"
-                    onClick={(e) => {
-                      if (e.target === e.currentTarget) {
-                        sendIncompleteQuestionnaire();
-                        setShowQuestionnaire(false);
-                        setQuestionnaireSubmitted(false);
-                      }
-                    }}
-                  >
-                    <div className="bg-white p-6 sm:p-8 rounded-2xl border border-gray-200 shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto mt-4 relative">
-                      {/* Decorative design elements */}
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-purple-100/30 to-transparent rounded-full -z-10"></div>
-                      <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-100/30 to-transparent rounded-full -z-10"></div>
-                      <div className="absolute top-1/2 right-0 w-40 h-40 bg-gradient-to-l from-pink-100/20 to-transparent rounded-full -z-10"></div>
-                      <div className="flex justify-between items-center mb-6">
+      {/* Questionnaire Popup */}
+      {showQuestionnaire && (
+        <div 
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-2 sm:p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              sendIncompleteQuestionnaire();
+              setShowQuestionnaire(false);
+              setQuestionnaireSubmitted(false);
+            }
+          }}
+        >
+          <div className="bg-white p-4 sm:p-6 md:p-8 rounded-2xl border border-gray-200 shadow-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto relative my-2">
+            {/* Decorative design elements */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-purple-100/30 to-transparent rounded-full -z-10"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-100/30 to-transparent rounded-full -z-10"></div>
+            <div className="absolute top-1/2 right-0 w-40 h-40 bg-gradient-to-l from-pink-100/20 to-transparent rounded-full -z-10"></div>
+            
+            <div className="flex justify-between items-center mb-6">
                         <div>
                           <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
                             <FaClipboardList className="inline mr-2 text-purple-600" /> Candidatura SafeScale
@@ -1940,27 +2330,18 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                           </button>
                         </div>
                       )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
-          
-        
         </div>
-      </section>
+      )}
 
-      
-
-{/* --- Comparison Section --- */}
-<section
-  id="comparison"
-  className="py-16 px-4 sm:px-6 lg:px-8"
-  aria-label="Work is broken vs Let's fix it"
->
+      {/* --- Comparison Section --- */}
+      <section
+        id="comparison"
+        className="py-16 px-4 sm:px-6 lg:px-8"
+        aria-label="Work is broken vs Let's fix it"
+      >
   {(() => {
-    const apps = [
+    const _apps = [
       { src: 'images/icons/business.png', alt: 'Word', style: 'top-6 left-10 rotate-3' },
       { src: 'images/icons/sitoweb.png', alt: 'Slack', style: 'top-20 right-10 -rotate-6' },
       { src: 'images/icons/social.png', alt: 'Notion', style: 'top-40 left-4 rotate-2' },
@@ -1968,7 +2349,7 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
       { src: 'images/icons/spam.png', alt: 'Airtable', style: 'bottom-20 right-6 rotate-6' },
       { src: 'images/icons/soldi.png', alt: 'Dropbox', style: 'top-1/2 right-24 -rotate-2' },
     ];
-const labels: { [key: number]: string } = {
+const _labels: { [key: number]: string } = {
   0: '?',
   1: 'Error 404',
   2: 'Ban',
@@ -1981,333 +2362,11 @@ const labels: { [key: number]: string } = {
   {/* LEFT – Work is broken */}
   <div data-section="comparison-left" className={`flex justify-center slide-in-left ${visibleSections.includes('comparison-left') ? 'slide-in-visible' : ''}`}>
     <div className="w-full max-w-lg">
-      <div className="relative h-full min-h-[400px] sm:min-h-[700px] overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-6 sm:p-8 shadow-sm">
-  
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">
-                Il vecchio modello di Web Agency non è più sostenibile.
-              </h2>
-              <p className="mt-3 max-w-md text-slate-600">
-                Inutile continuare a investire soldi senza garanzie e utilizzando tecniche obsolete, senza conoscere il potenziale reale e rischiando grosse perdite economiche.
-              </p>
+      <OldAgencyBrokenBox />
+    </div>
+  </div>
 
-              {/* Cloud di iconcine con movimento fluido libero nell'area tratteggiata */}
-              <div 
-                ref={(el) => {
-                  if (!el) return;
-                  
-                  let animationFrame: number;
-                  const container = el;
-                  const icons = el.querySelectorAll('.chaos-icon') as NodeListOf<HTMLElement>;
-                  const startTime = Date.now();
-                  
-                  // Calcola dimensioni effettive del playfield con margini di sicurezza
-                  const getPlayfield = () => {
-                    const rect = container.getBoundingClientRect();
-                    const margin = 16; // Margine di sicurezza in px
-                    const iconSizePx = rect.width * 0.085; // ~8.5% della larghezza
-                    
-                    return {
-                      minX: margin + iconSizePx/2,
-                      maxX: rect.width - margin - iconSizePx/2,
-                      minY: margin + iconSizePx/2,
-                      maxY: rect.height - margin - iconSizePx/2,
-                      width: rect.width - (2 * margin) - iconSizePx,
-                      height: rect.height - (2 * margin) - iconSizePx,
-                      iconSize: iconSizePx
-                    };
-                  };
-                  
-                  const playfield = getPlayfield();
-                  
-                  // Funzione Simplex Noise semplificata per movimento fluido
-                  const noise2D = (x: number, y: number) => {
-                    const dot = (g: number[], x: number, y: number) => g[0]*x + g[1]*y;
-                    const grad = [[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]];
-                    const perm = [151,160,137,91,90,15,131,13,201,95,96,53,194,233,7,225];
-                    
-                    const i = Math.floor(x) & 255;
-                    const j = Math.floor(y) & 255;
-                    const gi = perm[i + perm[j & 15] & 15] & 7;
-                    
-                    return dot(grad[gi], x - Math.floor(x), y - Math.floor(y));
-                  };
-                  
-                  // Genera posizioni iniziali con Poisson-disk sampling
-                  const generateInitialPositions = () => {
-                    const positions: Array<{x: number, y: number}> = [];
-                    const minDist = playfield.iconSize * 1.5; // Distanza minima tra icone
-                    const maxAttempts = 30;
-                    
-                    for (let i = 0; i < apps.length; i++) {
-                      let placed = false;
-                      let attempts = 0;
-                      
-                      while (!placed && attempts < maxAttempts) {
-                        const x = playfield.minX + Math.random() * (playfield.maxX - playfield.minX);
-                        const y = playfield.minY + Math.random() * (playfield.maxY - playfield.minY);
-                        
-                        let valid = true;
-                        for (const pos of positions) {
-                          const dist = Math.sqrt(Math.pow(x - pos.x, 2) + Math.pow(y - pos.y, 2));
-                          if (dist < minDist) {
-                            valid = false;
-                            break;
-                          }
-                        }
-                        
-                        if (valid) {
-                          positions.push({ x, y });
-                          placed = true;
-                        }
-                        attempts++;
-                      }
-                      
-                      // Fallback se non trova posizione
-                      if (!placed) {
-                        const angle = (i / apps.length) * Math.PI * 2;
-                        const radius = Math.min(playfield.width, playfield.height) * 0.3;
-                        positions.push({
-                          x: playfield.minX + playfield.width/2 + Math.cos(angle) * radius,
-                          y: playfield.minY + playfield.height/2 + Math.sin(angle) * radius
-                        });
-                      }
-                    }
-                    
-                    return positions;
-                  };
-                  
-                  const initialPositions = generateInitialPositions();
-                  
-                  // Parametri movimento per ogni icona
-                  const iconData = initialPositions.map((pos, index) => ({
-                    currentX: pos.x,
-                    currentY: pos.y,
-                    targetX: pos.x,
-                    targetY: pos.y,
-                    // Parametri unici per movimento Perlin/Simplex noise
-                    noiseOffsetX: index * 100,
-                    noiseOffsetY: index * 100 + 50,
-                    noiseScale: 0.003 + (index % 3) * 0.001, // Scala del noise
-                    speed: 0.3 + (index % 4) * 0.1, // Velocità 14-22s per ciclo
-                    amplitude: playfield.width * (0.12 + (index % 3) * 0.03), // 12-15% ampiezza
-                    phase: (index / apps.length) * Math.PI * 2 // Fase diversa per ogni icona
-                  }));
-                  
-                  // Calcola posizione con steering verso i bordi
-                  const calculatePosition = (data: any, time: number) => {
-                    const t = time * data.speed;
-                    
-                    // Movimento basato su noise 2D
-                    const noiseX = noise2D(t * data.noiseScale + data.noiseOffsetX, data.noiseOffsetY);
-                    const noiseY = noise2D(data.noiseOffsetX, t * data.noiseScale + data.noiseOffsetY);
-                    
-                    // Posizione target basata su noise
-                    let targetX = data.currentX + noiseX * data.amplitude * 0.1;
-                    let targetY = data.currentY + noiseY * data.amplitude * 0.1;
-                    
-                    // Steering morbido verso l'interno quando vicino ai bordi
-                    const edgeMargin = playfield.iconSize;
-                    const steerStrength = 0.1;
-                    
-                    if (targetX < playfield.minX + edgeMargin) {
-                      targetX += (playfield.minX + edgeMargin - targetX) * steerStrength;
-                    } else if (targetX > playfield.maxX - edgeMargin) {
-                      targetX -= (targetX - (playfield.maxX - edgeMargin)) * steerStrength;
-                    }
-                    
-                    if (targetY < playfield.minY + edgeMargin) {
-                      targetY += (playfield.minY + edgeMargin - targetY) * steerStrength;
-                    } else if (targetY > playfield.maxY - edgeMargin) {
-                      targetY -= (targetY - (playfield.maxY - edgeMargin)) * steerStrength;
-                    }
-                    
-                    // Interpolazione smooth verso il target
-                    data.currentX += (targetX - data.currentX) * 0.05;
-                    data.currentY += (targetY - data.currentY) * 0.05;
-                    
-                    // Clamp finale per sicurezza
-                    data.currentX = Math.max(playfield.minX, Math.min(playfield.maxX, data.currentX));
-                    data.currentY = Math.max(playfield.minY, Math.min(playfield.maxY, data.currentY));
-                    
-                    return { x: data.currentX, y: data.currentY };
-                  };
-                  
-                  // Collision detection con repulsione soft
-                  const applyRepulsion = (positions: Array<{x: number, y: number}>) => {
-                    const repulsionRadius = playfield.iconSize * 0.9;
-                    const repulsionStrength = 0.3;
-                    
-                    for (let i = 0; i < positions.length; i++) {
-                      for (let j = i + 1; j < positions.length; j++) {
-                        const dx = positions[i].x - positions[j].x;
-                        const dy = positions[i].y - positions[j].y;
-                        const distance = Math.sqrt(dx * dx + dy * dy);
-                        
-                        if (distance < repulsionRadius && distance > 0) {
-                          const force = (repulsionRadius - distance) / distance * repulsionStrength;
-                          const pushX = dx * force;
-                          const pushY = dy * force;
-                          
-                          positions[i].x += pushX;
-                          positions[i].y += pushY;
-                          positions[j].x -= pushX;
-                          positions[j].y -= pushY;
-                          
-                          // Mantieni dentro il playfield
-                          positions[i].x = Math.max(playfield.minX, Math.min(playfield.maxX, positions[i].x));
-                          positions[i].y = Math.max(playfield.minY, Math.min(playfield.maxY, positions[i].y));
-                          positions[j].x = Math.max(playfield.minX, Math.min(playfield.maxX, positions[j].x));
-                          positions[j].y = Math.max(playfield.minY, Math.min(playfield.maxY, positions[j].y));
-                        }
-                      }
-                    }
-                    return positions;
-                  };
-                  
-                  // Animation loop
-                  const animate = () => {
-                    const elapsed = (Date.now() - startTime) / 1000;
-                    
-                    // Calcola nuove posizioni con noise
-                    let positions = iconData.map(data => calculatePosition(data, elapsed));
-                    
-                    // Applica repulsione soft
-                    positions = applyRepulsion(positions);
-                    
-                    // Aggiorna posizioni DOM
-                    icons.forEach((icon, index) => {
-                      const pos = positions[index];
-                      // Converti da pixel a percentuale per responsive
-                      const xPercent = (pos.x / container.offsetWidth) * 100;
-                      const yPercent = (pos.y / container.offsetHeight) * 100;
-                      icon.style.left = `${xPercent}%`;
-                      icon.style.top = `${yPercent}%`;
-                      icon.style.transform = `translate(-50%, -50%)`;
-                    });
-                    
-                    animationFrame = requestAnimationFrame(animate);
-                  };
-                  
-                  // IntersectionObserver per performance
-                  const observer = new IntersectionObserver(
-                    (entries) => {
-                      entries.forEach((entry) => {
-                        if (entry.isIntersecting) {
-                          if (!animationFrame) animate();
-                        } else {
-                          if (animationFrame) {
-                            cancelAnimationFrame(animationFrame);
-                            animationFrame = 0;
-                          }
-                        }
-                      });
-                    },
-                    { threshold: 0.1 }
-                  );
-                  
-                  observer.observe(el);
-                  
-                  // Gestione resize
-                  const handleResize = () => {
-                    const newPlayfield = getPlayfield();
-                    // Riscala posizioni proporzionalmente
-                    iconData.forEach(data => {
-                      data.currentX = (data.currentX / playfield.width) * newPlayfield.width;
-                      data.currentY = (data.currentY / playfield.height) * newPlayfield.height;
-                      data.amplitude = newPlayfield.width * (0.12 + (Math.random() * 0.03));
-                    });
-                    Object.assign(playfield, newPlayfield);
-                  };
-                  
-                  window.addEventListener('resize', handleResize);
-                  
-                  // Check prefers-reduced-motion
-                  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                  
-                  if (!prefersReducedMotion) {
-                    animate();
-                  } else {
-                    // Posizioni statiche iniziali
-                    icons.forEach((icon, index) => {
-                      const pos = initialPositions[index];
-                      const xPercent = (pos.x / container.offsetWidth) * 100;
-                      const yPercent = (pos.y / container.offsetHeight) * 100;
-                      icon.style.left = `${xPercent}%`;
-                      icon.style.top = `${yPercent}%`;
-                      icon.style.transform = `translate(-50%, -50%)`;
-                    });
-                  }
-                  
-                  // Cleanup
-                  return () => {
-                    observer.disconnect();
-                    window.removeEventListener('resize', handleResize);
-                    if (animationFrame) cancelAnimationFrame(animationFrame);
-                  };
-                }}
-                className="relative mt-8 h-[280px] sm:h-[420px] overflow-hidden"
-              >
-                <div className="pointer-events-none absolute inset-0">
-                  <div className="absolute inset-8 rounded-[48px] border-2 border-dashed border-slate-200" />
-                  <div className="absolute inset-16 rounded-[36px] border-2 border-dashed border-slate-100" />
-                </div>
-
-                {apps.map((a, i) => {
-                  const iconSize = 'clamp(56px, 8.5vw, 84px)';
-                  const badgeSize = 'clamp(24px, 3.2vw, 30px)';
-                  
-                  return (
-                    <div
-                      key={i}
-                      className="chaos-icon absolute grid place-items-center rounded-xl bg-white/95 shadow-lg ring-1 ring-slate-200 backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:z-10"
-                      style={{
-                        width: iconSize,
-                        height: iconSize,
-                        padding: 'clamp(8px, 1.2vw, 14px)',
-                        willChange: 'transform',
-                        left: '0',
-                        top: '0'
-                      }}
-                    >
-                      <img
-                        src={a.src}
-                        alt={a.alt}
-                        width={84}
-                        height={84}
-                        className="w-full h-full object-contain"
-                        loading="lazy"
-                        style={{
-                          maxWidth: 'calc(100% - 4px)',
-                          maxHeight: 'calc(100% - 4px)'
-                        }}
-                      />
-                      <span 
-                        className="absolute inline-flex items-center justify-center rounded-full bg-gradient-to-br from-red-600 to-rose-700 font-bold text-white shadow-xl"
-                        style={{
-                          top: '-6px',
-                          right: '-6px',
-                          width: badgeSize,
-                          height: badgeSize,
-                          fontSize: 'clamp(11px, 1.9vw, 13px)',
-                          fontWeight: 700,
-                          textShadow: '0 1px 3px rgba(0,0,0,0.4), 0 0 1px rgba(0,0,0,0.5)',
-                          zIndex: 20,
-                          padding: '5px',
-                          lineHeight: '1',
-                          border: '1.5px solid rgba(255,255,255,0.3)'
-                        }}
-                      >
-                        {labels[i]}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT – Let's fix it */}
+  {/* RIGHT – Let's fix it */}
        <div data-section="comparison-right" className={`flex justify-center slide-in-right ${visibleSections.includes('comparison-right') ? 'slide-in-visible' : ''}`}>
     <div className="w-full max-w-lg">
       <div className="relative h-full min-h-[450px] sm:min-h-[700px] overflow-hidden rounded-3xl border border-slate-800/50 bg-black p-6 sm:p-8">
@@ -2529,7 +2588,7 @@ const labels: { [key: number]: string } = {
                     
                     {/* Shipping Icon - Position 1 */}
                     <div 
-                      className="absolute top-1/2 left-1/2 orbit-icon w-[70px] h-[70px] sm:w-[75px] sm:h-[75px] md:w-[80px] md:h-[80px] -ml-[35px] -mt-[35px] sm:-ml-[37.5px] sm:-mt-[37.5px] md:-ml-[40px] md:-mt-[40px]" 
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]" 
                       style={{ 
                         animation: 'orbit1 15s linear infinite'
                       }}>
@@ -2549,7 +2608,7 @@ const labels: { [key: number]: string } = {
                     
                     {/* Google Ads Icon - Position 2 */}
                     <div 
-                      className="absolute top-1/2 left-1/2 orbit-icon w-[70px] h-[70px] sm:w-[75px] sm:h-[75px] md:w-[80px] md:h-[80px] -ml-[35px] -mt-[35px] sm:-ml-[37.5px] sm:-mt-[37.5px] md:-ml-[40px] md:-mt-[40px]" 
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]" 
                       style={{ 
                         animation: 'orbit2 15s linear infinite'
                       }}>
@@ -2569,7 +2628,7 @@ const labels: { [key: number]: string } = {
                     
                     {/* Shopify Icon - Position 3 */}
                     <div 
-                      className="absolute top-1/2 left-1/2 orbit-icon w-[70px] h-[70px] sm:w-[75px] sm:h-[75px] md:w-[80px] md:h-[80px] -ml-[35px] -mt-[35px] sm:-ml-[37.5px] sm:-mt-[37.5px] md:-ml-[40px] md:-mt-[40px]" 
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]" 
                       style={{ 
                         animation: 'orbit3 15s linear infinite'
                       }}>
@@ -2589,7 +2648,7 @@ const labels: { [key: number]: string } = {
                     
                     {/* SEO Icon - Position 4 */}
                     <div 
-                      className="absolute top-1/2 left-1/2 orbit-icon w-[70px] h-[70px] sm:w-[75px] sm:h-[75px] md:w-[80px] md:h-[80px] -ml-[35px] -mt-[35px] sm:-ml-[37.5px] sm:-mt-[37.5px] md:-ml-[40px] md:-mt-[40px]" 
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]" 
                       style={{ 
                         animation: 'orbit4 15s linear infinite'
                       }}>
@@ -2609,7 +2668,7 @@ const labels: { [key: number]: string } = {
                     
                     {/* AI Icon - Position 5 */}
                     <div 
-                      className="absolute top-1/2 left-1/2 orbit-icon w-[70px] h-[70px] sm:w-[75px] sm:h-[75px] md:w-[80px] md:h-[80px] -ml-[35px] -mt-[35px] sm:-ml-[37.5px] sm:-mt-[37.5px] md:-ml-[40px] md:-mt-[40px]" 
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]" 
                       style={{ 
                         animation: 'orbit5 15s linear infinite'
                       }}>
@@ -2629,7 +2688,7 @@ const labels: { [key: number]: string } = {
                     
                     {/* TikTok Icon - Position 6 */}
                     <div 
-                      className="absolute top-1/2 left-1/2 orbit-icon w-[70px] h-[70px] sm:w-[75px] sm:h-[75px] md:w-[80px] md:h-[80px] -ml-[35px] -mt-[35px] sm:-ml-[37.5px] sm:-mt-[37.5px] md:-ml-[40px] md:-mt-[40px]" 
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]" 
                       style={{ 
                         animation: 'orbit6 15s linear infinite'
                       }}>
@@ -2649,7 +2708,7 @@ const labels: { [key: number]: string } = {
                     
                     {/* Meta Icon - Position 7 */}
                     <div 
-                      className="absolute top-1/2 left-1/2 orbit-icon w-[70px] h-[70px] sm:w-[75px] sm:h-[75px] md:w-[80px] md:h-[80px] -ml-[35px] -mt-[35px] sm:-ml-[37.5px] sm:-mt-[37.5px] md:-ml-[40px] md:-mt-[40px]" 
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]" 
                       style={{ 
                         animation: 'orbit7 15s linear infinite'
                       }}>
@@ -2683,13 +2742,13 @@ const labels: { [key: number]: string } = {
           </div>
         </div>
       </div>
-    );
-  })()}
-</section>
+        );
+      })()}
+      </section>
 
-<section id="use-cases" className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-purple-50/8 via-white to-pink-50/5 relative" data-section="use-cases">
-  <div className="absolute inset-0 bg-gradient-to-r from-purple-50/15 via-transparent to-pink-50/15"></div>
-<div className="w-full max-w-7xl lg:max-w-[1600px] mx-auto px-6 lg:px-12 relative z-10">
+      <section id="use-cases" className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-purple-50/8 via-white to-pink-50/5 relative" data-section="use-cases">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-50/15 via-transparent to-pink-50/15"></div>
+        <div className="w-full max-w-7xl lg:max-w-[1600px] mx-auto px-6 lg:px-12 relative z-10">
 
     {/* HEADER */}
     <div className={`text-center mb-12 slide-up-enter ${visibleSections.includes('use-cases') ? 'slide-up-visible' : ''}`}>
@@ -3059,7 +3118,7 @@ const labels: { [key: number]: string } = {
                 return (
                   <div 
                     key={step.id} 
-                    className={`rounded-tl-3xl rounded-br-3xl p-8 border border-white/20 transform hover:scale-105 cursor-pointer transition-transform duration-300`}
+                    className="rounded-tl-3xl rounded-br-3xl p-8 border border-white/20 transform hover:scale-105 cursor-pointer transition-transform duration-300"
                     style={{
                       background: style.background,
                       boxShadow: style.boxShadow,
@@ -3085,14 +3144,14 @@ const labels: { [key: number]: string } = {
                     } as React.CSSProperties}
                   >
                     <div className="text-center mb-6">
-                      <div className={`text-4xl mb-4 w-16 h-16 bg-white/90 backdrop-blur rounded-full flex items-center justify-center mx-auto font-bold`}
+                      <div className="text-4xl mb-4 w-16 h-16 bg-white/90 backdrop-blur rounded-full flex items-center justify-center mx-auto font-bold"
                            style={{ color: step.id === 1 ? '#36a3e3' : step.id === 2 ? '#4f10e8' : '#f712c5' }}>
                         {step.id}
                       </div>
-                      <h3 className={`text-xl font-bold text-white mb-4`}>
+                      <h3 className="text-xl font-bold text-white mb-4">
                         {step.title}
                       </h3>
-                      <p className={`text-white/90 leading-relaxed`}>
+                      <p className="text-white/90 leading-relaxed">
                         {step.description}
                       </p>
                     </div>
@@ -3697,9 +3756,11 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
             {/* Testimonial */}
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 lg:p-6 rounded-xl border border-blue-100 animate-fade-in mb-6 lg:mb-0" style={{animationDelay: '0.7s'}}>
               <div className="flex items-center gap-3 lg:gap-4 mb-3 lg:mb-4">
-                <img
+                <Image
                   src={projectTabs[activeProjectTab as keyof typeof projectTabs].testimonial.avatar}
                   alt="Testimonial"
+                  width={48}
+                  height={48}
                   className="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-white shadow-sm"
                 />
                 <div>
