@@ -106,29 +106,23 @@ export async function POST(req: NextRequest) {
           console.log(`[DUPLICATE] Bloccato: ${identifier}`);
           return NextResponse.json({ 
             success: false, 
-            message: 'Hai già inviato una candidatura nelle ultime 24 ore' 
+            message: 'Hai già inviato una candidatura completa nelle ultime 24 ore' 
           });
         }
         
-        // Controlla rate limit nel database
-        const rateLimitCheck = await checkRateLimit(identifier, 3, 60); // 3 invii per ora
-        if (!rateLimitCheck.allowed) {
-          console.log(`[RATE LIMIT] Bloccato: ${identifier}`);
-          return NextResponse.json({ 
-            success: false, 
-            message: rateLimitCheck.message 
-          });
-        }
+        // I questionari completi possono sempre essere inviati se non sono duplicati
+        // Non applicare rate limit per i questionari completi
       }
       
-      // Per questionari incompleti, usa rate limit più permissivo
+      // Per questionari incompleti, applica rate limit stretto (1 per ora)
       if (isIncomplete) {
         const incompleteIdentifier = `incomplete_${identifier}`;
-        const rateLimitCheck = await checkRateLimit(incompleteIdentifier, 5, 60); // 5 invii per ora
+        const rateLimitCheck = await checkRateLimit(incompleteIdentifier, 1, 60); // SOLO 1 invio per ora
         if (!rateLimitCheck.allowed) {
+          console.log(`[RATE LIMIT INCOMPLETE] Bloccato: ${incompleteIdentifier}`);
           return NextResponse.json({ 
             success: false, 
-            message: 'Questionario incompleto già inviato recentemente' 
+            message: 'Hai già inviato un questionario incompleto. Riprova tra un\'ora o completa il questionario.' 
           });
         }
       }

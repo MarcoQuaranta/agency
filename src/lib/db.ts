@@ -68,7 +68,7 @@ export async function initDatabase() {
   }
 }
 
-// Funzione per controllare duplicati nel database
+// Funzione per controllare duplicati nel database (solo per questionari completi)
 export async function checkDuplicateSubmission(email: string, ipAddress: string): Promise<boolean> {
   try {
     const result = await query<{count: string}>(
@@ -80,7 +80,13 @@ export async function checkDuplicateSubmission(email: string, ipAddress: string)
       [email, ipAddress]
     );
     
-    return parseInt(result[0]?.count || '0') > 0;
+    const hasDuplicate = parseInt(result[0]?.count || '0') > 0;
+    
+    if (hasDuplicate) {
+      console.log(`[DB] Trovato duplicato per email: ${email} o IP: ${ipAddress}`);
+    }
+    
+    return hasDuplicate;
   } catch (error) {
     console.error('Error checking duplicate submission:', error);
     return false;
