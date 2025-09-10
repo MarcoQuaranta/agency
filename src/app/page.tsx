@@ -864,7 +864,7 @@ export default function HomePage() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: data,
-            keepalive: true // Importante per richieste durante unload 555
+            keepalive: true // Importante per richieste durante unload 
           });
         } catch (e) {
           // Fetch fallito
@@ -956,7 +956,7 @@ export default function HomePage() {
     };
   }, [isMounted]);
 
-  // Calculate rotating neon glow effect
+  // Calculate rotating neon glow effect with traveling star
   const getButtonStyles = (): React.CSSProperties => {
     if (typeof window === 'undefined' || !isMounted) {
       return { 
@@ -965,44 +965,61 @@ export default function HomePage() {
       };
     }
     
-    // Create rotating neon effect using time-based calculation
+    // Create rotating star effect using time-based calculation
     const time = neonTime / 1000; // Convert to seconds
-    const angle1 = (time * 120) % 360; // Slower rotation - 120 degrees per second
-    const angle2 = (time * -90) % 360; // Slower counter rotation
-    const angle3 = (time * 60) % 360; // Slowest third light
+    const angle = (time * 100) % 360; // 100 degrees per second for smooth star movement
     
-    // Calculate multiple rotating glow positions (smaller radius for subtler movement)
-    const radius1 = 5;
-    const radius2 = 4;
-    const radius3 = 6;
+    // Calculate traveling light position along button perimeter
+    const rad = (angle * Math.PI) / 180;
     
-    const glow1X = Math.cos(angle1 * Math.PI / 180) * radius1;
-    const glow1Y = Math.sin(angle1 * Math.PI / 180) * radius1;
+    // For elliptical path matching button shape
+    const a = 60; // semi-major axis (button width)
+    const b = 20; // semi-minor axis (button height)
     
-    const glow2X = Math.cos(angle2 * Math.PI / 180) * radius2;
-    const glow2Y = Math.sin(angle2 * Math.PI / 180) * radius2;
+    // Parametric equations for ellipse
+    const starX = a * Math.cos(rad);
+    const starY = b * Math.sin(rad);
     
-    const glow3X = Math.cos(angle3 * Math.PI / 180) * radius3;
-    const glow3Y = Math.sin(angle3 * Math.PI / 180) * radius3;
+    // Create intense star light that travels the perimeter
+    const starCore = `${starX}px ${starY}px 0 0 rgba(255, 255, 255, 1)`;
+    const starGlow = `${starX}px ${starY}px 20px 3px rgba(255, 255, 255, 0.9)`;
+    const starHalo = `${starX}px ${starY}px 35px 8px rgba(147, 51, 234, 0.8)`;
     
-    // Create smaller, smoother neon effect
+    // Trail effect following the star (comet tail)
+    const trailAngle1 = ((time * 100) - 15) % 360;
+    const trailRad1 = (trailAngle1 * Math.PI) / 180;
+    const trail1X = a * Math.cos(trailRad1);
+    const trail1Y = b * Math.sin(trailRad1);
+    
+    const trailAngle2 = ((time * 100) - 30) % 360;
+    const trailRad2 = (trailAngle2 * Math.PI) / 180;
+    const trail2X = a * Math.cos(trailRad2);
+    const trail2Y = b * Math.sin(trailRad2);
+    
+    const trailAngle3 = ((time * 100) - 45) % 360;
+    const trailRad3 = (trailAngle3 * Math.PI) / 180;
+    const trail3X = a * Math.cos(trailRad3);
+    const trail3Y = b * Math.sin(trailRad3);
+    
+    // Create the complete shadow effect
     const neonShadows = [
-      // Primary rotating bright spot (smaller)
-      `${glow1X}px ${glow1Y}px 6px rgba(147, 51, 234, 0.8)`,
-      `${glow1X}px ${glow1Y}px 12px rgba(147, 51, 234, 0.6)`,
-      `${glow1X * 1.2}px ${glow1Y * 1.2}px 18px rgba(147, 51, 234, 0.4)`,
+      // The traveling star
+      starCore,
+      starGlow,
+      starHalo,
       
-      // Secondary counter-rotating spot (smaller blue)
-      `${glow2X}px ${glow2Y}px 6px rgba(59, 130, 246, 0.7)`,
-      `${glow2X * 1.2}px ${glow2Y * 1.2}px 12px rgba(59, 130, 246, 0.5)`,
+      // The comet trail (gradually fading)
+      `${trail1X}px ${trail1Y}px 25px 5px rgba(236, 72, 153, 0.5)`,
+      `${trail2X}px ${trail2Y}px 30px 7px rgba(59, 130, 246, 0.3)`,
+      `${trail3X}px ${trail3Y}px 35px 10px rgba(168, 85, 247, 0.2)`,
       
-      // Third rotating spot for subtle animation (purple)
-      `${glow3X}px ${glow3Y}px 8px rgba(168, 85, 247, 0.6)`,
-      `${glow3X * 0.8}px ${glow3Y * 0.8}px 15px rgba(168, 85, 247, 0.4)`,
+      // Base ambient glow
+      `0 0 30px rgba(147, 51, 234, 0.25)`,
+      `0 0 50px rgba(147, 51, 234, 0.15)`,
+      `inset 0 0 20px rgba(147, 51, 234, 0.1)`,
       
-      // Moderate ambient base glow
-      `0 0 20px rgba(147, 51, 234, 0.3)`,
-      `0 0 30px rgba(147, 51, 234, 0.2)`
+      // Subtle inner reflection from the star
+      `inset ${starX/4}px ${starY/4}px 15px rgba(255, 255, 255, 0.15)`
     ].join(', ');
     
     return {
