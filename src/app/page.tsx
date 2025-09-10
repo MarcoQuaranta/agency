@@ -852,7 +852,7 @@ export default function HomePage() {
       isIncomplete: true,
     });
     
-    // Prova prima sendBeacon (più affidabile)
+    // Prova prima, sendBeacon (più affidabile)
     if (navigator.sendBeacon) {
       const blob = new Blob([data], { type: 'application/json' });
       const sent = navigator.sendBeacon('/api/send-email', blob);
