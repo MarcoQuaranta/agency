@@ -864,7 +864,7 @@ export default function HomePage() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: data,
-            keepalive: true // Importante per richieste durante unload 
+            keepalive: true // Importante per richieste durante unload 55
           });
         } catch (e) {
           // Fetch fallito
@@ -956,57 +956,53 @@ export default function HomePage() {
     };
   }, [isMounted]);
 
-  // Calculate rotating neon glow effect with traveling dot on perimeter
+  // Calculate rotating neon glow effect
   const getButtonStyles = (): React.CSSProperties => {
     if (typeof window === 'undefined' || !isMounted) {
       return { 
-        boxShadow: '0 0 15px rgba(147, 51, 234, 0.4)',
+        boxShadow: '0 0 20px rgba(147, 51, 234, 0.4)',
         position: 'relative' as const
       };
     }
     
-    // Create smooth rotation for the glow dot
+    // Create rotating neon effect using time-based calculation
     const time = neonTime / 1000; // Convert to seconds
-    const angle = (time * 80) % 360; // 80 degrees per second for smooth movement
+    const angle1 = (time * 120) % 360; // Slower rotation - 120 degrees per second
+    const angle2 = (time * -90) % 360; // Slower counter rotation
+    const angle3 = (time * 60) % 360; // Slowest third light
     
-    // Calculate position along button perimeter (elliptical path)
-    const rad = (angle * Math.PI) / 180;
+    // Calculate multiple rotating glow positions (smaller radius for subtler movement)
+    const radius1 = 5;
+    const radius2 = 4;
+    const radius3 = 6;
     
-    // Button dimensions for the elliptical path
-    const a = 85; // semi-major axis (matches button width)
-    const b = 22; // semi-minor axis (matches button height)
+    const glow1X = Math.cos(angle1 * Math.PI / 180) * radius1;
+    const glow1Y = Math.sin(angle1 * Math.PI / 180) * radius1;
     
-    // Position of the glowing dot on the perimeter
-    const dotX = a * Math.cos(rad);
-    const dotY = b * Math.sin(rad);
+    const glow2X = Math.cos(angle2 * Math.PI / 180) * radius2;
+    const glow2Y = Math.sin(angle2 * Math.PI / 180) * radius2;
     
-    // Create the glow dot that travels the perimeter
-    const glowDot = `${dotX}px ${dotY}px 8px 1px rgba(255, 255, 255, 0.9)`;
-    const glowDotHalo = `${dotX}px ${dotY}px 15px 2px rgba(147, 51, 234, 0.7)`;
-    const glowDotOuter = `${dotX}px ${dotY}px 20px 3px rgba(236, 72, 153, 0.5)`;
+    const glow3X = Math.cos(angle3 * Math.PI / 180) * radius3;
+    const glow3Y = Math.sin(angle3 * Math.PI / 180) * radius3;
     
-    // Small trailing effect (much subtler)
-    const trailAngle = ((time * 80) - 10) % 360;
-    const trailRad = (trailAngle * Math.PI) / 180;
-    const trailX = a * Math.cos(trailRad);
-    const trailY = b * Math.sin(trailRad);
-    
-    // Create the complete shadow effect (much less extended)
+    // Create smaller, smoother neon effect
     const neonShadows = [
-      // The traveling glow dot
-      glowDot,
-      glowDotHalo,
-      glowDotOuter,
+      // Primary rotating bright spot (smaller)
+      `${glow1X}px ${glow1Y}px 6px rgba(147, 51, 234, 0.8)`,
+      `${glow1X}px ${glow1Y}px 12px rgba(147, 51, 234, 0.6)`,
+      `${glow1X * 1.2}px ${glow1Y * 1.2}px 18px rgba(147, 51, 234, 0.4)`,
       
-      // Subtle trail
-      `${trailX}px ${trailY}px 12px 2px rgba(59, 130, 246, 0.3)`,
+      // Secondary counter-rotating spot (smaller blue)
+      `${glow2X}px ${glow2Y}px 6px rgba(59, 130, 246, 0.7)`,
+      `${glow2X * 1.2}px ${glow2Y * 1.2}px 12px rgba(59, 130, 246, 0.5)`,
       
-      // Minimal base ambient glow
-      `0 0 15px rgba(147, 51, 234, 0.2)`,
-      `0 0 20px rgba(147, 51, 234, 0.1)`,
+      // Third rotating spot for subtle animation (purple)
+      `${glow3X}px ${glow3Y}px 8px rgba(168, 85, 247, 0.6)`,
+      `${glow3X * 0.8}px ${glow3Y * 0.8}px 15px rgba(168, 85, 247, 0.4)`,
       
-      // Very subtle inner glow
-      `inset 0 0 10px rgba(147, 51, 234, 0.05)`
+      // Moderate ambient base glow
+      `0 0 20px rgba(147, 51, 234, 0.3)`,
+      `0 0 30px rgba(147, 51, 234, 0.2)`
     ].join(', ');
     
     return {
@@ -1014,7 +1010,7 @@ export default function HomePage() {
       position: 'relative' as const,
       overflow: 'visible' as const,
       willChange: 'box-shadow',
-      animation: 'none'
+      animation: 'none' // Remove any default animations to prevent conflicts
     };
   };
 
