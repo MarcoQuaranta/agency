@@ -864,7 +864,7 @@ export default function HomePage() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: data,
-            keepalive: true // Importante per richieste durante unload 55
+            keepalive: true // Importante per richieste durante unload 555
           });
         } catch (e) {
           // Fetch fallito
