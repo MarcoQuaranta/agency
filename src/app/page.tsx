@@ -956,70 +956,57 @@ export default function HomePage() {
     };
   }, [isMounted]);
 
-  // Calculate rotating neon glow effect with traveling star
+  // Calculate rotating neon glow effect with traveling dot on perimeter
   const getButtonStyles = (): React.CSSProperties => {
     if (typeof window === 'undefined' || !isMounted) {
       return { 
-        boxShadow: '0 0 20px rgba(147, 51, 234, 0.4)',
+        boxShadow: '0 0 15px rgba(147, 51, 234, 0.4)',
         position: 'relative' as const
       };
     }
     
-    // Create rotating star effect using time-based calculation
+    // Create smooth rotation for the glow dot
     const time = neonTime / 1000; // Convert to seconds
-    const angle = (time * 100) % 360; // 100 degrees per second for smooth star movement
+    const angle = (time * 80) % 360; // 80 degrees per second for smooth movement
     
-    // Calculate traveling light position along button perimeter
+    // Calculate position along button perimeter (elliptical path)
     const rad = (angle * Math.PI) / 180;
     
-    // For elliptical path matching button shape
-    const a = 60; // semi-major axis (button width)
-    const b = 20; // semi-minor axis (button height)
+    // Button dimensions for the elliptical path
+    const a = 85; // semi-major axis (matches button width)
+    const b = 22; // semi-minor axis (matches button height)
     
-    // Parametric equations for ellipse
-    const starX = a * Math.cos(rad);
-    const starY = b * Math.sin(rad);
+    // Position of the glowing dot on the perimeter
+    const dotX = a * Math.cos(rad);
+    const dotY = b * Math.sin(rad);
     
-    // Create intense star light that travels the perimeter
-    const starCore = `${starX}px ${starY}px 0 0 rgba(255, 255, 255, 1)`;
-    const starGlow = `${starX}px ${starY}px 20px 3px rgba(255, 255, 255, 0.9)`;
-    const starHalo = `${starX}px ${starY}px 35px 8px rgba(147, 51, 234, 0.8)`;
+    // Create the glow dot that travels the perimeter
+    const glowDot = `${dotX}px ${dotY}px 8px 1px rgba(255, 255, 255, 0.9)`;
+    const glowDotHalo = `${dotX}px ${dotY}px 15px 2px rgba(147, 51, 234, 0.7)`;
+    const glowDotOuter = `${dotX}px ${dotY}px 20px 3px rgba(236, 72, 153, 0.5)`;
     
-    // Trail effect following the star (comet tail)
-    const trailAngle1 = ((time * 100) - 15) % 360;
-    const trailRad1 = (trailAngle1 * Math.PI) / 180;
-    const trail1X = a * Math.cos(trailRad1);
-    const trail1Y = b * Math.sin(trailRad1);
+    // Small trailing effect (much subtler)
+    const trailAngle = ((time * 80) - 10) % 360;
+    const trailRad = (trailAngle * Math.PI) / 180;
+    const trailX = a * Math.cos(trailRad);
+    const trailY = b * Math.sin(trailRad);
     
-    const trailAngle2 = ((time * 100) - 30) % 360;
-    const trailRad2 = (trailAngle2 * Math.PI) / 180;
-    const trail2X = a * Math.cos(trailRad2);
-    const trail2Y = b * Math.sin(trailRad2);
-    
-    const trailAngle3 = ((time * 100) - 45) % 360;
-    const trailRad3 = (trailAngle3 * Math.PI) / 180;
-    const trail3X = a * Math.cos(trailRad3);
-    const trail3Y = b * Math.sin(trailRad3);
-    
-    // Create the complete shadow effect
+    // Create the complete shadow effect (much less extended)
     const neonShadows = [
-      // The traveling star
-      starCore,
-      starGlow,
-      starHalo,
+      // The traveling glow dot
+      glowDot,
+      glowDotHalo,
+      glowDotOuter,
       
-      // The comet trail (gradually fading)
-      `${trail1X}px ${trail1Y}px 25px 5px rgba(236, 72, 153, 0.5)`,
-      `${trail2X}px ${trail2Y}px 30px 7px rgba(59, 130, 246, 0.3)`,
-      `${trail3X}px ${trail3Y}px 35px 10px rgba(168, 85, 247, 0.2)`,
+      // Subtle trail
+      `${trailX}px ${trailY}px 12px 2px rgba(59, 130, 246, 0.3)`,
       
-      // Base ambient glow
-      `0 0 30px rgba(147, 51, 234, 0.25)`,
-      `0 0 50px rgba(147, 51, 234, 0.15)`,
-      `inset 0 0 20px rgba(147, 51, 234, 0.1)`,
+      // Minimal base ambient glow
+      `0 0 15px rgba(147, 51, 234, 0.2)`,
+      `0 0 20px rgba(147, 51, 234, 0.1)`,
       
-      // Subtle inner reflection from the star
-      `inset ${starX/4}px ${starY/4}px 15px rgba(255, 255, 255, 0.15)`
+      // Very subtle inner glow
+      `inset 0 0 10px rgba(147, 51, 234, 0.05)`
     ].join(', ');
     
     return {
@@ -1027,7 +1014,7 @@ export default function HomePage() {
       position: 'relative' as const,
       overflow: 'visible' as const,
       willChange: 'box-shadow',
-      animation: 'none' // Remove any default animations to prevent conflicts
+      animation: 'none'
     };
   };
 
