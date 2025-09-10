@@ -3,8 +3,32 @@ import nodemailer from 'nodemailer';
 import fs from 'fs';
 import path from 'path';
 
+// Funzione per ottenere IP dalla whitelist
+function getWhitelistedIPs(): string[] {
+  const whitelistFile = path.join(process.cwd(), 'whitelist-ips.json');
+  try {
+    if (fs.existsSync(whitelistFile)) {
+      const content = fs.readFileSync(whitelistFile, 'utf8');
+      const data = JSON.parse(content);
+      return data.ips || [];
+    }
+  } catch (error) {
+    console.log('Errore lettura whitelist:', error);
+  }
+  // IP di default sempre consentiti
+  return ['31.156.225.224', '::1', '127.0.0.1'];
+}
+
 // Funzione per controllare se l'IP ha già inviato un questionario incompleto
 function hasIncompleteQuestionnaireSentFromIP(clientIP: string): boolean {
+  const whitelistedIPs = getWhitelistedIPs();
+  
+  // IP in whitelist possono sempre inviare
+  if (whitelistedIPs.includes(clientIP)) {
+    console.log(`IP ${clientIP} è in whitelist`);
+    return false;
+  }
+  
   const incompleteIPsFile = path.join(process.cwd(), 'incomplete-questionnaire-ips.json');
   
   try {
@@ -22,6 +46,14 @@ function hasIncompleteQuestionnaireSentFromIP(clientIP: string): boolean {
 
 // Funzione per salvare l'IP che ha inviato un questionario incompleto
 function addIncompleteQuestionnaireIP(clientIP: string): void {
+  const whitelistedIPs = getWhitelistedIPs();
+  
+  // Non salvare IP in whitelist
+  if (whitelistedIPs.includes(clientIP)) {
+    console.log(`IP ${clientIP} in whitelist, non salvato nel file blocchi`);
+    return;
+  }
+  
   const incompleteIPsFile = path.join(process.cwd(), 'incomplete-questionnaire-ips.json');
   let ips: string[] = [];
   
@@ -99,14 +131,34 @@ const transporter = nodemailer.createTransport({
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    // Gestisce sia JSON normale che Blob da sendBeacon
+    let body;
+    const contentType = req.headers.get('content-type') || '';
+    
+    if (contentType.includes('application/json')) {
+      body = await req.json();
+    } else {
+      // Per sendBeacon che invia come text/plain o application/octet-stream
+      const text = await req.text();
+      try {
+        body = JSON.parse(text);
+      } catch {
+        return NextResponse.json(
+          { success: false, error: 'Invalid request format' },
+          { status: 400 }
+        );
+      }
+    }
+    
     const { contactData, questionnaireData, isIncomplete = false } = body;
 
     // Ottieni IP del client
     const clientIP = getClientIP(req);
+    console.log(`Richiesta ricevuta da IP: ${clientIP}, incompleto: ${isIncomplete}`);
 
     // Se è un questionario incompleto, controlla se l'IP ha già inviato
     if (isIncomplete && hasIncompleteQuestionnaireSentFromIP(clientIP)) {
+      console.log(`IP ${clientIP} ha già inviato un questionario incompleto`);
       return NextResponse.json({ 
         success: false, 
         message: 'Questionario incompleto già inviato da questo IP' 
@@ -201,10 +253,17 @@ export async function POST(req: NextRequest) {
           </div>
         </div>
 
+        ${questionnaireData && Object.values(questionnaireData).some(v => v) ? `
         <div style="background-color: #f0f9ff; padding: 25px; border-radius: 8px; margin-bottom: 30px;">
-          <h2 style="font-size: 22px; color: #1e40af; margin-bottom: 25px;">📝 QUESTIONARIO COMPLETO</h2>
+          <h2 style="font-size: 22px; color: #1e40af; margin-bottom: 25px;">📝 QUESTIONARIO</h2>
           ${formatQuestionnaireData(questionnaireData)}
         </div>
+        ` : `
+        <div style="background-color: #fff3cd; padding: 25px; border-radius: 8px; margin-bottom: 30px;">
+          <h2 style="font-size: 22px; color: #856404; margin-bottom: 15px;">⚠️ QUESTIONARIO NON COMPILATO</h2>
+          <p style="font-size: 16px; color: #856404; margin: 0;">L'utente ha abbandonato dopo aver compilato solo il form di contatto.</p>
+        </div>
+        `}
 
         <div style="text-align: center; padding: 20px; background-color: #f1f5f9; border-radius: 8px; margin-top: 30px;">
           <p style="font-size: 14px; color: #64748b; margin: 0;">

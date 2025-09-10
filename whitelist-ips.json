@@ -1,0 +1,9 @@
+{
+  "description": "IP autorizzati a inviare questionari multipli",
+  "ips": [
+    "31.156.225.224",
+    "::1",
+    "127.0.0.1"
+  ],
+  "note": "Aggiungi qui il tuo IP per test illimitati"
+}
