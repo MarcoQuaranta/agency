@@ -10,11 +10,15 @@ const MAX_SUBMISSIONS_PER_WINDOW = 2; // Max 2 invii per ora per email/IP
 // Pulizia cache periodica (rimuove entries vecchie)
 function cleanupCache() {
   const now = Date.now();
-  for (const [key, value] of submissionsCache.entries()) {
+  const keysToDelete: string[] = [];
+  
+  submissionsCache.forEach((value, key) => {
     if (now - value.timestamp > RATE_LIMIT_WINDOW) {
-      submissionsCache.delete(key);
+      keysToDelete.push(key);
     }
-  }
+  });
+  
+  keysToDelete.forEach(key => submissionsCache.delete(key));
 }
 
 // Controlla rate limit
