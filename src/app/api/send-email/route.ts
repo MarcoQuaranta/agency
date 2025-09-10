@@ -1,58 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-
-// Cache in memoria per tracking submissions (persiste tra richieste su Vercel Edge)
-// Nota: questa cache si resetta quando la funzione viene "cold started"
-const submissionsCache = new Map<string, { timestamp: number, count: number }>();
-const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 ora in millisecondi
-const MAX_SUBMISSIONS_PER_WINDOW = 2; // Max 2 invii per ora per email/IP
-
-// Pulizia cache periodica (rimuove entries vecchie)
-function cleanupCache() {
-  const now = Date.now();
-  const keysToDelete: string[] = [];
-  
-  submissionsCache.forEach((value, key) => {
-    if (now - value.timestamp > RATE_LIMIT_WINDOW) {
-      keysToDelete.push(key);
-    }
-  });
-  
-  keysToDelete.forEach(key => submissionsCache.delete(key));
-}
-
-// Controlla rate limit
-function checkRateLimit(identifier: string): { allowed: boolean, message?: string } {
-  cleanupCache();
-  
-  const now = Date.now();
-  const existing = submissionsCache.get(identifier);
-  
-  if (existing) {
-    // Se sono passati più di 1 ora, resetta
-    if (now - existing.timestamp > RATE_LIMIT_WINDOW) {
-      submissionsCache.set(identifier, { timestamp: now, count: 1 });
-      return { allowed: true };
-    }
-    
-    // Se siamo ancora nella finestra temporale
-    if (existing.count >= MAX_SUBMISSIONS_PER_WINDOW) {
-      const minutesLeft = Math.ceil((RATE_LIMIT_WINDOW - (now - existing.timestamp)) / 60000);
-      return { 
-        allowed: false, 
-        message: `Hai raggiunto il limite di invii. Riprova tra ${minutesLeft} minuti.`
-      };
-    }
-    
-    // Incrementa il contatore
-    existing.count++;
-    return { allowed: true };
-  }
-  
-  // Prima submission
-  submissionsCache.set(identifier, { timestamp: now, count: 1 });
-  return { allowed: true };
-}
+import { checkDuplicateSubmission, saveSubmission, checkRateLimit } from '@/lib/db';
 
 // Lista di IP sempre consentiti (per testing)
 const WHITELIST_IPS = ['31.156.225.224', '::1', '127.0.0.1'];
@@ -145,14 +93,25 @@ export async function POST(req: NextRequest) {
     
     console.log(`[DEBUG] Richiesta da IP: ${clientIP}, Email: ${email}, Incompleto: ${isIncomplete}`);
 
-    // Se non è in whitelist, applica rate limiting
+    // Se non è in whitelist, applica controlli
     if (!WHITELIST_IPS.includes(clientIP)) {
       // Usa combinazione email + IP per identificare univocamente
       const identifier = `${email}_${clientIP}`;
       
-      // Per questionari completi, controlla rate limit
+      // Per questionari completi, controlla duplicati nel database
       if (!isIncomplete) {
-        const rateLimitCheck = checkRateLimit(identifier);
+        // Controlla duplicati nel database (ultimi 24 ore)
+        const isDuplicate = await checkDuplicateSubmission(email, clientIP);
+        if (isDuplicate) {
+          console.log(`[DUPLICATE] Bloccato: ${identifier}`);
+          return NextResponse.json({ 
+            success: false, 
+            message: 'Hai già inviato una candidatura nelle ultime 24 ore' 
+          });
+        }
+        
+        // Controlla rate limit nel database
+        const rateLimitCheck = await checkRateLimit(identifier, 3, 60); // 3 invii per ora
         if (!rateLimitCheck.allowed) {
           console.log(`[RATE LIMIT] Bloccato: ${identifier}`);
           return NextResponse.json({ 
@@ -162,10 +121,10 @@ export async function POST(req: NextRequest) {
         }
       }
       
-      // Per questionari incompleti, usa sessionStorage lato client + rate limit leggero
+      // Per questionari incompleti, usa rate limit più permissivo
       if (isIncomplete) {
         const incompleteIdentifier = `incomplete_${identifier}`;
-        const rateLimitCheck = checkRateLimit(incompleteIdentifier);
+        const rateLimitCheck = await checkRateLimit(incompleteIdentifier, 5, 60); // 5 invii per ora
         if (!rateLimitCheck.allowed) {
           return NextResponse.json({ 
             success: false, 
@@ -297,6 +256,25 @@ export async function POST(req: NextRequest) {
 
     // Invia l'email
     await transporter.sendMail(mailOptions);
+    
+    // Salva nel database
+    try {
+      await saveSubmission({
+        candidateId,
+        email: contactData.email,
+        nome: contactData.nome,
+        cognome: contactData.cognome,
+        telefono: contactData.telefono,
+        ipAddress: clientIP,
+        sessionToken,
+        questionnaireData,
+        isIncomplete
+      });
+      console.log(`[DATABASE] Salvato: ID ${candidateId}`);
+    } catch (dbError) {
+      console.error('[DATABASE] Errore salvataggio:', dbError);
+      // Non bloccare l'invio email se il database fallisce
+    }
     
     console.log(`[SUCCESS] Email inviata - ID: ${candidateId}, IP: ${clientIP}, Email: ${email}`);
 

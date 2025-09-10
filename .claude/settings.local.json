@@ -210,7 +210,8 @@
       "Bash(del incomplete-questionnaire-ips.json)",
       "Read(//c/Agency/**)",
       "Bash(npm run lint)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm run:*)"
     ],
     "deny": [],
     "ask": []
