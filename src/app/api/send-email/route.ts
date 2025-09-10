@@ -25,6 +25,69 @@ function getWhitelistedIPs(): string[] {
   return defaultIPs;
 }
 
+// Funzione per salvare invio completo
+function addCompleteSubmissionIP(clientIP: string, email: string): void {
+  const whitelistedIPs = getWhitelistedIPs();
+  
+  // Non salvare IP in whitelist
+  if (whitelistedIPs.includes(clientIP)) {
+    return;
+  }
+  
+  const completeSubmissionsFile = path.join(process.cwd(), 'complete-submissions.json');
+  let submissions: {ip: string, email: string, timestamp: string}[] = [];
+  
+  try {
+    if (fs.existsSync(completeSubmissionsFile)) {
+      const content = fs.readFileSync(completeSubmissionsFile, 'utf8');
+      submissions = JSON.parse(content) || [];
+    }
+  } catch (error) {
+    // Crea nuovo file
+  }
+  
+  submissions.push({
+    ip: clientIP,
+    email: email.toLowerCase(),
+    timestamp: new Date().toISOString()
+  });
+  
+  try {
+    fs.writeFileSync(completeSubmissionsFile, JSON.stringify(submissions, null, 2));
+  } catch (error) {
+    // Ignora errore scrittura
+  }
+}
+
+// Funzione per controllare duplicati completi (per IP o email)
+function hasAlreadySubmittedComplete(clientIP: string, email: string): boolean {
+  const whitelistedIPs = getWhitelistedIPs();
+  
+  // IP in whitelist possono sempre inviare
+  if (whitelistedIPs.includes(clientIP)) {
+    return false;
+  }
+  
+  const completeSubmissionsFile = path.join(process.cwd(), 'complete-submissions.json');
+  
+  try {
+    if (fs.existsSync(completeSubmissionsFile)) {
+      const content = fs.readFileSync(completeSubmissionsFile, 'utf8');
+      const submissions: {ip: string, email: string, timestamp: string}[] = JSON.parse(content) || [];
+      
+      // Controlla se IP o email hanno già inviato
+      return submissions.some(sub => 
+        sub.ip === clientIP || 
+        sub.email.toLowerCase() === email.toLowerCase()
+      );
+    }
+  } catch (error) {
+    // Ignora errore
+  }
+  
+  return false;
+}
+
 // Funzione per controllare se l'IP ha già inviato un questionario incompleto
 function hasIncompleteQuestionnaireSentFromIP(clientIP: string): boolean {
   const whitelistedIPs = getWhitelistedIPs();
@@ -81,22 +144,39 @@ function addIncompleteQuestionnaireIP(clientIP: string): void {
   }
 }
 
-// Funzione per ottenere l'IP del client
+// Funzione per ottenere l'IP del client (migliorata per Vercel)
 function getClientIP(req: NextRequest): string {
-  // Vercel forwarded IP
-  const forwardedFor = req.headers.get('x-forwarded-for');
-  if (forwardedFor) {
-    return forwardedFor.split(',')[0].trim();
+  // Headers Vercel/Cloudflare
+  const headers = [
+    'x-real-ip',
+    'x-forwarded-for',
+    'x-client-ip',
+    'x-forwarded',
+    'forwarded-for',
+    'forwarded',
+    'cf-connecting-ip', // Cloudflare
+    'true-client-ip', // Cloudflare Enterprise
+  ];
+  
+  for (const header of headers) {
+    const value = req.headers.get(header);
+    if (value) {
+      // x-forwarded-for può contenere multiple IP separate da virgole
+      const ip = value.split(',')[0].trim();
+      if (ip && ip !== 'unknown') {
+        return ip;
+      }
+    }
   }
   
-  // Vercel real IP
-  const realIP = req.headers.get('x-real-ip');
-  if (realIP) {
-    return realIP;
+  // Se siamo su Vercel, prova a prendere l'IP dalla connessione
+  const ip = req.ip || req.headers.get('x-vercel-forwarded-for');
+  if (ip) {
+    return ip.split(',')[0].trim();
   }
   
   // Fallback
-  return req.headers.get('x-forwarded-for') || 'unknown';
+  return 'unknown';
 }
 
 // Funzione per generare ID progressivo
@@ -158,8 +238,20 @@ export async function POST(req: NextRequest) {
 
     // Ottieni IP del client
     const clientIP = getClientIP(req);
+    
+    // Log per debug (rimuovere in produzione)
+    console.log(`[DEBUG] IP rilevato: ${clientIP}, Email: ${contactData.email}, Incompleto: ${isIncomplete}`);
 
-    // Se è un questionario incompleto, controlla se l'IP ha già inviato
+    // Se è un questionario COMPLETO, controlla duplicati per IP o email
+    if (!isIncomplete && hasAlreadySubmittedComplete(clientIP, contactData.email)) {
+      console.log(`[DEBUG] Bloccato invio duplicato - IP: ${clientIP}, Email: ${contactData.email}`);
+      return NextResponse.json({ 
+        success: false, 
+        message: 'Hai già inviato una candidatura con questa email o da questo dispositivo' 
+      });
+    }
+
+    // Se è un questionario INCOMPLETO, controlla se l'IP ha già inviato
     if (isIncomplete && hasIncompleteQuestionnaireSentFromIP(clientIP)) {
       return NextResponse.json({ 
         success: false, 
@@ -287,10 +379,16 @@ export async function POST(req: NextRequest) {
     // Invia l'email
     await transporter.sendMail(mailOptions);
 
-    // Se è un questionario incompleto inviato con successo, salva l'IP
+    // Salva l'invio in base al tipo
     if (isIncomplete) {
+      // Questionario incompleto: salva solo IP
       addIncompleteQuestionnaireIP(clientIP);
+    } else {
+      // Questionario completo: salva IP ed email per prevenire duplicati
+      addCompleteSubmissionIP(clientIP, contactData.email);
     }
+    
+    console.log(`[DEBUG] Email inviata con successo - ID: ${candidateId}, IP: ${clientIP}`);
 
     return NextResponse.json({ success: true, message: 'Email inviata con successo' });
   } catch (error) {
