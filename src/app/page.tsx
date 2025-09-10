@@ -2841,7 +2841,7 @@ const _labels: { [key: number]: string } = {
                       }}>
                       <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-110">
                         <Image
-                          src="/images/icons/ai-logo.png"
+                          src="/images/icons/logo-aibrain.png"
                           alt="AI"
                           width={80}
                           height={80}
