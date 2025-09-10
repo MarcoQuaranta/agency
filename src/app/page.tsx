@@ -837,13 +837,39 @@ export default function HomePage() {
       isIncomplete: true,
     });
     
-    // Usa sendBeacon per garantire l'invio anche quando la pagina si chiude
+    // Prova prima sendBeacon (più affidabile)
     if (navigator.sendBeacon) {
       const blob = new Blob([data], { type: 'application/json' });
       const sent = navigator.sendBeacon('/api/send-email', blob);
       console.log('✅ SendBeacon risultato:', sent);
+      
+      if (!sent) {
+        // Se sendBeacon fallisce, prova con fetch sincrono
+        console.log('SendBeacon fallito, provo con fetch...');
+        try {
+          fetch('/api/send-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: data,
+            keepalive: true // Importante per richieste durante unload
+          });
+        } catch (e) {
+          console.error('Anche fetch ha fallito:', e);
+        }
+      }
     } else {
-      console.log('❌ Navigator.sendBeacon non disponibile');
+      // Fallback per browser senza sendBeacon
+      console.log('SendBeacon non disponibile, uso fetch con keepalive');
+      try {
+        fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: data,
+          keepalive: true
+        });
+      } catch (e) {
+        console.error('Fetch fallito:', e);
+      }
     }
   };
 
@@ -871,13 +897,37 @@ export default function HomePage() {
         sendIncompleteQuestionnaire();
       }
     };
+    
+    // Evento specifico per mobile quando l'utente cambia app
+    const handlePageHide = () => {
+      if (showQuestionnaire && contactFormData.email && contactFormData.nome) {
+        console.log('Page hide event - invio questionario');
+        sendIncompleteQuestionnaireSync();
+      }
+    };
+    
+    // Evento quando l'utente tocca il pulsante back su mobile
+    const handlePopState = () => {
+      if (showQuestionnaire && contactFormData.email && contactFormData.nome) {
+        console.log('Popstate event - invio questionario');
+        sendIncompleteQuestionnaire();
+      }
+    };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handlePageHide); // Importante per iOS
+    window.addEventListener('popstate', handlePopState); // Per navigazione back
+    
+    // Per mobile Safari
+    window.addEventListener('unload', handleBeforeUnload);
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handlePageHide);
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('unload', handleBeforeUnload);
     };
   }, [isMounted, showQuestionnaire, questionnaireData, contactFormData]);
 
