@@ -34,9 +34,18 @@ async function initDatabase() {
         session_token VARCHAR(255),
         questionnaire_data JSONB,
         is_incomplete BOOLEAN DEFAULT false,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    
+    // Aggiungi colonna updated_at se non esiste
+    await client.query(`
+      ALTER TABLE submissions 
+      ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    `).catch(() => {
+      // Ignora errore se la colonna esiste già
+    });
     console.log('✅ Table "submissions" created/verified');
 
     // Crea indici per performance

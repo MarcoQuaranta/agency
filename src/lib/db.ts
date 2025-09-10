@@ -1,14 +1,26 @@
 import { Pool } from 'pg';
 
+// URL corretto per Neon PostgreSQL (con c-2 nel dominio)
+const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_XfI34OxVdWcY@ep-fancy-cherry-agn9gjfq-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require';
+
 // Crea pool di connessioni per Neon PostgreSQL
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: DATABASE_URL,
   ssl: {
     rejectUnauthorized: false
   },
   max: 20, // massimo numero di client nel pool
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
+});
+
+// Log connessione database
+pool.on('connect', () => {
+  console.log('[DB] Connected to Neon PostgreSQL');
+});
+
+pool.on('error', (err) => {
+  console.error('[DB] Pool error:', err);
 });
 
 // Funzione helper per query
@@ -106,28 +118,43 @@ export async function saveSubmission(data: {
   isIncomplete: boolean;
 }) {
   try {
+    console.log('[DB] Tentativo salvataggio submission:', {
+      candidateId: data.candidateId,
+      email: data.email,
+      ipAddress: data.ipAddress,
+      isIncomplete: data.isIncomplete
+    });
+    
     const result = await query(
       `INSERT INTO submissions 
        (candidate_id, email, nome, cognome, telefono, ip_address, session_token, questionnaire_data, is_incomplete)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-       ON CONFLICT (candidate_id) DO NOTHING
-       RETURNING id`,
+       ON CONFLICT (candidate_id) DO UPDATE SET
+         ip_address = EXCLUDED.ip_address,
+         updated_at = CURRENT_TIMESTAMP
+       RETURNING id, ip_address`,
       [
         data.candidateId,
         data.email.toLowerCase(),
         data.nome,
         data.cognome || null,
         data.telefono || null,
-        data.ipAddress,
+        data.ipAddress || 'unknown', // Assicura che non sia null
         data.sessionToken || null,
         JSON.stringify(data.questionnaireData || {}),
         data.isIncomplete
       ]
     );
     
+    if (result && result[0]) {
+      console.log(`[DB] ✅ Salvato con successo - ID: ${result[0].id}, IP: ${result[0].ip_address}`);
+    } else {
+      console.log('[DB] ⚠️ Nessun record restituito dopo INSERT');
+    }
+    
     return result[0];
   } catch (error) {
-    console.error('Error saving submission:', error);
+    console.error('[DB] ❌ Errore salvataggio submission:', error);
     throw error;
   }
 }
