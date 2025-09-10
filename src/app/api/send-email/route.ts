@@ -14,7 +14,9 @@ function getWhitelistedIPs(): string[] {
       const data = JSON.parse(content);
       // Combina IP dal file con quelli di default per evitare problemi
       const fileIPs = data.ips || [];
-      return [...new Set([...defaultIPs, ...fileIPs])];
+      // Usa Array.from per compatibilità con Vercel
+      const combinedIPs = Array.from(new Set([...defaultIPs, ...fileIPs]));
+      return combinedIPs;
     }
   } catch (error) {
     // Ignora errore lettura whitelist
