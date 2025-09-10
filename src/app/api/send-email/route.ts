@@ -1,148 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import fs from 'fs';
-import path from 'path';
 
-// Funzione per ottenere IP dalla whitelist
-function getWhitelistedIPs(): string[] {
-  const defaultIPs = ['31.156.225.224', '::1', '127.0.0.1'];
-  const whitelistFile = path.join(process.cwd(), 'whitelist-ips.json');
-  
-  try {
-    if (fs.existsSync(whitelistFile)) {
-      const content = fs.readFileSync(whitelistFile, 'utf8');
-      const data = JSON.parse(content);
-      // Combina IP dal file con quelli di default per evitare problemi
-      const fileIPs = data.ips || [];
-      // Usa Array.from per compatibilità con Vercel
-      const combinedIPs = Array.from(new Set([...defaultIPs, ...fileIPs]));
-      return combinedIPs;
-    }
-  } catch (error) {
-    // Ignora errore lettura whitelist
-  }
-  // IP di default sempre consentiti
-  return defaultIPs;
-}
+// Cache in memoria per tracking submissions (persiste tra richieste su Vercel Edge)
+// Nota: questa cache si resetta quando la funzione viene "cold started"
+const submissionsCache = new Map<string, { timestamp: number, count: number }>();
+const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 ora in millisecondi
+const MAX_SUBMISSIONS_PER_WINDOW = 2; // Max 2 invii per ora per email/IP
 
-// Funzione per salvare invio completo
-function addCompleteSubmissionIP(clientIP: string, email: string): void {
-  const whitelistedIPs = getWhitelistedIPs();
-  
-  // Non salvare IP in whitelist
-  if (whitelistedIPs.includes(clientIP)) {
-    return;
-  }
-  
-  const completeSubmissionsFile = path.join(process.cwd(), 'complete-submissions.json');
-  let submissions: {ip: string, email: string, timestamp: string}[] = [];
-  
-  try {
-    if (fs.existsSync(completeSubmissionsFile)) {
-      const content = fs.readFileSync(completeSubmissionsFile, 'utf8');
-      submissions = JSON.parse(content) || [];
+// Pulizia cache periodica (rimuove entries vecchie)
+function cleanupCache() {
+  const now = Date.now();
+  for (const [key, value] of submissionsCache.entries()) {
+    if (now - value.timestamp > RATE_LIMIT_WINDOW) {
+      submissionsCache.delete(key);
     }
-  } catch (error) {
-    // Crea nuovo file
-  }
-  
-  submissions.push({
-    ip: clientIP,
-    email: email.toLowerCase(),
-    timestamp: new Date().toISOString()
-  });
-  
-  try {
-    fs.writeFileSync(completeSubmissionsFile, JSON.stringify(submissions, null, 2));
-  } catch (error) {
-    // Ignora errore scrittura
   }
 }
 
-// Funzione per controllare duplicati completi (per IP o email)
-function hasAlreadySubmittedComplete(clientIP: string, email: string): boolean {
-  const whitelistedIPs = getWhitelistedIPs();
+// Controlla rate limit
+function checkRateLimit(identifier: string): { allowed: boolean, message?: string } {
+  cleanupCache();
   
-  // IP in whitelist possono sempre inviare
-  if (whitelistedIPs.includes(clientIP)) {
-    return false;
-  }
+  const now = Date.now();
+  const existing = submissionsCache.get(identifier);
   
-  const completeSubmissionsFile = path.join(process.cwd(), 'complete-submissions.json');
-  
-  try {
-    if (fs.existsSync(completeSubmissionsFile)) {
-      const content = fs.readFileSync(completeSubmissionsFile, 'utf8');
-      const submissions: {ip: string, email: string, timestamp: string}[] = JSON.parse(content) || [];
-      
-      // Controlla se IP o email hanno già inviato
-      return submissions.some(sub => 
-        sub.ip === clientIP || 
-        sub.email.toLowerCase() === email.toLowerCase()
-      );
+  if (existing) {
+    // Se sono passati più di 1 ora, resetta
+    if (now - existing.timestamp > RATE_LIMIT_WINDOW) {
+      submissionsCache.set(identifier, { timestamp: now, count: 1 });
+      return { allowed: true };
     }
-  } catch (error) {
-    // Ignora errore
-  }
-  
-  return false;
-}
-
-// Funzione per controllare se l'IP ha già inviato un questionario incompleto
-function hasIncompleteQuestionnaireSentFromIP(clientIP: string): boolean {
-  const whitelistedIPs = getWhitelistedIPs();
-  
-  // IP in whitelist possono sempre inviare
-  if (whitelistedIPs.includes(clientIP)) {
-    return false;
-  }
-  
-  const incompleteIPsFile = path.join(process.cwd(), 'incomplete-questionnaire-ips.json');
-  
-  try {
-    if (fs.existsSync(incompleteIPsFile)) {
-      const content = fs.readFileSync(incompleteIPsFile, 'utf8');
-      const ips = JSON.parse(content);
-      return ips.includes(clientIP);
-    }
-  } catch (error) {
-    // Ignora errore lettura file IP
-  }
-  
-  return false;
-}
-
-// Funzione per salvare l'IP che ha inviato un questionario incompleto
-function addIncompleteQuestionnaireIP(clientIP: string): void {
-  const whitelistedIPs = getWhitelistedIPs();
-  
-  // Non salvare IP in whitelist
-  if (whitelistedIPs.includes(clientIP)) {
-    return;
-  }
-  
-  const incompleteIPsFile = path.join(process.cwd(), 'incomplete-questionnaire-ips.json');
-  let ips: string[] = [];
-  
-  try {
-    if (fs.existsSync(incompleteIPsFile)) {
-      const content = fs.readFileSync(incompleteIPsFile, 'utf8');
-      ips = JSON.parse(content) || [];
-    }
-  } catch (error) {
-    // Crea nuovo file IP incompleti
-  }
-  
-  if (!ips.includes(clientIP)) {
-    ips.push(clientIP);
     
-    try {
-      fs.writeFileSync(incompleteIPsFile, JSON.stringify(ips, null, 2));
-    } catch (error) {
-      // Ignora errore scrittura file IP
+    // Se siamo ancora nella finestra temporale
+    if (existing.count >= MAX_SUBMISSIONS_PER_WINDOW) {
+      const minutesLeft = Math.ceil((RATE_LIMIT_WINDOW - (now - existing.timestamp)) / 60000);
+      return { 
+        allowed: false, 
+        message: `Hai raggiunto il limite di invii. Riprova tra ${minutesLeft} minuti.`
+      };
     }
+    
+    // Incrementa il contatore
+    existing.count++;
+    return { allowed: true };
   }
+  
+  // Prima submission
+  submissionsCache.set(identifier, { timestamp: now, count: 1 });
+  return { allowed: true };
 }
+
+// Lista di IP sempre consentiti (per testing)
+const WHITELIST_IPS = ['31.156.225.224', '::1', '127.0.0.1'];
 
 // Funzione per ottenere l'IP del client (migliorata per Vercel)
 function getClientIP(req: NextRequest): string {
@@ -179,37 +88,19 @@ function getClientIP(req: NextRequest): string {
   return 'unknown';
 }
 
-// Funzione per generare ID progressivo
-function getNextCandidateId(): number {
-  const counterFile = path.join(process.cwd(), 'candidate-counter.txt');
-  let currentId = 1;
-
-  try {
-    if (fs.existsSync(counterFile)) {
-      const content = fs.readFileSync(counterFile, 'utf8');
-      currentId = parseInt(content) || 1;
-    }
-  } catch (error) {
-    // Crea nuovo file contatore
-  }
-
-  const nextId = currentId + 1;
-  
-  try {
-    fs.writeFileSync(counterFile, nextId.toString());
-  } catch (error) {
-    // Ignora errore scrittura contatore
-  }
-
-  return currentId;
+// Funzione per generare ID progressivo (usa timestamp + random per evitare collisioni)
+function getNextCandidateId(): string {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substr(2, 5);
+  return `${timestamp}-${random}`;
 }
 
 // Configurazione del trasporter per Gmail
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER, // La tua email Gmail
-    pass: process.env.EMAIL_APP_PASSWORD, // App Password di Gmail
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_APP_PASSWORD,
   },
 });
 
@@ -234,32 +125,53 @@ export async function POST(req: NextRequest) {
       }
     }
     
-    const { contactData, questionnaireData, isIncomplete = false } = body;
+    const { contactData, questionnaireData, isIncomplete = false, sessionToken } = body;
+
+    // Validazione base
+    if (!contactData?.email || !contactData?.nome) {
+      return NextResponse.json(
+        { success: false, message: 'Dati di contatto mancanti' },
+        { status: 400 }
+      );
+    }
 
     // Ottieni IP del client
     const clientIP = getClientIP(req);
+    const email = contactData.email.toLowerCase();
     
-    // Log per debug (rimuovere in produzione)
-    console.log(`[DEBUG] IP rilevato: ${clientIP}, Email: ${contactData.email}, Incompleto: ${isIncomplete}`);
+    console.log(`[DEBUG] Richiesta da IP: ${clientIP}, Email: ${email}, Incompleto: ${isIncomplete}`);
 
-    // Se è un questionario COMPLETO, controlla duplicati per IP o email
-    if (!isIncomplete && hasAlreadySubmittedComplete(clientIP, contactData.email)) {
-      console.log(`[DEBUG] Bloccato invio duplicato - IP: ${clientIP}, Email: ${contactData.email}`);
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Hai già inviato una candidatura con questa email o da questo dispositivo' 
-      });
+    // Se non è in whitelist, applica rate limiting
+    if (!WHITELIST_IPS.includes(clientIP)) {
+      // Usa combinazione email + IP per identificare univocamente
+      const identifier = `${email}_${clientIP}`;
+      
+      // Per questionari completi, controlla rate limit
+      if (!isIncomplete) {
+        const rateLimitCheck = checkRateLimit(identifier);
+        if (!rateLimitCheck.allowed) {
+          console.log(`[RATE LIMIT] Bloccato: ${identifier}`);
+          return NextResponse.json({ 
+            success: false, 
+            message: rateLimitCheck.message 
+          });
+        }
+      }
+      
+      // Per questionari incompleti, usa sessionStorage lato client + rate limit leggero
+      if (isIncomplete) {
+        const incompleteIdentifier = `incomplete_${identifier}`;
+        const rateLimitCheck = checkRateLimit(incompleteIdentifier);
+        if (!rateLimitCheck.allowed) {
+          return NextResponse.json({ 
+            success: false, 
+            message: 'Questionario incompleto già inviato recentemente' 
+          });
+        }
+      }
     }
 
-    // Se è un questionario INCOMPLETO, controlla se l'IP ha già inviato
-    if (isIncomplete && hasIncompleteQuestionnaireSentFromIP(clientIP)) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Questionario incompleto già inviato da questo IP' 
-      });
-    }
-
-    // Genera ID progressivo
+    // Genera ID candidatura
     const candidateId = getNextCandidateId();
 
     // Formatta i dati per l'email con HTML
@@ -333,7 +245,7 @@ export async function POST(req: NextRequest) {
       <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px;">
         <div style="background-color: #f8fafc; padding: 30px; border-radius: 10px; margin-bottom: 30px;">
           <h1 style="font-size: 28px; color: #1e40af; text-align: center; margin-bottom: 10px;">📋 NUOVA CANDIDATURA SAFESCALE${isIncomplete ? ' - INCOMPLETA' : ''}</h1>
-          <p style="text-align: center; font-size: 18px; color: #64748b; margin: 0;">ID Candidatura: <strong>#${candidateId.toString().padStart(4, '0')}</strong></p>
+          <p style="text-align: center; font-size: 18px; color: #64748b; margin: 0;">ID Candidatura: <strong>#${candidateId}</strong></p>
           ${isIncomplete ? '<p style="text-align: center; font-size: 16px; color: #dc2626; margin: 10px 0 0 0; font-weight: bold;">⚠️ Questionario chiuso senza completamento</p>' : ''}
         </div>
 
@@ -363,6 +275,9 @@ export async function POST(req: NextRequest) {
           <p style="font-size: 14px; color: #64748b; margin: 0;">
             <strong>Data di invio:</strong> ${new Date().toLocaleString('it-IT')}
           </p>
+          <p style="font-size: 12px; color: #94a3b8; margin: 5px 0 0 0;">
+            IP: ${clientIP} | Session: ${sessionToken || 'N/A'}
+          </p>
         </div>
       </body>
     </html>
@@ -372,27 +287,23 @@ export async function POST(req: NextRequest) {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: 'candidature.safescale@gmail.com',
-      subject: `🚀 ID#${candidateId.toString().padStart(4, '0')} - Candidatura ${contactData.nome} ${contactData.cognome}${isIncomplete ? ' - Questionario Incompleto' : ''}`,
+      subject: `🚀 ID#${candidateId} - Candidatura ${contactData.nome} ${contactData.cognome}${isIncomplete ? ' - Questionario Incompleto' : ''}`,
       html: emailHtml,
     };
 
     // Invia l'email
     await transporter.sendMail(mailOptions);
-
-    // Salva l'invio in base al tipo
-    if (isIncomplete) {
-      // Questionario incompleto: salva solo IP
-      addIncompleteQuestionnaireIP(clientIP);
-    } else {
-      // Questionario completo: salva IP ed email per prevenire duplicati
-      addCompleteSubmissionIP(clientIP, contactData.email);
-    }
     
-    console.log(`[DEBUG] Email inviata con successo - ID: ${candidateId}, IP: ${clientIP}`);
+    console.log(`[SUCCESS] Email inviata - ID: ${candidateId}, IP: ${clientIP}, Email: ${email}`);
 
-    return NextResponse.json({ success: true, message: 'Email inviata con successo' });
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Email inviata con successo',
+      candidateId: candidateId
+    });
+    
   } catch (error) {
-    // Errore invio email
+    console.error('[ERROR] Invio email fallito:', error);
     return NextResponse.json(
       { success: false, error: 'Errore nell\'invio dell\'email' },
       { status: 500 }

@@ -733,9 +733,28 @@ export default function HomePage() {
       alert('Captcha non corretto. Riprova.');
       return;
     }
+    
+    // Controllo duplicati lato client con localStorage
+    const submissionKey = `safescale_submission_${contactFormData.email.toLowerCase()}`;
+    const existingSubmission = localStorage.getItem(submissionKey);
+    
+    if (existingSubmission) {
+      const submissionData = JSON.parse(existingSubmission);
+      const submissionDate = new Date(submissionData.timestamp);
+      const hoursSinceSubmission = (Date.now() - submissionDate.getTime()) / (1000 * 60 * 60);
+      
+      // Blocca se l'invio è stato fatto nelle ultime 24 ore
+      if (hoursSinceSubmission < 24) {
+        alert('Hai già inviato una candidatura con questa email nelle ultime 24 ore. Riprova più tardi.');
+        return;
+      }
+    }
+    
+    // Aggiungi un token univoco per questa sessione
+    const sessionToken = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     try {
-      // Invia i dati via email
+      // Invia i dati via email con session token
       const response = await fetch('/api/send-email', {
         method: 'POST',
         headers: {
@@ -744,16 +763,32 @@ export default function HomePage() {
         body: JSON.stringify({
           contactData: contactFormData,
           questionnaireData: questionnaireData,
+          sessionToken: sessionToken,
         }),
       });
 
       const result = await response.json();
 
       if (result.success) {
+        // Salva in localStorage per prevenire duplicati
+        localStorage.setItem(submissionKey, JSON.stringify({
+          email: contactFormData.email,
+          timestamp: new Date().toISOString(),
+          sessionToken: sessionToken
+        }));
+        
         // Show thank you message if email sent successfully
         setQuestionnaireSubmitted(true);
       } else {
-        alert('Errore nell\'invio della candidatura. Riprova più tardi.');
+        // Se il server dice che è un duplicato, salva anche in localStorage
+        if (result.message && result.message.includes('già inviato')) {
+          localStorage.setItem(submissionKey, JSON.stringify({
+            email: contactFormData.email,
+            timestamp: new Date().toISOString(),
+            sessionToken: sessionToken
+          }));
+        }
+        alert(result.message || 'Errore nell\'invio della candidatura. Riprova più tardi.');
       }
     } catch (error) {
       // Errore invio candidatura
@@ -769,6 +804,11 @@ export default function HomePage() {
       return;
     }
     
+    // Controlla se già inviato in questa sessione
+    const incompleteKey = `safescale_incomplete_${contactFormData.email.toLowerCase()}`;
+    if (sessionStorage.getItem(incompleteKey)) {
+      return; // Già inviato in questa sessione
+    }
     
     try {
       const response = await fetch('/api/send-email', {
@@ -788,6 +828,8 @@ export default function HomePage() {
       // Il controllo IP è ora gestito lato server
       if (result.success) {
         // Questionario incompleto inviato con successo
+        // Salva in sessionStorage per evitare invii multipli nella stessa sessione
+        sessionStorage.setItem(incompleteKey, 'sent');
       } else {
         // Questionario incompleto già inviato da questo IP o errore
       }
