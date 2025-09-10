@@ -1,14 +1,14 @@
 'use client';
 
+import { BarChart2, CheckCircle, FileText, Gauge, Settings } from "lucide-react";
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { 
   FaBolt,
   FaBriefcase,
   FaBullseye,
   FaChartBar,
-  FaChartLine,
   FaCheckCircle,
   FaClipboardList,
   FaEnvelope,
@@ -22,7 +22,6 @@ import {
   FaUserGraduate,
   FaUserTie
 } from 'react-icons/fa';
-import { BarChart2, CheckCircle, FileText, Gauge, Settings } from "lucide-react";
 
 import OldAgencyBrokenBox from '@/components/OldAgencyBrokenBox';
 
@@ -364,10 +363,11 @@ export default function HomePage() {
       .then(res => res.json())
       .then(data => {
         setUserIP(data.ip);
-        console.log('🔍 Il tuo IP rilevato:', data.ip);
-        console.log('ℹ️ Copia questo IP e comunicalo per essere aggiunto alla whitelist');
+        // IP rilevato per debug
       })
-      .catch(err => console.error('Errore rilevamento IP:', err));
+      .catch(() => {
+        // Errore rilevamento IP
+      });
   }, []);
 
   // Typewriter effect - prima scrive tutto, poi cancella tutto insieme
@@ -761,32 +761,14 @@ export default function HomePage() {
     }
   };
 
-  // Funzione per verificare se le prime 3 sezioni sono complete
-  const isFirstThreeSectionsComplete = () => {
-    // Sezione 1 - Chi sei (almeno nome brand)
-    const section1Complete = questionnaireData.brandName.trim() !== '';
-    
-    // Sezione 2 - Cosa produci/vendi (almeno production)
-    const section2Complete = questionnaireData.production.trim() !== '';
-    
-    // Sezione 3 - Le tue vendite (almeno onlineSales)
-    const section3Complete = questionnaireData.onlineSales.trim() !== '';
-    
-    return section1Complete && section2Complete && section3Complete;
-  };
 
   // Funzione per inviare questionario incompleto
-  const sendIncompleteQuestionnaire = async () => {
+  const sendIncompleteQuestionnaire = useCallback(async () => {
     // Non inviare se non ci sono dati del contatto
     if (!contactFormData.email || !contactFormData.nome) {
-      console.log('Non invio: mancano email o nome');
       return;
     }
     
-    console.log('Tentativo invio questionario incompleto con dati:', {
-      contatto: contactFormData,
-      questionario: questionnaireData
-    });
     
     try {
       const response = await fetch('/api/send-email', {
@@ -802,34 +784,25 @@ export default function HomePage() {
       });
 
       const result = await response.json();
-      console.log('Risposta server:', result);
       
       // Il controllo IP è ora gestito lato server
       if (result.success) {
         // Questionario incompleto inviato con successo
-        console.log('✅ Questionario incompleto inviato con successo');
       } else {
-        // Questionario incompleto già inviato da questo IP
-        console.log('⚠️ Questionario già inviato da questo IP o errore:', result.message);
+        // Questionario incompleto già inviato da questo IP o errore
       }
     } catch (error) {
       // Errore invio questionario incompleto
-      console.error('❌ Errore invio questionario incompleto:', error);
     }
-  };
+  }, [contactFormData, questionnaireData]);
 
   // Funzione sincrona per invio immediato con sendBeacon
-  const sendIncompleteQuestionnaireSync = () => {
+  const sendIncompleteQuestionnaireSync = useCallback(() => {
     // Non inviare se non ci sono dati del contatto
     if (!contactFormData.email || !contactFormData.nome) {
-      console.log('SendBeacon non inviato: dati contatto mancanti');
       return;
     }
     
-    console.log('Tentativo invio con sendBeacon, dati:', {
-      contatto: contactFormData,
-      questionario: questionnaireData
-    });
     
     const data = JSON.stringify({
       contactData: contactFormData,
@@ -841,11 +814,9 @@ export default function HomePage() {
     if (navigator.sendBeacon) {
       const blob = new Blob([data], { type: 'application/json' });
       const sent = navigator.sendBeacon('/api/send-email', blob);
-      console.log('✅ SendBeacon risultato:', sent);
       
       if (!sent) {
         // Se sendBeacon fallisce, prova con fetch sincrono
-        console.log('SendBeacon fallito, provo con fetch...');
         try {
           fetch('/api/send-email', {
             method: 'POST',
@@ -854,12 +825,11 @@ export default function HomePage() {
             keepalive: true // Importante per richieste durante unload
           });
         } catch (e) {
-          console.error('Anche fetch ha fallito:', e);
+          // Fetch fallito
         }
       }
     } else {
       // Fallback per browser senza sendBeacon
-      console.log('SendBeacon non disponibile, uso fetch con keepalive');
       try {
         fetch('/api/send-email', {
           method: 'POST',
@@ -868,10 +838,10 @@ export default function HomePage() {
           keepalive: true
         });
       } catch (e) {
-        console.error('Fetch fallito:', e);
+        // Fetch fallito
       }
     }
-  };
+  }, [contactFormData, questionnaireData]);
 
   // Generate initial captcha on component mount (client-side only)
   useEffect(() => {
@@ -901,7 +871,6 @@ export default function HomePage() {
     // Evento specifico per mobile quando l'utente cambia app
     const handlePageHide = () => {
       if (showQuestionnaire && contactFormData.email && contactFormData.nome) {
-        console.log('Page hide event - invio questionario');
         sendIncompleteQuestionnaireSync();
       }
     };
@@ -909,7 +878,6 @@ export default function HomePage() {
     // Evento quando l'utente tocca il pulsante back su mobile
     const handlePopState = () => {
       if (showQuestionnaire && contactFormData.email && contactFormData.nome) {
-        console.log('Popstate event - invio questionario');
         sendIncompleteQuestionnaire();
       }
     };
@@ -929,7 +897,7 @@ export default function HomePage() {
       window.removeEventListener('popstate', handlePopState);
       window.removeEventListener('unload', handleBeforeUnload);
     };
-  }, [isMounted, showQuestionnaire, questionnaireData, contactFormData]);
+  }, [isMounted, showQuestionnaire, questionnaireData, contactFormData, sendIncompleteQuestionnaire, sendIncompleteQuestionnaireSync]);
 
 
   // Animate neon effect continuously  

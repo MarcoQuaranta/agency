@@ -5,18 +5,22 @@ import path from 'path';
 
 // Funzione per ottenere IP dalla whitelist
 function getWhitelistedIPs(): string[] {
+  const defaultIPs = ['31.156.225.224', '::1', '127.0.0.1'];
   const whitelistFile = path.join(process.cwd(), 'whitelist-ips.json');
+  
   try {
     if (fs.existsSync(whitelistFile)) {
       const content = fs.readFileSync(whitelistFile, 'utf8');
       const data = JSON.parse(content);
-      return data.ips || [];
+      // Combina IP dal file con quelli di default per evitare problemi
+      const fileIPs = data.ips || [];
+      return [...new Set([...defaultIPs, ...fileIPs])];
     }
   } catch (error) {
-    console.log('Errore lettura whitelist:', error);
+    // Ignora errore lettura whitelist
   }
   // IP di default sempre consentiti
-  return ['31.156.225.224', '::1', '127.0.0.1'];
+  return defaultIPs;
 }
 
 // Funzione per controllare se l'IP ha già inviato un questionario incompleto
@@ -25,7 +29,6 @@ function hasIncompleteQuestionnaireSentFromIP(clientIP: string): boolean {
   
   // IP in whitelist possono sempre inviare
   if (whitelistedIPs.includes(clientIP)) {
-    console.log(`IP ${clientIP} è in whitelist`);
     return false;
   }
   
@@ -38,7 +41,7 @@ function hasIncompleteQuestionnaireSentFromIP(clientIP: string): boolean {
       return ips.includes(clientIP);
     }
   } catch (error) {
-    console.log('Error reading incomplete IPs file:', error);
+    // Ignora errore lettura file IP
   }
   
   return false;
@@ -50,7 +53,6 @@ function addIncompleteQuestionnaireIP(clientIP: string): void {
   
   // Non salvare IP in whitelist
   if (whitelistedIPs.includes(clientIP)) {
-    console.log(`IP ${clientIP} in whitelist, non salvato nel file blocchi`);
     return;
   }
   
@@ -63,7 +65,7 @@ function addIncompleteQuestionnaireIP(clientIP: string): void {
       ips = JSON.parse(content) || [];
     }
   } catch (error) {
-    console.log('Creating new incomplete IPs file');
+    // Crea nuovo file IP incompleti
   }
   
   if (!ips.includes(clientIP)) {
@@ -72,7 +74,7 @@ function addIncompleteQuestionnaireIP(clientIP: string): void {
     try {
       fs.writeFileSync(incompleteIPsFile, JSON.stringify(ips, null, 2));
     } catch (error) {
-      console.error('Error writing incomplete IPs file:', error);
+      // Ignora errore scrittura file IP
     }
   }
 }
@@ -106,7 +108,7 @@ function getNextCandidateId(): number {
       currentId = parseInt(content) || 1;
     }
   } catch (error) {
-    console.log('Creating new counter file');
+    // Crea nuovo file contatore
   }
 
   const nextId = currentId + 1;
@@ -114,7 +116,7 @@ function getNextCandidateId(): number {
   try {
     fs.writeFileSync(counterFile, nextId.toString());
   } catch (error) {
-    console.error('Error writing counter file:', error);
+    // Ignora errore scrittura contatore
   }
 
   return currentId;
@@ -154,11 +156,9 @@ export async function POST(req: NextRequest) {
 
     // Ottieni IP del client
     const clientIP = getClientIP(req);
-    console.log(`Richiesta ricevuta da IP: ${clientIP}, incompleto: ${isIncomplete}`);
 
     // Se è un questionario incompleto, controlla se l'IP ha già inviato
     if (isIncomplete && hasIncompleteQuestionnaireSentFromIP(clientIP)) {
-      console.log(`IP ${clientIP} ha già inviato un questionario incompleto`);
       return NextResponse.json({ 
         success: false, 
         message: 'Questionario incompleto già inviato da questo IP' 
@@ -292,7 +292,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, message: 'Email inviata con successo' });
   } catch (error) {
-    console.error('Errore invio email:', error);
+    // Errore invio email
     return NextResponse.json(
       { success: false, error: 'Errore nell\'invio dell\'email' },
       { status: 500 }
