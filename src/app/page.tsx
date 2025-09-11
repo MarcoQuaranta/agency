@@ -9,6 +9,7 @@ import {
   FaBriefcase,
   FaBullseye,
   FaChartBar,
+  FaChartLine,
   FaCheckCircle,
   FaClipboardList,
   FaEnvelope,
@@ -383,7 +384,7 @@ export default function HomePage() {
       if (currentPhase === 'typing') {
         const currentText = fullTexts[currentTextIndex];
         
-        if (currentCharIndex < currentText.length) {
+        if (currentText && currentCharIndex < currentText.length) {
           // Continua a digitare la linea corrente
           setDisplayedTexts(prev => {
             const newTexts = [...prev];
@@ -391,7 +392,7 @@ export default function HomePage() {
             return newTexts;
           });
           setCurrentCharIndex(prev => prev + 1);
-        } else {
+        } else if (currentText) {
           // Linea corrente completata
           if (currentTextIndex < fullTexts.length - 1) {
             // Passa alla prossima linea
@@ -1015,14 +1016,15 @@ export default function HomePage() {
   };
 
   const [active, setActive] = useState<number>(0);
-  const [playingVideos, setPlayingVideos] = useState<{[key: number]: boolean}>({});
+  const [_expandedMobileItem, _setExpandedMobileItem] = useState<number | null>(null);
+  const [_playingVideos, _setPlayingVideos] = useState<{[key: number]: boolean}>({});
   const videoRefs = useRef<{[key: number]: HTMLVideoElement | null}>({});
 
   // --- Banner CTA (prima del return) ---
   const _ctaHref = '#contact-form'; // cambia con l'anchor o il link che vuoi
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-blue-100/20 text-custom-dark overflow-x-hidden">
+    <div className="min-h-screen bg-white text-custom-dark overflow-x-hidden">
       {/* IP Indicator - Solo per sviluppo locale */}
       {userIP && (process.env.NODE_ENV === 'development' || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))) && (
         <div className="fixed bottom-4 right-4 bg-black/80 text-white p-3 rounded-lg z-[100] text-xs font-mono">
@@ -1115,28 +1117,8 @@ export default function HomePage() {
       <section 
         id="hero-section"
         data-section="hero" 
-        className="pt-24 sm:pt-20 pb-8 lg:px-12 min-h-screen flex items-center relative overflow-hidden bg-gradient-to-br from-blue-50/20 via-white to-blue-100/15"
+        className="pt-24 sm:pt-20 pb-8 lg:px-12 min-h-screen flex items-center relative overflow-hidden bg-white"
       >
-        {/* Blue glowing effect - oval shape spanning full width */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-6xl h-[400px] sm:h-[600px] rounded-full blur-3xl animate-pulse" style={{backgroundColor: '#BAD9FE', opacity: 0.8, animationDuration: '4s'}}></div>
-        <div className="absolute top-1/3 right-1/4 w-[70%] max-w-4xl h-[300px] sm:h-[500px] rounded-full blur-3xl animate-pulse" style={{backgroundColor: '#BAD9FE', opacity: 0.6, animationDuration: '6s', animationDelay: '2s'}}></div>
-        
-        {/* Subtle geometric pattern */}
-        <div
-          className="absolute inset-0 opacity-5"
-          style={{
-            backgroundImage: `repeating-linear-gradient(
-              45deg,
-              transparent,
-              transparent 20px,
-              rgba(59, 130, 246, 0.05) 20px,
-              rgba(59, 130, 246, 0.05) 22px
-            )`
-          }}
-        />
-        
-        {/* Light gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-white/30 to-purple-50/50"></div>
         <div className="w-full max-w-7xl lg:max-w-[1600px] mx-auto relative z-10 px-4 sm:px-6 lg:px-12">
           <div className="grid lg:grid-cols-5 gap-8 lg:gap-12 items-center">
             <div className="space-y-6 lg:space-y-8 order-1 lg:order-1 lg:col-span-2">
@@ -1185,97 +1167,109 @@ export default function HomePage() {
                           }
                         }
                         
+                        @keyframes gradientShift {
+                          0% {
+                            background-position: 0% 50%;
+                          }
+                          50% {
+                            background-position: 100% 50%;
+                          }
+                          100% {
+                            background-position: 0% 50%;
+                          }
+                        }
+                        
                         /* Mobile distance */
                         @media (max-width: 640px) {
                           @keyframes stepCircular1 {
                             0%, 10% {
-                              transform: translate(-50%, -50%) rotate(0deg) translateX(75px) rotate(0deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(0deg) translateX(90px) rotate(0deg) scale(1.5);
                               z-index: 3;
                             }
                             15%, 25% {
-                              transform: translate(-50%, -50%) rotate(120deg) translateX(75px) rotate(-120deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(120deg) translateX(90px) rotate(-120deg) scale(0.8);
                               z-index: 1;
                             }
                             30%, 43.33% {
-                              transform: translate(-50%, -50%) rotate(120deg) translateX(75px) rotate(-120deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(120deg) translateX(90px) rotate(-120deg) scale(0.8);
                               z-index: 1;
                             }
                             48.33%, 58.33% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(75px) rotate(-240deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
                               z-index: 1;
                             }
                             63.33%, 76.66% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(75px) rotate(-240deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
                               z-index: 1;
                             }
                             81.66%, 91.66% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(75px) rotate(-360deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
                               z-index: 3;
                             }
                             96.66%, 100% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(75px) rotate(-360deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
                               z-index: 3;
                             }
                           }
                           
                           @keyframes stepCircular2 {
                             0%, 10% {
-                              transform: translate(-50%, -50%) rotate(120deg) translateX(75px) rotate(-120deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(120deg) translateX(90px) rotate(-120deg) scale(0.8);
                               z-index: 1;
                             }
                             15%, 25% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(75px) rotate(-240deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
                               z-index: 1;
                             }
                             30%, 43.33% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(75px) rotate(-240deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
                               z-index: 1;
                             }
                             48.33%, 58.33% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(75px) rotate(-360deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
                               z-index: 3;
                             }
                             63.33%, 76.66% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(75px) rotate(-360deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
                               z-index: 3;
                             }
                             81.66%, 91.66% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(75px) rotate(-480deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
                               z-index: 1;
                             }
                             96.66%, 100% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(75px) rotate(-480deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
                               z-index: 1;
                             }
                           }
                           
                           @keyframes stepCircular3 {
                             0%, 10% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(75px) rotate(-240deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
                               z-index: 1;
                             }
                             15%, 25% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(75px) rotate(-360deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
                               z-index: 3;
                             }
                             30%, 43.33% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(75px) rotate(-360deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
                               z-index: 3;
                             }
                             48.33%, 58.33% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(75px) rotate(-480deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
                               z-index: 1;
                             }
                             63.33%, 76.66% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(75px) rotate(-480deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
                               z-index: 1;
                             }
                             81.66%, 91.66% {
-                              transform: translate(-50%, -50%) rotate(600deg) translateX(75px) rotate(-600deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(600deg) translateX(90px) rotate(-600deg) scale(0.8);
                               z-index: 1;
                             }
                             96.66%, 100% {
-                              transform: translate(-50%, -50%) rotate(600deg) translateX(75px) rotate(-600deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(600deg) translateX(90px) rotate(-600deg) scale(0.8);
                               z-index: 1;
                             }
                           }
@@ -1285,93 +1279,93 @@ export default function HomePage() {
                         @media (min-width: 641px) {
                           @keyframes stepCircular1 {
                           0%, 10% {
-                            transform: translate(-50%, -50%) rotate(0deg) translateX(130px) rotate(0deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(0deg) translateX(140px) rotate(0deg) scale(1.5);
                             z-index: 3;
                           }
                           15%, 25% {
-                            transform: translate(-50%, -50%) rotate(120deg) translateX(130px) rotate(-120deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(120deg) translateX(140px) rotate(-120deg) scale(0.8);
                             z-index: 1;
                           }
                           30%, 43.33% {
-                            transform: translate(-50%, -50%) rotate(120deg) translateX(130px) rotate(-120deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(120deg) translateX(140px) rotate(-120deg) scale(0.8);
                             z-index: 1;
                           }
                           48.33%, 58.33% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
                             z-index: 1;
                           }
                           63.33%, 76.66% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
                             z-index: 1;
                           }
                           81.66%, 91.66% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
                             z-index: 3;
                           }
                           96.66%, 100% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
                             z-index: 3;
                           }
                         }
                         
                         @keyframes stepCircular2 {
                           0%, 10% {
-                            transform: translate(-50%, -50%) rotate(120deg) translateX(130px) rotate(-120deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(120deg) translateX(140px) rotate(-120deg) scale(0.8);
                             z-index: 1;
                           }
                           15%, 25% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
                             z-index: 1;
                           }
                           30%, 43.33% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
                             z-index: 1;
                           }
                           48.33%, 58.33% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
                             z-index: 3;
                           }
                           63.33%, 76.66% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
                             z-index: 3;
                           }
                           81.66%, 91.66% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(130px) rotate(-480deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
                             z-index: 1;
                           }
                           96.66%, 100% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(130px) rotate(-480deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
                             z-index: 1;
                           }
                         }
                         
                         @keyframes stepCircular3 {
                           0%, 10% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
                             z-index: 1;
                           }
                           15%, 25% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
                             z-index: 3;
                           }
                           30%, 43.33% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
                             z-index: 3;
                           }
                           48.33%, 58.33% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(130px) rotate(-480deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
                             z-index: 1;
                           }
                           63.33%, 76.66% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(130px) rotate(-480deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
                             z-index: 1;
                           }
                           81.66%, 91.66% {
-                            transform: translate(-50%, -50%) rotate(600deg) translateX(130px) rotate(-600deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(600deg) translateX(140px) rotate(-600deg) scale(0.8);
                             z-index: 1;
                           }
                           96.66%, 100% {
-                            transform: translate(-50%, -50%) rotate(600deg) translateX(130px) rotate(-600deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(600deg) translateX(140px) rotate(-600deg) scale(0.8);
                             z-index: 1;
                           }
                         }
@@ -1410,12 +1404,25 @@ export default function HomePage() {
                       <div className="relative w-full h-full flex items-center justify-center">
                         {(() => {
                           const icons = [
-                            { src: '/images/icons/money-logo.png' },
-                            { src: '/images/icons/shield-logo.png' },
-                            { src: '/images/icons/handshake-logo.png' }
+                            { 
+                              Icon: FaRocket, 
+                              label: 'Crescita',
+                              gradient: 'linear-gradient(135deg, #2563eb, #ec4899, #9333ea, #2563eb)'
+                            },
+                            { 
+                              Icon: FaChartLine, 
+                              label: 'Analytics',
+                              gradient: 'linear-gradient(135deg, #3b82f6, #d946ef, #8b5cf6, #3b82f6)'
+                            },
+                            { 
+                              Icon: FaBullseye, 
+                              label: 'Obiettivi',
+                              gradient: 'linear-gradient(135deg, #7c3aed, #2563eb, #ec4899, #7c3aed)'
+                            }
                           ];
                           
                           return icons.map((item, index) => {
+                            const IconComponent = item.Icon;
                             return (
                               <div
                                 key={index}
@@ -1425,15 +1432,24 @@ export default function HomePage() {
                                   top: '50%',
                                 }}
                               >
-                                <Image 
-                                  src={item.src} 
-                                  alt={`Icon ${index + 1}`}
-                                  width={1200}
-                                  height={1200}
-                                  className="w-36 h-36 sm:w-40 sm:h-40 md:w-44 md:h-44 lg:w-52 lg:h-52 xl:w-60 xl:h-60 object-contain"
-                                  quality={100}
-                                  priority
-                                />
+                                <div className="relative w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 flex items-center justify-center">
+                                  {/* Icon container with animated gradient background */}
+                                  <div 
+                                    className="relative w-full h-full rounded-full shadow-2xl flex items-center justify-center group transition-all hover:shadow-3xl hover:scale-105"
+                                    style={{
+                                      background: item.gradient,
+                                      backgroundSize: '200% 200%',
+                                      animation: 'gradientShift 4s ease infinite'
+                                    }}>
+                                    {/* White icon */}
+                                    <IconComponent 
+                                      className="w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 text-white"
+                                    />
+                                    
+                                    {/* Glow effect on hover */}
+                                    <div className="absolute inset-0 rounded-full bg-white/0 group-hover:bg-white/10 transition-all duration-300"></div>
+                                  </div>
+                                </div>
                               </div>
                             );
                           });
@@ -1589,97 +1605,109 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                           }
                         }
                         
+                        @keyframes gradientShift {
+                          0% {
+                            background-position: 0% 50%;
+                          }
+                          50% {
+                            background-position: 100% 50%;
+                          }
+                          100% {
+                            background-position: 0% 50%;
+                          }
+                        }
+                        
                         /* Mobile distance */
                         @media (max-width: 640px) {
                           @keyframes stepCircular1 {
                             0%, 10% {
-                              transform: translate(-50%, -50%) rotate(0deg) translateX(75px) rotate(0deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(0deg) translateX(90px) rotate(0deg) scale(1.5);
                               z-index: 3;
                             }
                             15%, 25% {
-                              transform: translate(-50%, -50%) rotate(120deg) translateX(75px) rotate(-120deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(120deg) translateX(90px) rotate(-120deg) scale(0.8);
                               z-index: 1;
                             }
                             30%, 43.33% {
-                              transform: translate(-50%, -50%) rotate(120deg) translateX(75px) rotate(-120deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(120deg) translateX(90px) rotate(-120deg) scale(0.8);
                               z-index: 1;
                             }
                             48.33%, 58.33% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(75px) rotate(-240deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
                               z-index: 1;
                             }
                             63.33%, 76.66% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(75px) rotate(-240deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
                               z-index: 1;
                             }
                             81.66%, 91.66% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(75px) rotate(-360deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
                               z-index: 3;
                             }
                             96.66%, 100% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(75px) rotate(-360deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
                               z-index: 3;
                             }
                           }
                           
                           @keyframes stepCircular2 {
                             0%, 10% {
-                              transform: translate(-50%, -50%) rotate(120deg) translateX(75px) rotate(-120deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(120deg) translateX(90px) rotate(-120deg) scale(0.8);
                               z-index: 1;
                             }
                             15%, 25% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(75px) rotate(-240deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
                               z-index: 1;
                             }
                             30%, 43.33% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(75px) rotate(-240deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
                               z-index: 1;
                             }
                             48.33%, 58.33% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(75px) rotate(-360deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
                               z-index: 3;
                             }
                             63.33%, 76.66% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(75px) rotate(-360deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
                               z-index: 3;
                             }
                             81.66%, 91.66% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(75px) rotate(-480deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
                               z-index: 1;
                             }
                             96.66%, 100% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(75px) rotate(-480deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
                               z-index: 1;
                             }
                           }
                           
                           @keyframes stepCircular3 {
                             0%, 10% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(75px) rotate(-240deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
                               z-index: 1;
                             }
                             15%, 25% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(75px) rotate(-360deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
                               z-index: 3;
                             }
                             30%, 43.33% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(75px) rotate(-360deg) scale(1.5);
+                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
                               z-index: 3;
                             }
                             48.33%, 58.33% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(75px) rotate(-480deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
                               z-index: 1;
                             }
                             63.33%, 76.66% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(75px) rotate(-480deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
                               z-index: 1;
                             }
                             81.66%, 91.66% {
-                              transform: translate(-50%, -50%) rotate(600deg) translateX(75px) rotate(-600deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(600deg) translateX(90px) rotate(-600deg) scale(0.8);
                               z-index: 1;
                             }
                             96.66%, 100% {
-                              transform: translate(-50%, -50%) rotate(600deg) translateX(75px) rotate(-600deg) scale(0.8);
+                              transform: translate(-50%, -50%) rotate(600deg) translateX(90px) rotate(-600deg) scale(0.8);
                               z-index: 1;
                             }
                           }
@@ -1689,93 +1717,93 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                         @media (min-width: 641px) {
                           @keyframes stepCircular1 {
                           0%, 10% {
-                            transform: translate(-50%, -50%) rotate(0deg) translateX(130px) rotate(0deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(0deg) translateX(140px) rotate(0deg) scale(1.5);
                             z-index: 3;
                           }
                           15%, 25% {
-                            transform: translate(-50%, -50%) rotate(120deg) translateX(130px) rotate(-120deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(120deg) translateX(140px) rotate(-120deg) scale(0.8);
                             z-index: 1;
                           }
                           30%, 43.33% {
-                            transform: translate(-50%, -50%) rotate(120deg) translateX(130px) rotate(-120deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(120deg) translateX(140px) rotate(-120deg) scale(0.8);
                             z-index: 1;
                           }
                           48.33%, 58.33% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
                             z-index: 1;
                           }
                           63.33%, 76.66% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
                             z-index: 1;
                           }
                           81.66%, 91.66% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
                             z-index: 3;
                           }
                           96.66%, 100% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
                             z-index: 3;
                           }
                         }
                         
                         @keyframes stepCircular2 {
                           0%, 10% {
-                            transform: translate(-50%, -50%) rotate(120deg) translateX(130px) rotate(-120deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(120deg) translateX(140px) rotate(-120deg) scale(0.8);
                             z-index: 1;
                           }
                           15%, 25% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
                             z-index: 1;
                           }
                           30%, 43.33% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
                             z-index: 1;
                           }
                           48.33%, 58.33% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
                             z-index: 3;
                           }
                           63.33%, 76.66% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
                             z-index: 3;
                           }
                           81.66%, 91.66% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(130px) rotate(-480deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
                             z-index: 1;
                           }
                           96.66%, 100% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(130px) rotate(-480deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
                             z-index: 1;
                           }
                         }
                         
                         @keyframes stepCircular3 {
                           0%, 10% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(130px) rotate(-240deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
                             z-index: 1;
                           }
                           15%, 25% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
                             z-index: 3;
                           }
                           30%, 43.33% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(130px) rotate(-360deg) scale(1.5);
+                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
                             z-index: 3;
                           }
                           48.33%, 58.33% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(130px) rotate(-480deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
                             z-index: 1;
                           }
                           63.33%, 76.66% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(130px) rotate(-480deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
                             z-index: 1;
                           }
                           81.66%, 91.66% {
-                            transform: translate(-50%, -50%) rotate(600deg) translateX(130px) rotate(-600deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(600deg) translateX(140px) rotate(-600deg) scale(0.8);
                             z-index: 1;
                           }
                           96.66%, 100% {
-                            transform: translate(-50%, -50%) rotate(600deg) translateX(130px) rotate(-600deg) scale(0.8);
+                            transform: translate(-50%, -50%) rotate(600deg) translateX(140px) rotate(-600deg) scale(0.8);
                             z-index: 1;
                           }
                         }
@@ -1814,12 +1842,25 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                       <div className="relative w-full h-full flex items-center justify-center">
                         {(() => {
                           const icons = [
-                            { src: '/images/icons/money-logo.png' },
-                            { src: '/images/icons/shield-logo.png' },
-                            { src: '/images/icons/handshake-logo.png' }
+                            { 
+                              Icon: FaRocket, 
+                              label: 'Crescita',
+                              gradient: 'linear-gradient(135deg, #2563eb, #ec4899, #9333ea, #2563eb)'
+                            },
+                            { 
+                              Icon: FaChartLine, 
+                              label: 'Analytics',
+                              gradient: 'linear-gradient(135deg, #3b82f6, #d946ef, #8b5cf6, #3b82f6)'
+                            },
+                            { 
+                              Icon: FaBullseye, 
+                              label: 'Obiettivi',
+                              gradient: 'linear-gradient(135deg, #7c3aed, #2563eb, #ec4899, #7c3aed)'
+                            }
                           ];
                           
                           return icons.map((item, index) => {
+                            const IconComponent = item.Icon;
                             return (
                               <div
                                 key={index}
@@ -1829,15 +1870,24 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                                   top: '50%',
                                 }}
                               >
-                                <Image 
-                                  src={item.src} 
-                                  alt={`Icon ${index + 1}`}
-                                  width={1200}
-                                  height={1200}
-                                  className="w-44 h-44 sm:w-48 sm:h-48 md:w-52 md:h-52 lg:w-52 lg:h-52 xl:w-60 xl:h-60 object-contain"
-                                  quality={100}
-                                  priority
-                                />
+                                <div className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 lg:w-44 lg:h-44 xl:w-48 xl:h-48 flex items-center justify-center">
+                                  {/* Icon container with animated gradient background */}
+                                  <div 
+                                    className="relative w-full h-full rounded-full shadow-2xl flex items-center justify-center group transition-all hover:shadow-3xl hover:scale-105"
+                                    style={{
+                                      background: item.gradient,
+                                      backgroundSize: '200% 200%',
+                                      animation: 'gradientShift 4s ease infinite'
+                                    }}>
+                                    {/* White icon */}
+                                    <IconComponent 
+                                      className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 lg:w-22 lg:h-22 xl:w-24 xl:h-24 text-white"
+                                    />
+                                    
+                                    {/* Glow effect on hover */}
+                                    <div className="absolute inset-0 rounded-full bg-white/0 group-hover:bg-white/10 transition-all duration-300"></div>
+                                  </div>
+                                </div>
                               </div>
                             );
                           });
@@ -2722,32 +2772,32 @@ const _labels: { [key: number]: string } = {
                       
                       @media (max-width: 640px) {
                         @keyframes orbit1 {
-                          from { transform: rotate(0deg) translateX(130px) rotate(0deg); }
-                          to { transform: rotate(360deg) translateX(130px) rotate(-360deg); }
+                          from { transform: rotate(0deg) translateX(140px) rotate(0deg); }
+                          to { transform: rotate(360deg) translateX(140px) rotate(-360deg); }
                         }
                         @keyframes orbit2 {
-                          from { transform: rotate(51.4deg) translateX(130px) rotate(-51.4deg); }
-                          to { transform: rotate(411.4deg) translateX(130px) rotate(-411.4deg); }
+                          from { transform: rotate(51.4deg) translateX(140px) rotate(-51.4deg); }
+                          to { transform: rotate(411.4deg) translateX(140px) rotate(-411.4deg); }
                         }
                         @keyframes orbit3 {
-                          from { transform: rotate(102.8deg) translateX(130px) rotate(-102.8deg); }
-                          to { transform: rotate(462.8deg) translateX(130px) rotate(-462.8deg); }
+                          from { transform: rotate(102.8deg) translateX(140px) rotate(-102.8deg); }
+                          to { transform: rotate(462.8deg) translateX(140px) rotate(-462.8deg); }
                         }
                         @keyframes orbit4 {
-                          from { transform: rotate(154.2deg) translateX(130px) rotate(-154.2deg); }
-                          to { transform: rotate(514.2deg) translateX(130px) rotate(-514.2deg); }
+                          from { transform: rotate(154.2deg) translateX(140px) rotate(-154.2deg); }
+                          to { transform: rotate(514.2deg) translateX(140px) rotate(-514.2deg); }
                         }
                         @keyframes orbit5 {
-                          from { transform: rotate(205.6deg) translateX(130px) rotate(-205.6deg); }
-                          to { transform: rotate(565.6deg) translateX(130px) rotate(-565.6deg); }
+                          from { transform: rotate(205.6deg) translateX(140px) rotate(-205.6deg); }
+                          to { transform: rotate(565.6deg) translateX(140px) rotate(-565.6deg); }
                         }
                         @keyframes orbit6 {
-                          from { transform: rotate(257deg) translateX(130px) rotate(-257deg); }
-                          to { transform: rotate(617deg) translateX(130px) rotate(-617deg); }
+                          from { transform: rotate(257deg) translateX(140px) rotate(-257deg); }
+                          to { transform: rotate(617deg) translateX(140px) rotate(-617deg); }
                         }
                         @keyframes orbit7 {
-                          from { transform: rotate(308.4deg) translateX(130px) rotate(-308.4deg); }
-                          to { transform: rotate(668.4deg) translateX(130px) rotate(-668.4deg); }
+                          from { transform: rotate(308.4deg) translateX(140px) rotate(-308.4deg); }
+                          to { transform: rotate(668.4deg) translateX(140px) rotate(-668.4deg); }
                         }
                       }
                     `}</style>
@@ -2932,8 +2982,140 @@ const _labels: { [key: number]: string } = {
       </p>
     </div>
 
-    {/* VERSIONE MOBILE/TABLET - Visibile sotto 1170px (xl) */}
-    <div className="xl:hidden space-y-4">
+    {/* VERSIONE MOBILE - Simile al desktop ma con iPhone */}
+    <div className="block sm:hidden">
+      <div className="flex flex-col items-center space-y-6 relative">
+        {/* Items list - compatta */}
+        <div className="w-full max-w-sm space-y-3">
+          {ITEMS.map((it, idx) => {
+            const isActive = active === idx;
+            return (
+              <div
+                key={it.id}
+                onClick={() => setActive(idx)}
+                onMouseEnter={() => setActive(idx)}
+                className={[
+                  'rounded-2xl border-2 transition-all duration-500 shadow-sm cursor-pointer transform relative',
+                  isActive ? 'border-violet-400 bg-gradient-to-r from-violet-50 to-purple-50 shadow-2xl shadow-violet-300/60 scale-[1.08] z-10' : 'border-slate-200 bg-white hover:border-slate-300 hover:scale-[1.02]'
+                ].join(' ')}
+              >
+                {/* Freccia che punta verso l'iPhone quando attivo */}
+                {isActive && (
+                  <>
+                    <div className="absolute left-full top-1/2 -translate-y-1/2 w-16 h-[2px] ml-[-2px] z-20">
+                      <div className="w-full h-full bg-gradient-to-r from-violet-400 via-purple-400/50 to-transparent animate-pulse"></div>
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-violet-400 rounded-full animate-ping"></div>
+                      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-purple-400 rounded-full">
+                        <div className="absolute inset-0 bg-purple-400 rounded-full animate-ping"></div>
+                      </div>
+                    </div>
+                    {/* Effetto glow che si espande */}
+                    <div className="absolute left-full top-1/2 -translate-y-1/2 w-48 h-20 ml-[-2px] pointer-events-none">
+                      <div className="w-full h-full bg-gradient-to-r from-violet-400/20 via-purple-400/10 to-transparent blur-xl"></div>
+                    </div>
+                  </>
+                )}
+                
+                <div className="relative p-4">
+                  <span
+                    className={[
+                      'absolute left-0 top-4 h-6 w-1 rounded-r-full transition-all duration-300',
+                      isActive ? 'bg-gradient-to-b from-violet-500 to-purple-600' : 'bg-slate-200'
+                    ].join(' ')}
+                  />
+                  <div className="pl-4">
+                    <h3 className={['text-base font-bold transition-colors duration-300', isActive ? 'text-slate-900' : 'text-slate-700'].join(' ')}>
+                      {it.title}
+                    </h3>
+                    <p className={['mt-1 text-sm text-slate-600 transition-opacity duration-300', isActive ? 'opacity-100' : 'opacity-75'].join(' ')}>
+                      {it.desc}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* iPhone mockup - Realistic Design */}
+        <div className="w-full flex justify-center mt-8">
+          <div className="relative">
+            {/* iPhone 14 Pro Style Frame */}
+            <div className="relative mx-auto w-[300px] h-[600px]">
+              {/* iPhone Body - Same Style as Desktop Tablet */}
+              <div className="relative w-full h-full bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 rounded-[3rem] p-3 shadow-2xl transition-all duration-500">
+                {/* Power button - Same style as tablet */}
+                <div className="absolute -right-1.5 top-20 w-1.5 h-12 bg-gradient-to-r from-purple-600 to-blue-800 rounded-r-lg shadow-lg"></div>
+                
+                {/* Volume buttons - Same style as tablet */}
+                <div className="absolute -left-1.5 top-20 w-1.5 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-l-lg shadow-lg"></div>
+                <div className="absolute -left-1.5 top-32 w-1.5 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-l-lg shadow-lg"></div>
+                
+                {/* Screen - Same style as desktop tablet */}
+                <div className="bg-black/90 rounded-[2.5rem] p-1 h-full">
+                  <div className="bg-white rounded-[2rem] overflow-hidden relative h-full">
+                    {/* iPhone Notch - Inside the screen, facing inward */}
+                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-6 bg-gradient-to-r from-purple-600 to-blue-800 rounded-b-2xl shadow-lg z-10">
+                      {/* Inner notch detail */}
+                      <div className="absolute inset-0.5 bg-black/90 rounded-b-xl flex items-center justify-center">
+                        {/* Camera lens */}
+                        <div className="w-1.5 h-1.5 bg-gray-800 rounded-full mr-1"></div>
+                        {/* Speaker grille */}
+                        <div className="w-6 h-0.5 bg-gray-700 rounded-full"></div>
+                      </div>
+                    </div>
+                    {/* Video Player */}
+                    <video
+                      key={active}
+                      className="w-full h-full object-cover transition-all duration-500"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                    >
+                      <source src={`/video/video${active + 1}.mp4`} type="video/mp4" />
+                      {/* Fallback content with brand colors */}
+                      <div 
+                        className="w-full h-full flex items-center justify-center"
+                        style={{
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%)',
+                          backgroundSize: '400% 400%',
+                          animation: 'gradientShift 8s ease-in-out infinite'
+                        }}
+                      >
+                        <div className="text-center p-6 text-white">
+                          <div className="mb-3 text-5xl animate-pulse">🎬</div>
+                          <h3 className="text-lg font-semibold mb-2">{ITEMS[active].title}</h3>
+                          <p className="text-sm opacity-90">{ITEMS[active].desc}</p>
+                        </div>
+                      </div>
+                    </video>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* CSS Animation for Background */}
+            <style jsx>{`
+              @keyframes gradientShift {
+                0% {
+                  background-position: 0% 50%;
+                }
+                50% {
+                  background-position: 100% 50%;
+                }
+                100% {
+                  background-position: 0% 50%;
+                }
+              }
+            `}</style>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* VERSIONE TABLET - 640px to 1170px (sm to xl) */}
+    <div className="hidden sm:block xl:hidden space-y-4">
       {ITEMS.map((it, idx) => {
         const isActive = active === idx;
         return (
@@ -2960,7 +3142,7 @@ const _labels: { [key: number]: string } = {
                   {it.desc}
                 </p>
                 
-                {/* VIDEO integrato nel box per mobile/tablet - proporzioni fisse 4:3 */}
+                {/* VIDEO integrato nel box per tablet - proporzioni fisse 4:3 */}
                 {isActive && (
                   <div className="mt-4 flex justify-center">
                     <div className="relative w-full max-w-md">
@@ -3071,106 +3253,88 @@ const _labels: { [key: number]: string } = {
         })}
       </div>
 
-      {/* DESTRA: TABLET DESKTOP - Dimensioni fisse */}
+      {/* DESTRA: IPHONE DESKTOP - Dimensioni fisse */}
       <div className="hidden xl:block">
-        {/* Tablet Container con dimensioni fisse */}
+        {/* iPhone Container con dimensioni fisse */}
         <div className="relative w-[800px] h-[550px] flex items-center justify-center">
-          {/* Tablet Frame - Fixed size */}
-          <div className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 rounded-[2rem] p-3 shadow-2xl w-[750px] h-[450px]">
-            {/* Camera notch */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-16 h-1.5 bg-black/40 rounded-full"></div>
-            
-            {/* Power button */}
-            <div className="absolute -top-1.5 right-20 w-16 h-1.5 bg-gradient-to-r from-purple-600 to-blue-800 rounded-t-lg shadow-lg"></div>
-            
-            {/* Volume buttons */}
-            <div className="absolute -top-1.5 right-40 w-10 h-1.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-t-lg shadow-lg"></div>
-            <div className="absolute -top-1.5 right-52 w-10 h-1.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-t-lg shadow-lg"></div>
-            
-            {/* Screen */}
-            <div className="bg-black/90 rounded-[1.75rem] p-1 h-full">
-              <div className="bg-white rounded-[1.5rem] overflow-hidden relative h-full">
-                {/* Video content */}
-                {ITEMS.map((it, idx) => {
-                  const show = active === idx;
-                  const videoSources = [
-                    '/video/video1.mp4',
-                    '/video/video2.mp4', 
-                    '/video/video3.mp4'
-                  ];
-                  
-                  return (
-                    <div
-                      key={it.id}
-                      className={[
-                        'absolute inset-0 transition-all duration-700 transform origin-left',
-                        show ? 'opacity-100 scale-100 translate-x-0' : 'opacity-0 scale-95 -translate-x-8'
-                      ].join(' ')}
-                    >
-                      <div className="relative w-full h-full group cursor-pointer">
-                        <video
-                          ref={(el) => { videoRefs.current[idx] = el; }}
-                          key={`video-${idx}`}
-                          className="w-full h-full object-cover"
-                          loop
-                          muted
-                          playsInline
-                        >
-                          <source src={videoSources[idx]} type="video/mp4" />
-                          <div className="w-full h-full bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center">
-                            <div className="text-center p-8">
-                              <div className="mb-4 text-6xl animate-pulse">🎬</div>
-                              <p className="text-lg font-semibold text-slate-700">Video {idx + 1}</p>
-                              <p className="text-sm text-slate-500 mt-2">{it.title}</p>
-                              <p className="text-xs text-slate-400 mt-4">Video non disponibile</p>
-                            </div>
-                          </div>
-                        </video>
-                        
-                        {/* Play/Pause overlay */}
-                        {show && (
-                          <div 
-                            className="absolute inset-0 flex items-center justify-center"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const video = videoRefs.current[idx];
-                              if (video) {
-                                if (video.paused) {
-                                  video.play();
-                                  setPlayingVideos(prev => ({...prev, [idx]: true}));
-                                } else {
-                                  video.pause();
-                                  setPlayingVideos(prev => ({...prev, [idx]: false}));
-                                }
-                              }
-                            }}
-                          >
-                            <div className={`w-20 h-20 bg-black/50 rounded-full flex items-center justify-center transition-opacity duration-300 ${playingVideos[idx] ? 'opacity-0 hover:opacity-100' : 'opacity-100'}`}>
-                              {!playingVideos[idx] ? (
-                                <svg className="w-10 h-10 text-white ml-1" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M5 4v12l10-6z"/>
-                                </svg>
-                              ) : (
-                                <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M5 4h3v12H5V4zm7 0h3v12h-3V4z"/>
-                                </svg>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
+          {/* iPhone Frame - Desktop Size */}
+          <div className="relative mx-auto w-[400px] h-[800px] transform scale-75">
+            {/* iPhone Body - Same Style as Mobile */}
+            <div className="relative w-full h-full bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 rounded-[4rem] p-4 shadow-2xl transition-all duration-500">
+              {/* Power button - Same style as mobile */}
+              <div className="absolute -right-2 top-32 w-2 h-16 bg-gradient-to-r from-purple-600 to-blue-800 rounded-r-lg shadow-lg"></div>
+              
+              {/* Volume buttons - Same style as mobile */}
+              <div className="absolute -left-2 top-32 w-2 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-l-lg shadow-lg"></div>
+              <div className="absolute -left-2 top-48 w-2 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-l-lg shadow-lg"></div>
+              
+              {/* Screen - Same style as desktop tablet */}
+              <div className="bg-black/90 rounded-[3.5rem] p-2 h-full">
+                <div className="bg-white rounded-[3rem] overflow-hidden relative h-full">
+                  {/* iPhone Notch - Inside the screen, facing inward */}
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-40 h-8 bg-gradient-to-r from-purple-600 to-blue-800 rounded-b-3xl shadow-lg z-10">
+                    {/* Inner notch detail */}
+                    <div className="absolute inset-1 bg-black/90 rounded-b-2xl flex items-center justify-center">
+                      {/* Camera lens */}
+                      <div className="w-2 h-2 bg-gray-800 rounded-full mr-2"></div>
+                      {/* Speaker grille */}
+                      <div className="w-8 h-1 bg-gray-700 rounded-full"></div>
                     </div>
-                  );
-                })}
+                  </div>
+                  {/* Video content */}
+                  {ITEMS.map((it, idx) => {
+                    const show = active === idx;
+                    const videoSources = [
+                      '/video/video1.mp4',
+                      '/video/video2.mp4', 
+                      '/video/video3.mp4'
+                    ];
+                    
+                    return (
+                      <div
+                        key={it.id}
+                        className={[
+                          'absolute inset-0 transition-all duration-700 transform origin-center',
+                          show ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+                        ].join(' ')}
+                      >
+                        <div className="relative w-full h-full">
+                          <video
+                            ref={(el) => { videoRefs.current[idx] = el; }}
+                            key={`desktop-iphone-video-${idx}`}
+                            className="w-full h-full object-cover"
+                            autoPlay={show}
+                            loop
+                            muted
+                            playsInline
+                          >
+                            <source src={videoSources[idx]} type="video/mp4" />
+                            <div 
+                              className="w-full h-full flex items-center justify-center"
+                              style={{
+                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%)',
+                                backgroundSize: '400% 400%',
+                                animation: 'gradientShift 8s ease-in-out infinite'
+                              }}
+                            >
+                              <div className="text-center p-8 text-white">
+                                <div className="mb-4 text-6xl animate-pulse">🎬</div>
+                                <h3 className="text-2xl font-semibold mb-3">{it.title}</h3>
+                                <p className="text-base opacity-90">{it.desc}</p>
+                              </div>
+                            </div>
+                          </video>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
+              
+              {/* iPhone Home indicator - inside the frame */}
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-32 h-1.5 bg-white/40 rounded-full"></div>
             </div>
-            
-            {/* Home button indicator */}
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-28 h-1 bg-black/40 rounded-full"></div>
           </div>
-          
-          {/* Tablet shadow and reflection */}
-          <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-b from-transparent to-purple-900/30 blur-2xl transform translate-y-6 scale-95 -z-10"></div>
         </div>
       </div>
     </div>
@@ -3364,41 +3528,101 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
               </h2>
               
               {/* Dashboard Box - mobile only, under title */}
-              <div className="lg:hidden bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20">
+              <div className="lg:hidden bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 relative overflow-hidden">
+                {/* Google Ads Logo in Corner */}
+                <div className="absolute top-3 right-3 w-12 h-12 opacity-100 hover:scale-110 transition-transform cursor-pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px" height="48px">
+                    <polygon fill="#ffc107" points="30.129,15.75 18.871,9.25 5.871,31.25 17.129,37.75"/>
+                    <path fill="#1e88e5" d="M31.871,37.75c1.795,3.109,5.847,4.144,8.879,2.379c3.103-1.806,4.174-5.77,2.379-8.879l-13-22 c-1.795-3.109-5.835-4.144-8.879-2.379c-3.106,1.801-4.174,5.77-2.379,8.879L31.871,37.75z"/>
+                    <circle cx="11.5" cy="34.5" r="6.5" fill="#43a047"/>
+                  </svg>
+                </div>
+                
                 {/* Mock Google Ads Interface */}
                 <div className="flex items-center space-x-3 mb-4 sm:mb-6">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-600 rounded flex items-center justify-center text-xs sm:text-sm animate-pulse">G</div>
                   <span className="font-semibold text-sm sm:text-base text-gray-800">Google Ads Dashboard</span>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
-                  <div className="text-center">
-                    <div className="text-lg sm:text-2xl font-bold text-gray-800">
-                      {useCountUp(378416, 2000, visibleSections.includes('google-ads')).toLocaleString('it-IT')}
+                {/* Main Metrics - 2 big boxes */}
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-3">
+                  {/* Ricavi - Primary metric */}
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 sm:p-5 rounded-xl border border-green-200 hover:shadow-lg transition-shadow">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="text-xs sm:text-sm text-gray-600 uppercase tracking-wider mb-2">Ricavi</p>
+                        <p className="text-2xl sm:text-3xl font-bold text-green-700">€238.554</p>
+                      </div>
+                      <span className="text-green-500 text-xl sm:text-2xl">📈</span>
                     </div>
-                    <div className="text-xs sm:text-sm text-gray-600">Views</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-lg sm:text-2xl font-bold text-gray-800">
-                      €{useCountUp(11456, 2000, visibleSections.includes('google-ads')).toLocaleString('it-IT')}
+                  
+                  {/* ROAS - Primary metric */}
+                  <div className="bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50 p-4 sm:p-5 rounded-xl border border-purple-200 hover:shadow-lg transition-shadow">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="text-xs sm:text-sm text-gray-600 uppercase tracking-wider mb-2">ROAS</p>
+                        <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">20,8x</p>
+                      </div>
+                      <span className="text-purple-500 text-xl sm:text-2xl">🚀</span>
                     </div>
-                    <div className="text-xs sm:text-sm text-gray-600">Spesa</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg sm:text-2xl font-bold text-gray-800">
-                      €{useCountUp(238554, 2000, visibleSections.includes('google-ads')).toLocaleString('it-IT')}
-                    </div>
-                    <div className="text-xs sm:text-sm text-gray-600">Ricavi</div>
                   </div>
                 </div>
                 
-                {/* Mock Chart */}
-                <div className="bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-200 p-3 sm:p-4 rounded-lg">
-                  <div className="h-24 sm:h-32 flex items-end space-x-1">
-                    {[40, 65, 45, 70, 55, 80, 60, 75, 85, 90, 70, 95].map((height, i) => (
-                      <div key={i} className="flex-1 bg-gradient-to-t from-blue-600 to-purple-600 rounded-t transform hover:scale-110 transition-transform duration-300" style={{height: `${height}%`, animationDelay: `${i * 0.1}s`}}></div>
-                    ))}
+                {/* Secondary Metrics - 4 smaller boxes */}
+                <div className="grid grid-cols-4 gap-2 sm:gap-3 mb-4">
+                  {/* Spesa */}
+                  <div className="bg-blue-50/50 p-2 sm:p-3 rounded-lg border border-blue-100">
+                    <span className="text-blue-400 text-xs sm:text-sm">💰</span>
+                    <p className="text-[10px] sm:text-xs text-gray-600 uppercase tracking-wider mt-1">Spesa</p>
+                    <p className="text-sm sm:text-base font-bold text-blue-700">€11.456</p>
                   </div>
+                  
+                  {/* Conversioni */}
+                  <div className="bg-purple-50/50 p-2 sm:p-3 rounded-lg border border-purple-100">
+                    <span className="text-purple-400 text-xs sm:text-sm">✓</span>
+                    <p className="text-[10px] sm:text-xs text-gray-600 uppercase tracking-wider mt-1">Conversioni</p>
+                    <p className="text-sm sm:text-base font-bold text-purple-700">3.951</p>
+                  </div>
+                  
+                  {/* Costo/Conv */}
+                  <div className="bg-gray-50 p-2 sm:p-3 rounded-lg border border-gray-200">
+                    <span className="text-gray-400 text-xs sm:text-sm">💎</span>
+                    <p className="text-[10px] sm:text-xs text-gray-600 uppercase tracking-wider mt-1">Costo/Conv</p>
+                    <p className="text-sm sm:text-base font-bold text-gray-700">€2,90</p>
+                  </div>
+                  
+                  {/* CPC Medio */}
+                  <div className="bg-blue-50/50 p-2 sm:p-3 rounded-lg border border-blue-100">
+                    <span className="text-blue-400 text-xs sm:text-sm">👆</span>
+                    <p className="text-[10px] sm:text-xs text-gray-600 uppercase tracking-wider mt-1">CPC</p>
+                    <p className="text-sm sm:text-base font-bold text-blue-700">€0,10</p>
+                  </div>
+                </div>
+                
+                {/* Line Chart - Full width */}
+                <div className="bg-white border border-gray-200 p-3 sm:p-4 rounded-lg">
+                  <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider mb-2 sm:mb-3">Andamento Campagne</p>
+                  <svg className="w-full h-16 sm:h-20" viewBox="0 0 300 80">
+                    <polyline
+                      fill="none"
+                      stroke="url(#lineGradient)"
+                      strokeWidth="2"
+                      points="10,60 40,50 70,45 100,35 130,30 160,22 190,18 220,15 250,12 280,10"
+                    />
+                    <defs>
+                      <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#3B82F6" />
+                        <stop offset="100%" stopColor="#10B981" />
+                      </linearGradient>
+                    </defs>
+                    {/* Dots */}
+                    {[10,40,70,100,130,160,190,220,250,280].map((x, i) => {
+                      const y = [60,50,45,35,30,22,18,15,12,10][i];
+                      return (
+                        <circle key={i} cx={x} cy={y} r="3" fill="#fff" stroke="#3B82F6" strokeWidth="2" />
+                      );
+                    })}
+                  </svg>
                 </div>
               </div>
               
@@ -3417,41 +3641,101 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
             
             {/* Desktop Dashboard - right side */}
             <div className={`hidden lg:block slide-up-enter slide-up-delay-2 ${visibleSections.includes('google-ads') ? 'slide-up-visible' : ''}`}>
-              <div className="bg-white p-6 lg:p-8 rounded-2xl border border-gray-200 hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20">
+              <div className="bg-white p-6 lg:p-8 rounded-2xl border border-gray-200 hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 relative overflow-hidden">
+                {/* Google Ads Logo in Corner */}
+                <div className="absolute top-4 right-4 w-14 h-14 opacity-100 hover:scale-110 transition-transform cursor-pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px" height="48px">
+                    <polygon fill="#ffc107" points="30.129,15.75 18.871,9.25 5.871,31.25 17.129,37.75"/>
+                    <path fill="#1e88e5" d="M31.871,37.75c1.795,3.109,5.847,4.144,8.879,2.379c3.103-1.806,4.174-5.77,2.379-8.879l-13-22 c-1.795-3.109-5.835-4.144-8.879-2.379c-3.106,1.801-4.174,5.77-2.379,8.879L31.871,37.75z"/>
+                    <circle cx="11.5" cy="34.5" r="6.5" fill="#43a047"/>
+                  </svg>
+                </div>
+                
                 {/* Mock Google Ads Interface */}
                 <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-sm animate-pulse">G</div>
                   <span className="font-semibold text-base text-gray-800">Google Ads Dashboard</span>
                 </div>
                 
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-800">
-                      {useCountUp(378416, 2000, visibleSections.includes('google-ads')).toLocaleString('it-IT')}
+                {/* Main Metrics - 2 big boxes */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  {/* Ricavi - Primary metric */}
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-5 rounded-xl border border-green-200 hover:shadow-lg transition-shadow">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-600 uppercase tracking-wider mb-2">Ricavi</p>
+                        <p className="text-3xl font-bold text-green-700">€238.554</p>
+                      </div>
+                      <span className="text-green-500 text-2xl">📈</span>
                     </div>
-                    <div className="text-sm text-gray-600">Views</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-800">
-                      €{useCountUp(11456, 2000, visibleSections.includes('google-ads')).toLocaleString('it-IT')}
+                  
+                  {/* ROAS - Primary metric */}
+                  <div className="bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50 p-5 rounded-xl border border-purple-200 hover:shadow-lg transition-shadow">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-600 uppercase tracking-wider mb-2">ROAS</p>
+                        <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">20,8x</p>
+                      </div>
+                      <span className="text-purple-500 text-2xl">🚀</span>
                     </div>
-                    <div className="text-sm text-gray-600">Spesa</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-800">
-                      €{useCountUp(238554, 2000, visibleSections.includes('google-ads')).toLocaleString('it-IT')}
-                    </div>
-                    <div className="text-sm text-gray-600">Ricavi</div>
                   </div>
                 </div>
                 
-                {/* Mock Chart */}
-                <div className="bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-200 p-4 rounded-lg">
-                  <div className="h-32 flex items-end space-x-1">
-                    {[40, 65, 45, 70, 55, 80, 60, 75, 85, 90, 70, 95].map((height, i) => (
-                      <div key={i} className="flex-1 bg-gradient-to-t from-blue-600 to-purple-600 rounded-t transform hover:scale-110 transition-transform duration-300" style={{height: `${height}%`, animationDelay: `${i * 0.1}s`}}></div>
-                    ))}
+                {/* Secondary Metrics - 4 smaller boxes */}
+                <div className="grid grid-cols-4 gap-3 mb-4">
+                  {/* Spesa */}
+                  <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100">
+                    <span className="text-blue-400 text-sm">💰</span>
+                    <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">Spesa</p>
+                    <p className="text-base font-bold text-blue-700">€11.456</p>
                   </div>
+                  
+                  {/* Conversioni */}
+                  <div className="bg-purple-50/50 p-3 rounded-lg border border-purple-100">
+                    <span className="text-purple-400 text-sm">✓</span>
+                    <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">Conversioni</p>
+                    <p className="text-base font-bold text-purple-700">3.951</p>
+                  </div>
+                  
+                  {/* Costo/Conv */}
+                  <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <span className="text-gray-400 text-sm">💎</span>
+                    <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">Costo/Conv</p>
+                    <p className="text-base font-bold text-gray-700">€2,90</p>
+                  </div>
+                  
+                  {/* CPC Medio */}
+                  <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100">
+                    <span className="text-blue-400 text-sm">👆</span>
+                    <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">CPC</p>
+                    <p className="text-base font-bold text-blue-700">€0,10</p>
+                  </div>
+                </div>
+                
+                {/* Line Chart - Full width */}
+                <div className="bg-white border border-gray-200 p-4 rounded-lg">
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Andamento Campagne</p>
+                  <svg className="w-full h-24" viewBox="0 0 300 80">
+                    <polyline
+                      fill="none"
+                      stroke="url(#lineGradientDesktop)"
+                      strokeWidth="2"
+                      points="10,60 40,50 70,45 100,35 130,30 160,22 190,18 220,15 250,12 280,10"
+                    />
+                    <defs>
+                      <linearGradient id="lineGradientDesktop" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#3B82F6" />
+                        <stop offset="100%" stopColor="#10B981" />
+                      </linearGradient>
+                    </defs>
+                    {/* Dots */}
+                    {[10,40,70,100,130,160,190,220,250,280].map((x, i) => {
+                      const y = [60,50,45,35,30,22,18,15,12,10][i];
+                      return (
+                        <circle key={i} cx={x} cy={y} r="3" fill="#fff" stroke="#3B82F6" strokeWidth="2" />
+                      );
+                    })}
+                  </svg>
                 </div>
               </div>
             </div>
@@ -3480,10 +3764,26 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
               </h2>
               
               {/* Dashboard Box - mobile only, under title */}
-              <div className="lg:hidden bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 hover:border-purple-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20">
+              <div className="lg:hidden bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 hover:border-purple-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 relative overflow-hidden">
+                {/* Meta Logo in Corner */}
+                <div className="absolute top-3 right-3 w-12 h-12 opacity-100 hover:scale-110 transition-transform cursor-pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px" height="48px">
+                    <path fill="#0081fb" d="M47,29.36l-2.193,1.663L42.62,29.5c0-0.16,0-0.33-0.01-0.5c0-0.16,0-0.33-0.01-0.5c-0.14-3.94-1.14-8.16-3.14-11.25c-1.54-2.37-3.51-3.5-5.71-3.5c-2.31,0-4.19,1.38-6.27,4.38c-0.06,0.09-0.13,0.18-0.19,0.28c-0.04,0.05-0.07,0.1-0.11,0.16c-0.1,0.15-0.2,0.3-0.3,0.46c-0.9,1.4-1.84,3.03-2.86,4.83c-0.09,0.17-0.19,0.34-0.28,0.51c-0.03,0.04-0.06,0.09-0.08,0.13l-0.21,0.37l-1.24,2.19c-2.91,5.15-3.65,6.33-5.1,8.26C14.56,38.71,12.38,40,9.51,40c-3.4,0-5.56-1.47-6.89-3.69C1.53,34.51,1,32.14,1,29.44l4.97,0.17c0,1.76,0.38,3.1,0.89,3.92C7.52,34.59,8.49,35,9.5,35c1.29,0,2.49-0.27,4.77-3.43c1.83-2.53,3.99-6.07,5.44-8.3l1.37-2.09l0.29-0.46l0.3-0.45l0.5-0.77c0.76-1.16,1.58-2.39,2.46-3.57c0.1-0.14,0.2-0.28,0.31-0.42c0.1-0.14,0.21-0.28,0.31-0.41c0.9-1.15,1.85-2.22,2.87-3.1c1.85-1.61,3.84-2.5,5.85-2.5c3.37,0,6.58,1.95,9.04,5.61c2.51,3.74,3.82,8.4,3.97,13.25c0.01,0.16,0.01,0.33,0.01,0.5C47,29.03,47,29.19,47,29.36z"/>
+                    <linearGradient id="metaGrad1" x1="42.304" x2="13.533" y1="24.75" y2="24.75" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#0081fb"/>
+                      <stop offset=".995" stop-color="#0064e1"/>
+                    </linearGradient>
+                    <path fill="url(#metaGrad1)" d="M4.918,15.456C7.195,11.951,10.483,9.5,14.253,9.5c2.184,0,4.354,0.645,6.621,2.493c2.479,2.02,5.122,5.346,8.419,10.828l1.182,1.967c2.854,4.746,4.477,7.187,5.428,8.339C37.125,34.606,37.888,35,39,35c2.82,0,3.617-2.54,3.617-5.501L47,29.362c0,3.095-0.611,5.369-1.651,7.165C44.345,38.264,42.387,40,39.093,40c-2.048,0-3.862-0.444-5.868-2.333c-1.542-1.45-3.345-4.026-4.732-6.341l-4.126-6.879c-2.07-3.452-3.969-6.027-5.068-7.192c-1.182-1.254-2.642-2.754-5.067-2.754c-1.963,0-3.689,1.362-5.084,3.465L4.918,15.456z"/>
+                    <linearGradient id="metaGrad2" x1="7.635" x2="7.635" y1="32.87" y2="13.012" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#0081fb"/>
+                      <stop offset=".995" stop-color="#0064e1"/>
+                    </linearGradient>
+                    <path fill="url(#metaGrad2)" d="M14.25,14.5c-1.959,0-3.683,1.362-5.075,3.465C7.206,20.937,6,25.363,6,29.614c0,1.753-0.003,3.072,0.5,3.886l-3.84,2.813C1.574,34.507,1,32.2,1,29.5c0-4.91,1.355-10.091,3.918-14.044C7.192,11.951,10.507,9.5,14.27,9.5L14.25,14.5z"/>
+                  </svg>
+                </div>
+                
                 {/* Mock Meta Ads Interface */}
                 <div className="flex items-center space-x-3 mb-4 sm:mb-6">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-xs sm:text-sm animate-pulse text-white font-bold">f</div>
                   <span className="font-semibold text-sm sm:text-base text-gray-800">Meta Business Suite</span>
                 </div>
                 
@@ -3534,10 +3834,26 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
             
             {/* Desktop Dashboard - left side */}
             <div className={`lg:order-1 hidden lg:block slide-up-enter slide-up-delay-2 ${visibleSections.includes('meta-ads') ? 'slide-up-visible' : ''}`}>
-              <div className="bg-white p-6 lg:p-8 rounded-2xl border border-gray-200 hover:border-purple-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20">
+              <div className="bg-white p-6 lg:p-8 rounded-2xl border border-gray-200 hover:border-purple-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 relative overflow-hidden">
+                {/* Meta Logo in Corner */}
+                <div className="absolute top-4 right-4 w-14 h-14 opacity-100 hover:scale-110 transition-transform cursor-pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px" height="48px">
+                    <path fill="#0081fb" d="M47,29.36l-2.193,1.663L42.62,29.5c0-0.16,0-0.33-0.01-0.5c0-0.16,0-0.33-0.01-0.5c-0.14-3.94-1.14-8.16-3.14-11.25c-1.54-2.37-3.51-3.5-5.71-3.5c-2.31,0-4.19,1.38-6.27,4.38c-0.06,0.09-0.13,0.18-0.19,0.28c-0.04,0.05-0.07,0.1-0.11,0.16c-0.1,0.15-0.2,0.3-0.3,0.46c-0.9,1.4-1.84,3.03-2.86,4.83c-0.09,0.17-0.19,0.34-0.28,0.51c-0.03,0.04-0.06,0.09-0.08,0.13l-0.21,0.37l-1.24,2.19c-2.91,5.15-3.65,6.33-5.1,8.26C14.56,38.71,12.38,40,9.51,40c-3.4,0-5.56-1.47-6.89-3.69C1.53,34.51,1,32.14,1,29.44l4.97,0.17c0,1.76,0.38,3.1,0.89,3.92C7.52,34.59,8.49,35,9.5,35c1.29,0,2.49-0.27,4.77-3.43c1.83-2.53,3.99-6.07,5.44-8.3l1.37-2.09l0.29-0.46l0.3-0.45l0.5-0.77c0.76-1.16,1.58-2.39,2.46-3.57c0.1-0.14,0.2-0.28,0.31-0.42c0.1-0.14,0.21-0.28,0.31-0.41c0.9-1.15,1.85-2.22,2.87-3.1c1.85-1.61,3.84-2.5,5.85-2.5c3.37,0,6.58,1.95,9.04,5.61c2.51,3.74,3.82,8.4,3.97,13.25c0.01,0.16,0.01,0.33,0.01,0.5C47,29.03,47,29.19,47,29.36z"/>
+                    <linearGradient id="metaGrad3" x1="42.304" x2="13.533" y1="24.75" y2="24.75" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#0081fb"/>
+                      <stop offset=".995" stop-color="#0064e1"/>
+                    </linearGradient>
+                    <path fill="url(#metaGrad3)" d="M4.918,15.456C7.195,11.951,10.483,9.5,14.253,9.5c2.184,0,4.354,0.645,6.621,2.493c2.479,2.02,5.122,5.346,8.419,10.828l1.182,1.967c2.854,4.746,4.477,7.187,5.428,8.339C37.125,34.606,37.888,35,39,35c2.82,0,3.617-2.54,3.617-5.501L47,29.362c0,3.095-0.611,5.369-1.651,7.165C44.345,38.264,42.387,40,39.093,40c-2.048,0-3.862-0.444-5.868-2.333c-1.542-1.45-3.345-4.026-4.732-6.341l-4.126-6.879c-2.07-3.452-3.969-6.027-5.068-7.192c-1.182-1.254-2.642-2.754-5.067-2.754c-1.963,0-3.689,1.362-5.084,3.465L4.918,15.456z"/>
+                    <linearGradient id="metaGrad4" x1="7.635" x2="7.635" y1="32.87" y2="13.012" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#0081fb"/>
+                      <stop offset=".995" stop-color="#0064e1"/>
+                    </linearGradient>
+                    <path fill="url(#metaGrad4)" d="M14.25,14.5c-1.959,0-3.683,1.362-5.075,3.465C7.206,20.937,6,25.363,6,29.614c0,1.753-0.003,3.072,0.5,3.886l-3.84,2.813C1.574,34.507,1,32.2,1,29.5c0-4.91,1.355-10.091,3.918-14.044C7.192,11.951,10.507,9.5,14.27,9.5L14.25,14.5z"/>
+                  </svg>
+                </div>
+                
                 {/* Mock Meta Ads Interface */}
                 <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-sm animate-pulse text-white font-bold">f</div>
                   <span className="font-semibold text-base text-gray-800">Meta Business Suite</span>
                 </div>
                 
@@ -3595,12 +3911,26 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
               </h2>
               
               {/* Dashboard Box - mobile only, under title */}
-              <div className="lg:hidden bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 hover:border-pink-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/20">
+              <div className="lg:hidden bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 hover:border-pink-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/20 relative overflow-hidden">
+                {/* TikTok Logo in Corner */}
+                <div className="absolute top-3 right-3 w-12 h-12 opacity-100 hover:scale-110 transition-transform cursor-pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0,0,256,256" width="48px" height="48px" fillRule="nonzero">
+                    <g fill="none" fillRule="nonzero" stroke="none" strokeWidth="1" strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit="10" strokeDasharray="" strokeDashoffset="0" fontFamily="none" fontWeight="none" fontSize="none" textAnchor="none">
+                      <g transform="scale(5.33333,5.33333)">
+                        <path d="M20,37c2.761,0 5,-2.239 5,-5v-1v-1v-23.93h5.208c-0.031,-0.14 -0.072,-0.276 -0.097,-0.419h-0.001c-0.044,-0.248 -0.076,-0.495 -0.099,-0.746v-0.835h-7.011v23.93v1v1c0,2.761 -2.239,5 -5,5c-0.864,0 -1.665,-0.239 -2.375,-0.625c0.848,1.556 2.478,2.625 4.375,2.625z" fill="#3dd9eb"></path>
+                        <path d="M33.718,11.407c-0.797,-1.094 -1.364,-2.367 -1.607,-3.756h-0.001c-0.044,-0.248 -0.076,-0.495 -0.099,-0.746v-0.835h-1.803c0.491,2.182 1.761,4.062 3.51,5.337z" fill="#f55376"></path>
+                        <path d="M18,25c-2.761,0 -5,2.239 -5,5c0,1.897 1.069,3.527 2.625,4.375c-0.386,-0.71 -0.625,-1.511 -0.625,-2.375c0,-2.761 2.239,-5 5,-5c0.343,0 0.677,0.035 1,0.101v-7.05c-0.331,-0.028 -0.662,-0.051 -1,-0.051c-0.338,0 -0.669,0.023 -1,0.05v5.05c-0.323,-0.065 -0.657,-0.1 -1,-0.1z" fill="#f55376"></path>
+                        <path d="M36.257,13.783c0.867,0.541 1.819,0.908 2.806,1.131v-0.376v-0.002v-1.381c-1.7,0.003 -3.364,-0.473 -4.806,-1.373c-0.186,-0.116 -0.361,-0.247 -0.538,-0.376c0.687,0.945 1.544,1.757 2.538,2.377z" fill="#3dd9eb"></path>
+                        <path d="M19,20.05v-2c-0.331,-0.027 -0.662,-0.05 -1,-0.05c-6.627,0 -12,5.373 -12,12c0,3.824 1.795,7.222 4.581,9.419c-1.612,-2.042 -2.581,-4.615 -2.581,-7.419c0,-6.29 4.842,-11.44 11,-11.95z" fill="#3dd9eb"></path>
+                        <path d="M39.062,14.914v4.733c-3.375,0 -6.501,-1.071 -9.052,-2.894l0.003,13.247l-0.014,-0.018c0,0.006 0.001,0.012 0.001,0.018c0,6.627 -5.373,12 -12,12c-2.804,0 -5.377,-0.969 -7.419,-2.581c2.197,2.786 5.595,4.581 9.419,4.581c6.627,0 12,-5.373 12,-12c0,-0.006 -0.001,-0.012 -0.001,-0.018l0.014,0.018l-0.002,-13.248c2.551,1.823 5.677,2.894 9.052,2.894v-5.108v-0.002v-1.381c-0.678,0.002 -1.346,-0.094 -2.001,-0.241z" fill="#f55376"></path>
+                        <path d="M30,30c0,-0.006 -0.001,-0.012 -0.001,-0.018l0.014,0.018l-0.002,-13.248c2.551,1.823 5.677,2.894 9.052,2.894v-4.733c-0.987,-0.223 -1.939,-0.59 -2.806,-1.131c-0.994,-0.62 -1.851,-1.432 -2.538,-2.376c-1.75,-1.275 -3.019,-3.155 -3.51,-5.337h-5.209v23.931v1v1c0,2.761 -2.239,5 -5,5c-1.897,0 -3.527,-1.069 -4.375,-2.625c-1.556,-0.848 -2.625,-2.478 -2.625,-4.375c0,-2.761 2.239,-5 5,-5c0.343,0 0.677,0.035 1,0.101v-5.05c-6.158,0.509 -11,5.659 -11,11.949c0,2.804 0.969,5.377 2.581,7.419c2.042,1.612 4.615,2.581 7.419,2.581c6.627,0 12,-5.373 12,-12z" fill="#000000"></path>
+                      </g>
+                    </g>
+                  </svg>
+                </div>
+                
                 {/* Mock TikTok Ads Interface */}
                 <div className="flex items-center space-x-3 mb-4 sm:mb-6">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-black rounded flex items-center justify-center text-xs sm:text-sm animate-pulse">
-                    <span className="text-white font-bold">T</span>
-                  </div>
                   <span className="font-semibold text-sm sm:text-base text-gray-800">TikTok Ads Manager</span>
                 </div>
                 
@@ -3651,12 +3981,26 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
             
             {/* Desktop Dashboard - right side */}
             <div className={`hidden lg:block slide-up-enter slide-up-delay-2 ${visibleSections.includes('tiktok-ads') ? 'slide-up-visible' : ''}`}>
-              <div className="bg-white p-6 lg:p-8 rounded-2xl border border-gray-200 hover:border-pink-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/20">
+              <div className="bg-white p-6 lg:p-8 rounded-2xl border border-gray-200 hover:border-pink-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/20 relative overflow-hidden">
+                {/* TikTok Logo in Corner */}
+                <div className="absolute top-4 right-4 w-14 h-14 opacity-100 hover:scale-110 transition-transform cursor-pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0,0,256,256" width="48px" height="48px" fillRule="nonzero">
+                    <g fill="none" fillRule="nonzero" stroke="none" strokeWidth="1" strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit="10" strokeDasharray="" strokeDashoffset="0" fontFamily="none" fontWeight="none" fontSize="none" textAnchor="none">
+                      <g transform="scale(5.33333,5.33333)">
+                        <path d="M20,37c2.761,0 5,-2.239 5,-5v-1v-1v-23.93h5.208c-0.031,-0.14 -0.072,-0.276 -0.097,-0.419h-0.001c-0.044,-0.248 -0.076,-0.495 -0.099,-0.746v-0.835h-7.011v23.93v1v1c0,2.761 -2.239,5 -5,5c-0.864,0 -1.665,-0.239 -2.375,-0.625c0.848,1.556 2.478,2.625 4.375,2.625z" fill="#3dd9eb"></path>
+                        <path d="M33.718,11.407c-0.797,-1.094 -1.364,-2.367 -1.607,-3.756h-0.001c-0.044,-0.248 -0.076,-0.495 -0.099,-0.746v-0.835h-1.803c0.491,2.182 1.761,4.062 3.51,5.337z" fill="#f55376"></path>
+                        <path d="M18,25c-2.761,0 -5,2.239 -5,5c0,1.897 1.069,3.527 2.625,4.375c-0.386,-0.71 -0.625,-1.511 -0.625,-2.375c0,-2.761 2.239,-5 5,-5c0.343,0 0.677,0.035 1,0.101v-7.05c-0.331,-0.028 -0.662,-0.051 -1,-0.051c-0.338,0 -0.669,0.023 -1,0.05v5.05c-0.323,-0.065 -0.657,-0.1 -1,-0.1z" fill="#f55376"></path>
+                        <path d="M36.257,13.783c0.867,0.541 1.819,0.908 2.806,1.131v-0.376v-0.002v-1.381c-1.7,0.003 -3.364,-0.473 -4.806,-1.373c-0.186,-0.116 -0.361,-0.247 -0.538,-0.376c0.687,0.945 1.544,1.757 2.538,2.377z" fill="#3dd9eb"></path>
+                        <path d="M19,20.05v-2c-0.331,-0.027 -0.662,-0.05 -1,-0.05c-6.627,0 -12,5.373 -12,12c0,3.824 1.795,7.222 4.581,9.419c-1.612,-2.042 -2.581,-4.615 -2.581,-7.419c0,-6.29 4.842,-11.44 11,-11.95z" fill="#3dd9eb"></path>
+                        <path d="M39.062,14.914v4.733c-3.375,0 -6.501,-1.071 -9.052,-2.894l0.003,13.247l-0.014,-0.018c0,0.006 0.001,0.012 0.001,0.018c0,6.627 -5.373,12 -12,12c-2.804,0 -5.377,-0.969 -7.419,-2.581c2.197,2.786 5.595,4.581 9.419,4.581c6.627,0 12,-5.373 12,-12c0,-0.006 -0.001,-0.012 -0.001,-0.018l0.014,0.018l-0.002,-13.248c2.551,1.823 5.677,2.894 9.052,2.894v-5.108v-0.002v-1.381c-0.678,0.002 -1.346,-0.094 -2.001,-0.241z" fill="#f55376"></path>
+                        <path d="M30,30c0,-0.006 -0.001,-0.012 -0.001,-0.018l0.014,0.018l-0.002,-13.248c2.551,1.823 5.677,2.894 9.052,2.894v-4.733c-0.987,-0.223 -1.939,-0.59 -2.806,-1.131c-0.994,-0.62 -1.851,-1.432 -2.538,-2.376c-1.75,-1.275 -3.019,-3.155 -3.51,-5.337h-5.209v23.931v1v1c0,2.761 -2.239,5 -5,5c-1.897,0 -3.527,-1.069 -4.375,-2.625c-1.556,-0.848 -2.625,-2.478 -2.625,-4.375c0,-2.761 2.239,-5 5,-5c0.343,0 0.677,0.035 1,0.101v-5.05c-6.158,0.509 -11,5.659 -11,11.949c0,2.804 0.969,5.377 2.581,7.419c2.042,1.612 4.615,2.581 7.419,2.581c6.627,0 12,-5.373 12,-12z" fill="#000000"></path>
+                      </g>
+                    </g>
+                  </svg>
+                </div>
+                
                 {/* Mock TikTok Ads Interface */}
                 <div className="flex items-center space-x-3 mb-6">
-                  <div className="w-8 h-8 bg-black rounded flex items-center justify-center text-sm animate-pulse">
-                    <span className="text-white font-bold">T</span>
-                  </div>
                   <span className="font-semibold text-base text-gray-800">TikTok Ads Manager</span>
                 </div>
                 
