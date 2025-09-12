@@ -28,7 +28,7 @@ export default function OldAgencyBrokenBox() {
     { iconSrc: '/images/icons/resi-logo.png', title: 'Returns', hasRedBadge: true, isStatic: false, badgeMode: 'up', badgeMin: 15, badgeMax: 65, badgeStep: 1, badgeInterval: 100, badgeSuffix: '% resi' },
     { iconSrc: '/images/icons/seodown-logo.png', title: 'Website', hasRedBadge: false, isStatic: true, staticValue: 'error 404', hasWarning: true },
     { iconSrc: '/images/icons/logo-instagram.png', title: 'Instagram', hasRedBadge: true, isStatic: false, staticValue: 'Ban' },
-    { iconSrc: '/images/icons/likes-logo.png', title: 'Ads', hasRedBadge: true, isStatic: true, staticValue: 'E.R. 0,10%' },
+    { iconSrc: '/images/icons/likes-logo.png', title: 'Ads', hasRedBadge: false, isStatic: true, staticValue: '' },
     { iconSrc: '/images/icons/email-logo.png', title: 'Spam', hasRedBadge: true, isStatic: true, staticValue: '218 Spam', hasWarning: true },
     // Soldi - animated from -1000€ to -6000€ over 10 seconds
     { iconSrc: '/images/icons/soldi.png', title: 'Money', hasRedBadge: true, isStatic: false, badgeMode: 'down', badgeMin: -6000, badgeMax: -1000, badgeStep: 50, badgeInterval: 100, badgeSuffix: '€' },

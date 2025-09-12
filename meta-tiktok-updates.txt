@@ -1,0 +1,11 @@
+ISTRUZIONI PER AGGIORNARE SEZIONI META E TIKTOK CON ANIMAZIONI DROPDOWN
+
+Per Meta Ads e TikTok Ads, bisogna applicare la stessa struttura di Google Ads:
+1. Aggiungere classi dashboard-window-drop, dashboard-header, dashboard-content
+2. Aggiungere classi metric-box per ogni metrica  
+3. Aggiungere classe chart-box per i grafici
+4. Utilizzare hidingSections e visibleSections per controllare le animazioni
+
+Le sezioni sono già configurate negli observer con data-section="meta-ads" e data-section="tiktok-ads"
+
+Le animazioni CSS sono già definite in globals.css e funzioneranno automaticamente quando le classi vengono applicate correttamente.

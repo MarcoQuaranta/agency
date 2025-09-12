@@ -121,6 +121,7 @@ export default function HomePage() {
   const [showContactForm, setShowContactForm] = useState(false);
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [visibleSections, setVisibleSections] = useState<string[]>([]);
+  const [hidingSections, setHidingSections] = useState<string[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [_currentReviewIndex, setCurrentReviewIndex] = useState(0);
   const [_isTransitioning, _setIsTransitioning] = useState(false);
@@ -495,28 +496,40 @@ export default function HomePage() {
       { threshold: 0.2 }
     );
 
-    // Observer semplificato per sezioni con animazione dropdown
+    // Observer speciale per sezioni con animazione dropdown
     const dropdownObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           const sectionId = entry.target.getAttribute('data-section');
           if (!sectionId) return;
           
-          // Solo quando entra in vista e non è già visibile
-          if (entry.isIntersecting && !visibleSections.includes(sectionId)) {
+          if (entry.isIntersecting) {
+            // Entrando nella vista - rimuovi hiding e aggiungi visible
+            setHidingSections(prev => prev.filter(id => id !== sectionId));
+            
             // Piccolo delay per smooth entry
             setTimeout(() => {
               setVisibleSections(prev => 
                 prev.includes(sectionId) ? prev : [...prev, sectionId]
               );
-            }, 100);
+            }, 50);
+          } else if (visibleSections.includes(sectionId)) {
+            // Uscendo dalla vista - aggiungi hiding ma mantieni visible per l'animazione
+            setHidingSections(prev => 
+              prev.includes(sectionId) ? prev : [...prev, sectionId]
+            );
+            
+            // Dopo l'animazione completa, rimuovi tutto
+            setTimeout(() => {
+              setVisibleSections(prev => prev.filter(id => id !== sectionId));
+              setHidingSections(prev => prev.filter(id => id !== sectionId));
+            }, 2000); // Aumentato per permettere l'animazione completa
           }
-          // Non fare nulla quando esce dalla vista - rimane aperto
         });
       },
       { 
-        threshold: 0.3,
-        rootMargin: '0px'
+        threshold: 0.3, // Ridotto per trigger più smooth
+        rootMargin: '-30px 0px'
       }
     );
 
@@ -3563,9 +3576,9 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
               </h2>
               
               {/* Dashboard Box - mobile only, under title */}
-              <div className={`lg:hidden dashboard-window-drop bg-white rounded-2xl border border-gray-200 hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 relative ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+              <div className={`lg:hidden dashboard-window-drop bg-white rounded-2xl border border-gray-200 hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 relative ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
                 {/* Dashboard Header - Always visible first */}
-                <div className={`dashboard-header p-4 sm:p-6 pb-3 border-b border-gray-100 ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+                <div className={`dashboard-header p-4 sm:p-6 pb-3 border-b border-gray-100 ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-sm sm:text-base text-gray-800">Google Ads Dashboard</span>
                     {/* Google Ads Logo */}
@@ -3580,12 +3593,12 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
                 </div>
                 
                 {/* Dashboard Content - Animates after header */}
-                <div className={`dashboard-content p-4 sm:p-6 pt-3 ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+                <div className={`dashboard-content p-4 sm:p-6 pt-3 ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
                 
                 {/* Main Metrics - 2 big boxes */}
                 <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-3">
-                  {/* Ricavi - Primary metric in green */}
-                  <div className={`metric-box bg-gradient-to-br from-green-50 to-emerald-50 p-4 sm:p-5 rounded-xl border border-green-200 hover:shadow-lg transition-shadow ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+                  {/* Ricavi - Primary metric */}
+                  <div className={`metric-box bg-gradient-to-br from-green-50 to-emerald-50 p-4 sm:p-5 rounded-xl border border-green-200 hover:shadow-lg transition-shadow ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <p className="text-xs sm:text-sm text-gray-600 uppercase tracking-wider mb-2">Ricavi</p>
@@ -3595,8 +3608,8 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
                     </div>
                   </div>
                   
-                  {/* ROAS - Primary metric in purple gradient */}
-                  <div className={`metric-box bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50 p-4 sm:p-5 rounded-xl border border-purple-200 hover:shadow-lg transition-shadow ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+                  {/* ROAS - Primary metric */}
+                  <div className={`metric-box bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50 p-4 sm:p-5 rounded-xl border border-purple-200 hover:shadow-lg transition-shadow ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <p className="text-xs sm:text-sm text-gray-600 uppercase tracking-wider mb-2">ROAS</p>
@@ -3607,46 +3620,61 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
                   </div>
                 </div>
                 
-                {/* Secondary Metrics - 2 smaller boxes */}
-                <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
-                  {/* Spesa in blue */}
-                  <div className={`metric-box bg-blue-50/50 p-3 sm:p-4 rounded-lg border border-blue-100 ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                    <span className="text-blue-400 text-sm">💰</span>
-                    <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">Spesa Ads</p>
-                    <p className="text-lg sm:text-xl font-bold text-blue-700">€11.456</p>
+                {/* Secondary Metrics - 4 smaller boxes */}
+                <div className="grid grid-cols-4 gap-2 sm:gap-3 mb-4">
+                  {/* Spesa */}
+                  <div className={`metric-box bg-blue-50/50 p-2 sm:p-3 rounded-lg border border-blue-100 ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+                    <span className="text-blue-400 text-xs sm:text-sm">💰</span>
+                    <p className="text-[10px] sm:text-xs text-gray-600 uppercase tracking-wider mt-1">Spesa</p>
+                    <p className="text-sm sm:text-base font-bold text-blue-700">€11.456</p>
                   </div>
                   
                   {/* Conversioni */}
-                  <div className={`metric-box bg-purple-50/50 p-3 sm:p-4 rounded-lg border border-purple-100 ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                    <span className="text-purple-400 text-sm">✓</span>
-                    <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">Conversioni</p>
-                    <p className="text-lg sm:text-xl font-bold text-purple-700">3.951</p>
+                  <div className={`metric-box bg-purple-50/50 p-2 sm:p-3 rounded-lg border border-purple-100 ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+                    <span className="text-purple-400 text-xs sm:text-sm">✓</span>
+                    <p className="text-[10px] sm:text-xs text-gray-600 uppercase tracking-wider mt-1">Conversioni</p>
+                    <p className="text-sm sm:text-base font-bold text-purple-700">3.951</p>
+                  </div>
+                  
+                  {/* Costo/Conv */}
+                  <div className={`metric-box bg-gray-50 p-2 sm:p-3 rounded-lg border border-gray-200 ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+                    <span className="text-gray-400 text-xs sm:text-sm">💎</span>
+                    <p className="text-[10px] sm:text-xs text-gray-600 uppercase tracking-wider mt-1">Costo/Conv</p>
+                    <p className="text-sm sm:text-base font-bold text-gray-700">€2,90</p>
+                  </div>
+                  
+                  {/* CPC Medio */}
+                  <div className={`metric-box bg-blue-50/50 p-2 sm:p-3 rounded-lg border border-blue-100 ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+                    <span className="text-blue-400 text-xs sm:text-sm">👆</span>
+                    <p className="text-[10px] sm:text-xs text-gray-600 uppercase tracking-wider mt-1">CPC</p>
+                    <p className="text-sm sm:text-base font-bold text-blue-700">€0,10</p>
                   </div>
                 </div>
                 
-                {/* Simplified Message Box */}
-                <div className={`chart-box bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 p-6 sm:p-8 rounded-lg ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                  <div className="text-center">
-                    <p 
-                      className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-800 leading-relaxed"
-                      style={{
-                        animation: visibleSections.includes('google-ads') ? 'gentle-pulse 2.5s ease-in-out infinite' : 'none',
-                        transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1) 1.2s',
-                        opacity: visibleSections.includes('google-ads') ? '1' : '0'
-                      }}
-                    >
-                      👉 Il <span className="font-bold text-green-700">95% del fatturato</span> resta al <span className="font-bold text-green-700">tuo brand</span>.
-                    </p>
-                    <p 
-                      className="text-sm :text-base text-gray-600 mt-3"
-                      style={{
-                        opacity: visibleSections.includes('google-ads') ? '1' : '0',
-                        transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1) 1.5s'
-                      }}
-                    >
-                      Solo il 5% viene investito in pubblicità per generare il 95% dei tuoi ricavi.
-                    </p>
-                  </div>
+                {/* Line Chart - Full width */}
+                <div className={`chart-box bg-white border border-gray-200 p-3 sm:p-4 rounded-lg ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+                  <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider mb-2 sm:mb-3">Andamento Campagne</p>
+                  <svg className="w-full h-16 sm:h-20" viewBox="0 0 300 80">
+                    <polyline
+                      fill="none"
+                      stroke="url(#lineGradient)"
+                      strokeWidth="2"
+                      points="10,60 40,50 70,45 100,35 130,30 160,22 190,18 220,15 250,12 280,10"
+                    />
+                    <defs>
+                      <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#3B82F6" />
+                        <stop offset="100%" stopColor="#10B981" />
+                      </linearGradient>
+                    </defs>
+                    {/* Dots */}
+                    {[10,40,70,100,130,160,190,220,250,280].map((x, i) => {
+                      const y = [60,50,45,35,30,22,18,15,12,10][i];
+                      return (
+                        <circle key={i} cx={x} cy={y} r="3" fill="#fff" stroke="#3B82F6" strokeWidth="2" />
+                      );
+                    })}
+                  </svg>
                 </div>
                 </div>
               </div>
@@ -3666,9 +3694,9 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
             
             {/* Desktop Dashboard - right side */}
             <div className="hidden lg:block">
-              <div className={`dashboard-window-drop bg-white rounded-2xl border border-gray-200 hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 relative ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+              <div className={`dashboard-window-drop bg-white rounded-2xl border border-gray-200 hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 relative ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
                 {/* Dashboard Header - Always visible first */}
-                <div className={`dashboard-header p-6 lg:p-8 pb-4 border-b border-gray-100 ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+                <div className={`dashboard-header p-6 lg:p-8 pb-4 border-b border-gray-100 ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-lg text-gray-800">Google Ads Dashboard</span>
                     {/* Google Ads Logo */}
@@ -3683,12 +3711,12 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
                 </div>
                 
                 {/* Dashboard Content - Animates after header */}
-                <div className={`dashboard-content p-6 lg:p-8 pt-4 ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+                <div className={`dashboard-content p-6 lg:p-8 pt-4 ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
                 
                 {/* Main Metrics - 2 big boxes */}
                 <div className="grid grid-cols-2 gap-4 mb-4">
-                  {/* Ricavi - Primary metric in green */}
-                  <div className={`metric-box bg-gradient-to-br from-green-50 to-emerald-50 p-5 rounded-xl border border-green-200 hover:shadow-lg transition-shadow ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+                  {/* Ricavi - Primary metric */}
+                  <div className={`metric-box bg-gradient-to-br from-green-50 to-emerald-50 p-5 rounded-xl border border-green-200 hover:shadow-lg transition-shadow ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <p className="text-sm text-gray-600 uppercase tracking-wider mb-2">Ricavi</p>
@@ -3698,8 +3726,8 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
                     </div>
                   </div>
                   
-                  {/* ROAS - Primary metric in purple gradient */}
-                  <div className={`metric-box bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50 p-5 rounded-xl border border-purple-200 hover:shadow-lg transition-shadow ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+                  {/* ROAS - Primary metric */}
+                  <div className={`metric-box bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50 p-5 rounded-xl border border-purple-200 hover:shadow-lg transition-shadow ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <p className="text-sm text-gray-600 uppercase tracking-wider mb-2">ROAS</p>
@@ -3710,46 +3738,61 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
                   </div>
                 </div>
                 
-                {/* Secondary Metrics - 2 smaller boxes */}
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  {/* Spesa in blue */}
-                  <div className={`metric-box bg-blue-50/50 p-4 rounded-lg border border-blue-100 ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+                {/* Secondary Metrics - 4 smaller boxes */}
+                <div className="grid grid-cols-4 gap-3 mb-4">
+                  {/* Spesa */}
+                  <div className={`metric-box bg-blue-50/50 p-3 rounded-lg border border-blue-100 ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
                     <span className="text-blue-400 text-sm">💰</span>
-                    <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">Spesa Ads</p>
-                    <p className="text-xl font-bold text-blue-700">€11.456</p>
+                    <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">Spesa</p>
+                    <p className="text-base font-bold text-blue-700">€11.456</p>
                   </div>
                   
                   {/* Conversioni */}
-                  <div className={`metric-box bg-purple-50/50 p-4 rounded-lg border border-purple-100 ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+                  <div className={`metric-box bg-purple-50/50 p-3 rounded-lg border border-purple-100 ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
                     <span className="text-purple-400 text-sm">✓</span>
                     <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">Conversioni</p>
-                    <p className="text-xl font-bold text-purple-700">3.951</p>
+                    <p className="text-base font-bold text-purple-700">3.951</p>
+                  </div>
+                  
+                  {/* Costo/Conv */}
+                  <div className={`metric-box bg-gray-50 p-3 rounded-lg border border-gray-200 ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+                    <span className="text-gray-400 text-sm">💎</span>
+                    <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">Costo/Conv</p>
+                    <p className="text-base font-bold text-gray-700">€2,90</p>
+                  </div>
+                  
+                  {/* CPC Medio */}
+                  <div className={`metric-box bg-blue-50/50 p-3 rounded-lg border border-blue-100 ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+                    <span className="text-blue-400 text-sm">👆</span>
+                    <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">CPC</p>
+                    <p className="text-base font-bold text-blue-700">€0,10</p>
                   </div>
                 </div>
                 
-                {/* Simplified Message Box Desktop */}
-                <div className={`chart-box bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 p-8 rounded-lg ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                  <div className="text-center">
-                    <p 
-                      className="text-2xl lg:text-3xl font-semibold text-gray-800 leading-relaxed"
-                      style={{
-                        animation: visibleSections.includes('google-ads') ? 'gentle-pulse 2.5s ease-in-out infinite' : 'none',
-                        transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1) 1.2s',
-                        opacity: visibleSections.includes('google-ads') ? '1' : '0'
-                      }}
-                    >
-                      👉 Il <span className="font-bold text-green-700">95% del fatturato</span> resta al <span className="font-bold text-green-700">tuo brand</span>.
-                    </p>
-                    <p 
-                      className="text-base lg:text-lg text-gray-600 mt-4"
-                      style={{
-                        opacity: visibleSections.includes('google-ads') ? '1' : '0',
-                        transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1) 1.5s'
-                      }}
-                    >
-                      Solo il 5% viene investito in pubblicità per generare il 95% dei tuoi ricavi.
-                    </p>
-                  </div>
+                {/* Line Chart - Full width */}
+                <div className={`chart-box bg-white border border-gray-200 p-4 rounded-lg ${hidingSections.includes('google-ads') ? 'hiding' : ''} ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Andamento Campagne</p>
+                  <svg className="w-full h-24" viewBox="0 0 300 80">
+                    <polyline
+                      fill="none"
+                      stroke="url(#lineGradientDesktop)"
+                      strokeWidth="2"
+                      points="10,60 40,50 70,45 100,35 130,30 160,22 190,18 220,15 250,12 280,10"
+                    />
+                    <defs>
+                      <linearGradient id="lineGradientDesktop" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#3B82F6" />
+                        <stop offset="100%" stopColor="#10B981" />
+                      </linearGradient>
+                    </defs>
+                    {/* Dots */}
+                    {[10,40,70,100,130,160,190,220,250,280].map((x, i) => {
+                      const y = [60,50,45,35,30,22,18,15,12,10][i];
+                      return (
+                        <circle key={i} cx={x} cy={y} r="3" fill="#fff" stroke="#3B82F6" strokeWidth="2" />
+                      );
+                    })}
+                  </svg>
                 </div>
                 </div>
               </div>
@@ -3779,62 +3822,56 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
               </h2>
               
               {/* Dashboard Box - mobile only, under title */}
-              <div className={`lg:hidden dashboard-window-drop ${visibleSections.includes('meta-ads') ? 'visible' : ''}`}>
-                {/* Dashboard Header */}
-                <div className="dashboard-header bg-white rounded-t-2xl border border-gray-200 hover:border-purple-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 p-4 relative">
-                  {/* Meta Logo in Corner */}
-                  <div className="absolute top-3 right-3 w-12 h-12 opacity-100 hover:scale-110 transition-transform cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px" height="48px">
-                      <path fill="#0081fb" d="M47,29.36l-2.193,1.663L42.62,29.5c0-0.16,0-0.33-0.01-0.5c0-0.16,0-0.33-0.01-0.5c-0.14-3.94-1.14-8.16-3.14-11.25c-1.54-2.37-3.51-3.5-5.71-3.5c-2.31,0-4.19,1.38-6.27,4.38c-0.06,0.09-0.13,0.18-0.19,0.28c-0.04,0.05-0.07,0.1-0.11,0.16c-0.1,0.15-0.2,0.3-0.3,0.46c-0.9,1.4-1.84,3.03-2.86,4.83c-0.09,0.17-0.19,0.34-0.28,0.51c-0.03,0.04-0.06,0.09-0.08,0.13l-0.21,0.37l-1.24,2.19c-2.91,5.15-3.65,6.33-5.1,8.26C14.56,38.71,12.38,40,9.51,40c-3.4,0-5.56-1.47-6.89-3.69C1.53,34.51,1,32.14,1,29.44l4.97,0.17c0,1.76,0.38,3.1,0.89,3.92C7.52,34.59,8.49,35,9.5,35c1.29,0,2.49-0.27,4.77-3.43c1.83-2.53,3.99-6.07,5.44-8.3l1.37-2.09l0.29-0.46l0.3-0.45l0.5-0.77c0.76-1.16,1.58-2.39,2.46-3.57c0.1-0.14,0.2-0.28,0.31-0.42c0.1-0.14,0.21-0.28,0.31-0.41c0.9-1.15,1.85-2.22,2.87-3.1c1.85-1.61,3.84-2.5,5.85-2.5c3.37,0,6.58,1.95,9.04,5.61c2.51,3.74,3.82,8.4,3.97,13.25c0.01,0.16,0.01,0.33,0.01,0.5C47,29.03,47,29.19,47,29.36z"/>
-                      <linearGradient id="metaGrad1" x1="42.304" x2="13.533" y1="24.75" y2="24.75" gradientUnits="userSpaceOnUse">
-                        <stop offset="0" stop-color="#0081fb"/>
-                        <stop offset=".995" stop-color="#0064e1"/>
-                      </linearGradient>
-                      <path fill="url(#metaGrad1)" d="M4.918,15.456C7.195,11.951,10.483,9.5,14.253,9.5c2.184,0,4.354,0.645,6.621,2.493c2.479,2.02,5.122,5.346,8.419,10.828l1.182,1.967c2.854,4.746,4.477,7.187,5.428,8.339C37.125,34.606,37.888,35,39,35c2.82,0,3.617-2.54,3.617-5.501L47,29.362c0,3.095-0.611,5.369-1.651,7.165C44.345,38.264,42.387,40,39.093,40c-2.048,0-3.862-0.444-5.868-2.333c-1.542-1.45-3.345-4.026-4.732-6.341l-4.126-6.879c-2.07-3.452-3.969-6.027-5.068-7.192c-1.182-1.254-2.642-2.754-5.067-2.754c-1.963,0-3.689,1.362-5.084,3.465L4.918,15.456z"/>
-                      <linearGradient id="metaGrad2" x1="7.635" x2="7.635" y1="32.87" y2="13.012" gradientUnits="userSpaceOnUse">
-                        <stop offset="0" stop-color="#0081fb"/>
-                        <stop offset=".995" stop-color="#0064e1"/>
-                      </linearGradient>
-                      <path fill="url(#metaGrad2)" d="M14.25,14.5c-1.959,0-3.683,1.362-5.075,3.465C7.206,20.937,6,25.363,6,29.614c0,1.753-0.003,3.072,0.5,3.886l-3.84,2.813C1.574,34.507,1,32.2,1,29.5c0-4.91,1.355-10.091,3.918-14.044C7.192,11.951,10.507,9.5,14.27,9.5L14.25,14.5z"/>
-                    </svg>
+              <div className={`lg:hidden dashboard-window-drop bg-white rounded-2xl border border-gray-200 hover:border-purple-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 relative ${hidingSections.includes('meta-ads') ? 'hiding' : ''} ${visibleSections.includes('meta-ads') ? 'visible' : ''}`}>
+                {/* Meta Logo in Corner */}
+                <div className="absolute top-3 right-3 w-12 h-12 opacity-100 hover:scale-110 transition-transform cursor-pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px" height="48px">
+                    <path fill="#0081fb" d="M47,29.36l-2.193,1.663L42.62,29.5c0-0.16,0-0.33-0.01-0.5c0-0.16,0-0.33-0.01-0.5c-0.14-3.94-1.14-8.16-3.14-11.25c-1.54-2.37-3.51-3.5-5.71-3.5c-2.31,0-4.19,1.38-6.27,4.38c-0.06,0.09-0.13,0.18-0.19,0.28c-0.04,0.05-0.07,0.1-0.11,0.16c-0.1,0.15-0.2,0.3-0.3,0.46c-0.9,1.4-1.84,3.03-2.86,4.83c-0.09,0.17-0.19,0.34-0.28,0.51c-0.03,0.04-0.06,0.09-0.08,0.13l-0.21,0.37l-1.24,2.19c-2.91,5.15-3.65,6.33-5.1,8.26C14.56,38.71,12.38,40,9.51,40c-3.4,0-5.56-1.47-6.89-3.69C1.53,34.51,1,32.14,1,29.44l4.97,0.17c0,1.76,0.38,3.1,0.89,3.92C7.52,34.59,8.49,35,9.5,35c1.29,0,2.49-0.27,4.77-3.43c1.83-2.53,3.99-6.07,5.44-8.3l1.37-2.09l0.29-0.46l0.3-0.45l0.5-0.77c0.76-1.16,1.58-2.39,2.46-3.57c0.1-0.14,0.2-0.28,0.31-0.42c0.1-0.14,0.21-0.28,0.31-0.41c0.9-1.15,1.85-2.22,2.87-3.1c1.85-1.61,3.84-2.5,5.85-2.5c3.37,0,6.58,1.95,9.04,5.61c2.51,3.74,3.82,8.4,3.97,13.25c0.01,0.16,0.01,0.33,0.01,0.5C47,29.03,47,29.19,47,29.36z"/>
+                    <linearGradient id="metaGrad1" x1="42.304" x2="13.533" y1="24.75" y2="24.75" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#0081fb"/>
+                      <stop offset=".995" stop-color="#0064e1"/>
+                    </linearGradient>
+                    <path fill="url(#metaGrad1)" d="M4.918,15.456C7.195,11.951,10.483,9.5,14.253,9.5c2.184,0,4.354,0.645,6.621,2.493c2.479,2.02,5.122,5.346,8.419,10.828l1.182,1.967c2.854,4.746,4.477,7.187,5.428,8.339C37.125,34.606,37.888,35,39,35c2.82,0,3.617-2.54,3.617-5.501L47,29.362c0,3.095-0.611,5.369-1.651,7.165C44.345,38.264,42.387,40,39.093,40c-2.048,0-3.862-0.444-5.868-2.333c-1.542-1.45-3.345-4.026-4.732-6.341l-4.126-6.879c-2.07-3.452-3.969-6.027-5.068-7.192c-1.182-1.254-2.642-2.754-5.067-2.754c-1.963,0-3.689,1.362-5.084,3.465L4.918,15.456z"/>
+                    <linearGradient id="metaGrad2" x1="7.635" x2="7.635" y1="32.87" y2="13.012" gradientUnits="userSpaceOnUse">
+                      <stop offset="0" stop-color="#0081fb"/>
+                      <stop offset=".995" stop-color="#0064e1"/>
+                    </linearGradient>
+                    <path fill="url(#metaGrad2)" d="M14.25,14.5c-1.959,0-3.683,1.362-5.075,3.465C7.206,20.937,6,25.363,6,29.614c0,1.753-0.003,3.072,0.5,3.886l-3.84,2.813C1.574,34.507,1,32.2,1,29.5c0-4.91,1.355-10.091,3.918-14.044C7.192,11.951,10.507,9.5,14.27,9.5L14.25,14.5z"/>
+                  </svg>
+                </div>
+                
+                {/* Mock Meta Ads Interface */}
+                <div className="flex items-center space-x-3 mb-4 sm:mb-6">
+                  <span className="font-semibold text-sm sm:text-base text-gray-800">Meta Business Suite</span>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
+                  <div className="text-center">
+                    <div className="text-lg sm:text-2xl font-bold text-gray-800">
+                      {useCountUp(892341, 2000, visibleSections.includes('meta-ads')).toLocaleString('it-IT')}
+                    </div>
+                    <div className="text-xs sm:text-sm text-gray-600">Reach</div>
                   </div>
-                  
-                  {/* Mock Meta Ads Interface */}
-                  <div className="flex items-center space-x-3">
-                    <span className="font-semibold text-sm sm:text-base text-gray-800">Meta Business Suite</span>
+                  <div className="text-center">
+                    <div className="text-lg sm:text-2xl font-bold text-gray-800">
+                      €{useCountUp(15234, 2000, visibleSections.includes('meta-ads')).toLocaleString('it-IT')}
+                    </div>
+                    <div className="text-xs sm:text-sm text-gray-600">Spesa</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg sm:text-2xl font-bold text-gray-800">
+                      €{useCountUp(312456, 2000, visibleSections.includes('meta-ads')).toLocaleString('it-IT')}
+                    </div>
+                    <div className="text-xs sm:text-sm text-gray-600">Ricavi</div>
                   </div>
                 </div>
                 
-                {/* Dashboard Content */}
-                <div className="dashboard-content bg-white rounded-b-2xl border border-t-0 border-gray-200 p-4">
-                  <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
-                    <div className="metric-box text-center bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-lg">
-                      <div className="text-lg sm:text-2xl font-bold text-gray-800">
-                        {useCountUp(892341, 2000, visibleSections.includes('meta-ads')).toLocaleString('it-IT')}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-600">Reach</div>
-                    </div>
-                    <div className="metric-box text-center bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-lg">
-                      <div className="text-lg sm:text-2xl font-bold text-gray-800">
-                        €{useCountUp(15234, 2000, visibleSections.includes('meta-ads')).toLocaleString('it-IT')}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-600">Spesa</div>
-                    </div>
-                    <div className="metric-box text-center bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-lg">
-                      <div className="text-lg sm:text-2xl font-bold text-gray-800">
-                        €{useCountUp(312456, 2000, visibleSections.includes('meta-ads')).toLocaleString('it-IT')}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-600">Ricavi</div>
-                    </div>
-                  </div>
-                  
-                  {/* Mock Chart */}
-                  <div className="chart-box bg-gradient-to-r from-blue-100 to-purple-100 border border-purple-200 p-3 sm:p-4 rounded-lg">
-                    <div className="h-24 sm:h-32 flex items-end space-x-1">
-                      {[50, 75, 55, 85, 65, 90, 70, 85, 95, 85, 80, 100].map((height, i) => (
-                        <div key={i} className="flex-1 bg-gradient-to-t from-blue-600 to-purple-600 rounded-t transform hover:scale-110 transition-transform duration-300" style={{height: `${height}%`, animationDelay: `${i * 0.1}s`}}></div>
-                      ))}
-                    </div>
+                {/* Mock Chart */}
+                <div className="bg-gradient-to-r from-blue-100 to-purple-100 border border-purple-200 p-3 sm:p-4 rounded-lg">
+                  <div className="h-24 sm:h-32 flex items-end space-x-1">
+                    {[50, 75, 55, 85, 65, 90, 70, 85, 95, 85, 80, 100].map((height, i) => (
+                      <div key={i} className="flex-1 bg-gradient-to-t from-blue-600 to-purple-600 rounded-t transform hover:scale-110 transition-transform duration-300" style={{height: `${height}%`, animationDelay: `${i * 0.1}s`}}></div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -3854,9 +3891,8 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
             </div>
             
             {/* Desktop Dashboard - left side */}
-            <div className={`lg:order-1 hidden lg:block dashboard-window-drop ${visibleSections.includes('meta-ads') ? 'visible' : ''}`}>
-              {/* Dashboard Header */}
-              <div className="dashboard-header bg-white rounded-t-2xl border border-gray-200 hover:border-purple-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 p-6 relative">
+            <div className={`lg:order-1 hidden lg:block slide-up-enter slide-up-delay-2 ${visibleSections.includes('meta-ads') ? 'slide-up-visible' : ''}`}>
+              <div className="bg-white p-6 lg:p-8 rounded-2xl border border-gray-200 hover:border-purple-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 relative overflow-hidden">
                 {/* Meta Logo in Corner */}
                 <div className="absolute top-4 right-4 w-14 h-14 opacity-100 hover:scale-110 transition-transform cursor-pointer">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px" height="48px">
@@ -3875,27 +3911,24 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
                 </div>
                 
                 {/* Mock Meta Ads Interface */}
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-3 mb-6">
                   <span className="font-semibold text-base text-gray-800">Meta Business Suite</span>
                 </div>
-              </div>
-              
-              {/* Dashboard Content */}
-              <div className="dashboard-content bg-white rounded-b-2xl border border-t-0 border-gray-200 p-6">
+                
                 <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="metric-box text-center bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-lg">
+                  <div className="text-center">
                     <div className="text-2xl font-bold text-gray-800">
                       {useCountUp(892341, 2000, visibleSections.includes('meta-ads')).toLocaleString('it-IT')}
                     </div>
                     <div className="text-sm text-gray-600">Reach</div>
                   </div>
-                  <div className="metric-box text-center bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-lg">
+                  <div className="text-center">
                     <div className="text-2xl font-bold text-gray-800">
                       €{useCountUp(15234, 2000, visibleSections.includes('meta-ads')).toLocaleString('it-IT')}
                     </div>
                     <div className="text-sm text-gray-600">Spesa</div>
                   </div>
-                  <div className="metric-box text-center bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-lg">
+                  <div className="text-center">
                     <div className="text-2xl font-bold text-gray-800">
                       €{useCountUp(312456, 2000, visibleSections.includes('meta-ads')).toLocaleString('it-IT')}
                     </div>
@@ -3904,7 +3937,7 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
                 </div>
                 
                 {/* Mock Chart */}
-                <div className="chart-box bg-gradient-to-r from-blue-100 to-purple-100 border border-purple-200 p-4 rounded-lg">
+                <div className="bg-gradient-to-r from-blue-100 to-purple-100 border border-purple-200 p-4 rounded-lg">
                   <div className="h-32 flex items-end space-x-1">
                     {[50, 75, 55, 85, 65, 90, 70, 85, 95, 85, 80, 100].map((height, i) => (
                       <div key={i} className="flex-1 bg-gradient-to-t from-blue-600 to-purple-600 rounded-t transform hover:scale-110 transition-transform duration-300" style={{height: `${height}%`, animationDelay: `${i * 0.1}s`}}></div>
@@ -3936,11 +3969,9 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
               </h2>
               
               {/* Dashboard Box - mobile only, under title */}
-              <div className={`lg:hidden dashboard-window-drop ${visibleSections.includes('tiktok-ads') ? 'visible' : ''}`}>
-                {/* Dashboard Header */}
-                <div className="dashboard-header bg-white rounded-t-2xl border border-gray-200 hover:border-pink-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/20 p-4 relative">
-                  {/* TikTok Logo in Corner */}
-                  <div className="absolute top-3 right-3 w-12 h-12 opacity-100 hover:scale-110 transition-transform cursor-pointer">
+              <div className="lg:hidden bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 hover:border-pink-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/20 relative overflow-hidden">
+                {/* TikTok Logo in Corner */}
+                <div className="absolute top-3 right-3 w-12 h-12 opacity-100 hover:scale-110 transition-transform cursor-pointer">
                   <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0,0,256,256" width="48px" height="48px" fillRule="nonzero">
                     <g fill="none" fillRule="nonzero" stroke="none" strokeWidth="1" strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit="10" strokeDasharray="" strokeDashoffset="0" fontFamily="none" fontWeight="none" fontSize="none" textAnchor="middle">
                       <g transform="scale(5.33333,5.33333)">
@@ -3953,45 +3984,41 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
                         <path d="M30,30c0,-0.006 -0.001,-0.012 -0.001,-0.018l0.014,0.018l-0.002,-13.248c2.551,1.823 5.677,2.894 9.052,2.894v-4.733c-0.987,-0.223 -1.939,-0.59 -2.806,-1.131c-0.994,-0.62 -1.851,-1.432 -2.538,-2.376c-1.75,-1.275 -3.019,-3.155 -3.51,-5.337h-5.209v23.931v1v1c0,2.761 -2.239,5 -5,5c-1.897,0 -3.527,-1.069 -4.375,-2.625c-1.556,-0.848 -2.625,-2.478 -2.625,-4.375c0,-2.761 2.239,-5 5,-5c0.343,0 0.677,0.035 1,0.101v-5.05c-6.158,0.509 -11,5.659 -11,11.949c0,2.804 0.969,5.377 2.581,7.419c2.042,1.612 4.615,2.581 7.419,2.581c6.627,0 12,-5.373 12,-12z" fill="#000000"></path>
                       </g>
                     </g>
-                    </svg>
+                  </svg>
+                </div>
+                
+                {/* Mock TikTok Ads Interface */}
+                <div className="flex items-center space-x-3 mb-4 sm:mb-6">
+                  <span className="font-semibold text-sm sm:text-base text-gray-800">TikTok Ads Manager</span>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
+                  <div className="text-center">
+                    <div className="text-lg sm:text-2xl font-bold text-gray-800">
+                      {useCountUp(1456789, 2000, visibleSections.includes('tiktok-ads')).toLocaleString('it-IT')}
+                    </div>
+                    <div className="text-xs sm:text-sm text-gray-600">Views</div>
                   </div>
-                  
-                  {/* Mock TikTok Ads Interface */}
-                  <div className="flex items-center space-x-3">
-                    <span className="font-semibold text-sm sm:text-base text-gray-800">TikTok Ads Manager</span>
+                  <div className="text-center">
+                    <div className="text-lg sm:text-2xl font-bold text-gray-800">
+                      €{useCountUp(8345, 2000, visibleSections.includes('tiktok-ads')).toLocaleString('it-IT')}
+                    </div>
+                    <div className="text-xs sm:text-sm text-gray-600">Spesa</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg sm:text-2xl font-bold text-gray-800">
+                      €{useCountUp(187432, 2000, visibleSections.includes('tiktok-ads')).toLocaleString('it-IT')}
+                    </div>
+                    <div className="text-xs sm:text-sm text-gray-600">Ricavi</div>
                   </div>
                 </div>
                 
-                {/* Dashboard Content */}
-                <div className="dashboard-content bg-white rounded-b-2xl border border-t-0 border-gray-200 p-4">
-                  <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
-                    <div className="metric-box text-center bg-gradient-to-br from-pink-50 to-purple-50 p-3 rounded-lg">
-                      <div className="text-lg sm:text-2xl font-bold text-gray-800">
-                        {useCountUp(1456789, 2000, visibleSections.includes('tiktok-ads')).toLocaleString('it-IT')}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-600">Views</div>
-                    </div>
-                    <div className="metric-box text-center bg-gradient-to-br from-pink-50 to-purple-50 p-3 rounded-lg">
-                      <div className="text-lg sm:text-2xl font-bold text-gray-800">
-                        €{useCountUp(8345, 2000, visibleSections.includes('tiktok-ads')).toLocaleString('it-IT')}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-600">Spesa</div>
-                    </div>
-                    <div className="metric-box text-center bg-gradient-to-br from-pink-50 to-purple-50 p-3 rounded-lg">
-                      <div className="text-lg sm:text-2xl font-bold text-gray-800">
-                        €{useCountUp(187432, 2000, visibleSections.includes('tiktok-ads')).toLocaleString('it-IT')}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-600">Ricavi</div>
-                    </div>
-                  </div>
-                  
-                  {/* Mock Chart */}
-                  <div className="chart-box bg-gradient-to-r from-pink-100 to-black/10 border border-pink-200 p-3 sm:p-4 rounded-lg">
-                    <div className="h-24 sm:h-32 flex items-end space-x-1">
-                      {[60, 80, 70, 95, 85, 100, 90, 85, 75, 90, 95, 85].map((height, i) => (
-                        <div key={i} className="flex-1 bg-gradient-to-t from-pink-600 to-black rounded-t transform hover:scale-110 transition-transform duration-300" style={{height: `${height}%`, animationDelay: `${i * 0.1}s`}}></div>
-                      ))}
-                    </div>
+                {/* Mock Chart */}
+                <div className="bg-gradient-to-r from-pink-100 to-black/10 border border-pink-200 p-3 sm:p-4 rounded-lg">
+                  <div className="h-24 sm:h-32 flex items-end space-x-1">
+                    {[60, 80, 70, 95, 85, 100, 90, 85, 75, 90, 95, 85].map((height, i) => (
+                      <div key={i} className="flex-1 bg-gradient-to-t from-pink-600 to-black rounded-t transform hover:scale-110 transition-transform duration-300" style={{height: `${height}%`, animationDelay: `${i * 0.1}s`}}></div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -4011,9 +4038,8 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
             </div>
             
             {/* Desktop Dashboard - right side */}
-            <div className={`hidden lg:block dashboard-window-drop ${visibleSections.includes('tiktok-ads') ? 'visible' : ''}`}>
-              {/* Dashboard Header */}
-              <div className="dashboard-header bg-white rounded-t-2xl border border-gray-200 hover:border-pink-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/20 p-6 relative">
+            <div className={`hidden lg:block slide-up-enter slide-up-delay-2 ${visibleSections.includes('tiktok-ads') ? 'slide-up-visible' : ''}`}>
+              <div className="bg-white p-6 lg:p-8 rounded-2xl border border-gray-200 hover:border-pink-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/20 relative overflow-hidden">
                 {/* TikTok Logo in Corner */}
                 <div className="absolute top-4 right-4 w-14 h-14 opacity-100 hover:scale-110 transition-transform cursor-pointer">
                   <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0,0,256,256" width="48px" height="48px" fillRule="nonzero">
@@ -4032,27 +4058,24 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
                 </div>
                 
                 {/* Mock TikTok Ads Interface */}
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-3 mb-6">
                   <span className="font-semibold text-base text-gray-800">TikTok Ads Manager</span>
                 </div>
-              </div>
-              
-              {/* Dashboard Content */}
-              <div className="dashboard-content bg-white rounded-b-2xl border border-t-0 border-gray-200 p-6">
+                
                 <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="metric-box text-center bg-gradient-to-br from-pink-50 to-purple-50 p-3 rounded-lg">
+                  <div className="text-center">
                     <div className="text-2xl font-bold text-gray-800">
                       {useCountUp(1456789, 2000, visibleSections.includes('tiktok-ads')).toLocaleString('it-IT')}
                     </div>
                     <div className="text-sm text-gray-600">Views</div>
                   </div>
-                  <div className="metric-box text-center bg-gradient-to-br from-pink-50 to-purple-50 p-3 rounded-lg">
+                  <div className="text-center">
                     <div className="text-2xl font-bold text-gray-800">
                       €{useCountUp(8345, 2000, visibleSections.includes('tiktok-ads')).toLocaleString('it-IT')}
                     </div>
                     <div className="text-sm text-gray-600">Spesa</div>
                   </div>
-                  <div className="metric-box text-center bg-gradient-to-br from-pink-50 to-purple-50 p-3 rounded-lg">
+                  <div className="text-center">
                     <div className="text-2xl font-bold text-gray-800">
                       €{useCountUp(187432, 2000, visibleSections.includes('tiktok-ads')).toLocaleString('it-IT')}
                     </div>
@@ -4061,7 +4084,7 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
                 </div>
                 
                 {/* Mock Chart */}
-                <div className="chart-box bg-gradient-to-r from-pink-100 to-black/10 border border-pink-200 p-4 rounded-lg">
+                <div className="bg-gradient-to-r from-pink-100 to-black/10 border border-pink-200 p-4 rounded-lg">
                   <div className="h-32 flex items-end space-x-1">
                     {[60, 80, 70, 95, 85, 100, 90, 85, 75, 90, 95, 85].map((height, i) => (
                       <div key={i} className="flex-1 bg-gradient-to-t from-pink-600 to-black rounded-t transform hover:scale-110 transition-transform duration-300" style={{height: `${height}%`, animationDelay: `${i * 0.1}s`}}></div>
