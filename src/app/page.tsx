@@ -4198,7 +4198,7 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
               <div className={`lg:hidden dashboard-window-drop ${visibleSections.includes('tiktok-ads') ? 'visible' : ''}`}>
                 {/* Dashboard Header */}
                 <div className="dashboard-header bg-white rounded-t-2xl border border-gray-200 hover:border-pink-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/20 p-4 relative">
-                  {/* TikTok Logo in Corner */}
+                  {/* TikTok Logo in Corners */}
                   <div className="absolute top-3 right-3 w-12 h-12 opacity-100 hover:scale-110 transition-transform cursor-pointer">
                   <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0,0,256,256" width="48px" height="48px" fillRule="nonzero">
                     <g fill="none" fillRule="nonzero" stroke="none" strokeWidth="1" strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit="10" strokeDasharray="" strokeDashoffset="0" fontFamily="none" fontWeight="none" fontSize="none" textAnchor="middle">
