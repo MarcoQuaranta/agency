@@ -917,8 +917,19 @@ export default function HomePage() {
     // Aggiungi un token univoco per questa sessione
     const sessionToken = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+    // Show thank you message immediately
+    setQuestionnaireSubmitted(true);
+    setIncompleteConfirmed(false); // Reset for next time
+
+    // Salva in localStorage per prevenire duplicati
+    localStorage.setItem(submissionKey, JSON.stringify({
+      email: contactFormData.email,
+      timestamp: new Date().toISOString(),
+      sessionToken: sessionToken
+    }));
+
     try {
-      // Invia i dati via email con session token
+      // Invia i dati via email con session token in background
       const response = await fetch('/api/send-email', {
         method: 'POST',
         headers: {
@@ -934,25 +945,17 @@ export default function HomePage() {
       const result = await response.json();
 
       if (result.success) {
-        // Salva in localStorage per prevenire duplicati
-        localStorage.setItem(submissionKey, JSON.stringify({
-          email: contactFormData.email,
-          timestamp: new Date().toISOString(),
-          sessionToken: sessionToken
-        }));
-        
-        // Show thank you message if email sent successfully
-        setQuestionnaireSubmitted(true);
-        setIncompleteConfirmed(false); // Reset for next time
+        // Success - already shown thank you message
       } else {
-        // Se il server dice che è un duplicato, salva anche in localStorage
-        if (result.message && result.message.includes('già inviato')) {
-          localStorage.setItem(submissionKey, JSON.stringify({
-            email: contactFormData.email,
-            timestamp: new Date().toISOString(),
-            sessionToken: sessionToken
-          }));
+        // Se c'è un errore, mostra il messaggio e rimuovi il thank you
+        setQuestionnaireSubmitted(false);
+
+        // Se il server dice che è un duplicato, mantieni in localStorage
+        if (!result.message || !result.message.includes('già inviato')) {
+          // Se non è un duplicato, rimuovi da localStorage per permettere un nuovo tentativo
+          localStorage.removeItem(submissionKey);
         }
+
         setModalData({
           isOpen: true,
           title: 'Errore',
@@ -963,15 +966,9 @@ export default function HomePage() {
         });
       }
     } catch (error) {
-      // Errore invio candidatura
-      setModalData({
-        isOpen: true,
-        title: 'Errore di Connessione',
-        message: 'Errore nell\'invio della candidatura. Per favore riprova più tardi.',
-        type: 'error',
-        confirmText: 'OK',
-        onConfirm: () => setModalData(prev => ({ ...prev, isOpen: false }))
-      });
+      // In caso di errore di rete, mantieni il thank you
+      // Il messaggio di ringraziamento rimane visibile anche se c'è un errore di rete
+      // perché abbiamo già salvato in localStorage e l'utente ha completato la sua parte
     }
   };
 
@@ -2727,30 +2724,30 @@ export default function HomePage() {
                           </div>
 
                           <div className="bg-white/70 p-4 rounded-xl border border-orange-100">
-                            <div className="flex items-center space-x-4 justify-center" suppressHydrationWarning>
+                            <div className="flex items-center gap-2 sm:gap-4 justify-center flex-nowrap" suppressHydrationWarning>
                               {isMounted ? (
                                 <>
-                                  <span className="text-2xl font-bold text-gray-800 bg-white px-4 py-2 rounded-lg shadow-sm">
+                                  <span className="text-lg sm:text-2xl font-bold text-gray-800 bg-white px-2 sm:px-4 py-1 sm:py-2 rounded-lg shadow-sm whitespace-nowrap">
                                     {captchaQuestion.question}
                                   </span>
-                                  <span className="text-xl text-gray-600">=</span>
+                                  <span className="text-lg sm:text-xl text-gray-600">=</span>
                                   <input
                                     type="number"
                                     value={captchaAnswer}
                                     onChange={(e) => setCaptchaAnswer(e.target.value)}
-                                    className="w-24 px-4 py-3 bg-white border-2 border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none transition-all text-center text-xl font-bold text-gray-800 shadow-sm"
+                                    className="w-16 sm:w-24 px-2 sm:px-4 py-2 sm:py-3 bg-white border-2 border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none transition-all text-center text-lg sm:text-xl font-bold text-gray-800 shadow-sm"
                                     placeholder="?"
                                     required
                                   />
                                   <button
                                     type="button"
                                     onClick={generateCaptcha}
-                                    className="px-3 py-1 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg transition-colors text-sm font-medium flex items-center gap-1"
+                                    className="px-2 sm:px-3 py-1 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg transition-colors text-xs sm:text-sm font-medium flex items-center gap-1 whitespace-nowrap"
                                   >
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                     </svg>
-                                    Cambia
+                                    <span className="hidden sm:inline">Cambia</span>
                                   </button>
                                 </>
                               ) : (
