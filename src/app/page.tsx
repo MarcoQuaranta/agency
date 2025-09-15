@@ -891,15 +891,45 @@ export default function HomePage() {
       return;
     }
     
-    // Controllo duplicati lato client con localStorage
+    // Prima controlla nel database se l'IP ha già inviato una candidatura
+    try {
+      const duplicateCheck = await fetch('/api/check-duplicate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: contactFormData.email
+        }),
+      });
+
+      const duplicateResult = await duplicateCheck.json();
+
+      if (duplicateResult.success && duplicateResult.isDuplicate) {
+        setModalData({
+          isOpen: true,
+          title: 'Candidatura già inviata',
+          message: 'Hai già inviato una candidatura nelle ultime 24 ore. Per favore riprova più tardi.',
+          type: 'warning',
+          confirmText: 'OK',
+          onConfirm: () => setModalData(prev => ({ ...prev, isOpen: false }))
+        });
+        return;
+      }
+    } catch (error) {
+      // Se il controllo duplicati fallisce, procedi comunque
+      // Il controllo sarà fatto anche lato server
+    }
+
+    // Controllo duplicati lato client con localStorage (come fallback)
     const submissionKey = `safescale_submission_${contactFormData.email.toLowerCase()}`;
     const existingSubmission = localStorage.getItem(submissionKey);
-    
+
     if (existingSubmission) {
       const submissionData = JSON.parse(existingSubmission);
       const submissionDate = new Date(submissionData.timestamp);
       const hoursSinceSubmission = (Date.now() - submissionDate.getTime()) / (1000 * 60 * 60);
-      
+
       // Blocca se l'invio è stato fatto nelle ultime 24 ore
       if (hoursSinceSubmission < 24) {
         setModalData({
@@ -913,11 +943,11 @@ export default function HomePage() {
         return;
       }
     }
-    
+
     // Aggiungi un token univoco per questa sessione
     const sessionToken = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Show thank you message immediately
+    // Show thank you message immediately (solo se non è un duplicato)
     setQuestionnaireSubmitted(true);
     setIncompleteConfirmed(false); // Reset for next time
 
