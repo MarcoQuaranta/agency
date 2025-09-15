@@ -140,25 +140,29 @@ export async function POST(req: NextRequest) {
             { label: "Nome del brand/azienda", value: data.brandName },
             { label: "Sito web", value: data.website },
             { label: "Profilo Instagram", value: data.instagram },
+            { label: "Profilo TikTok", value: data.tiktok },
+            { label: "Profilo Facebook", value: data.facebook },
+            { label: "Altri social", value: data.otherSocial },
             { label: "Settore di appartenenza", value: data.sector === 'Altro' ? data.sectorOther : data.sector },
           ]
         },
         {
-          title: "🔹 Sezione 2 – Cosa produci/vendi",
+          title: "🔹 Sezione 2 – I tuoi prodotti",
           fields: [
-            { label: "Cosa produci/vendi", value: data.production },
-            { label: "Prodotto best seller", value: data.bestSeller },
-            { label: "Margine di profitto per prodotto", value: data.margin },
-            { label: "Disponibilità prodotti", value: data.availability },
+            { label: "Come nascono i tuoi prodotti", value: data.production === 'Altro' ? data.productionOther : data.production },
+            { label: "Gestione disponibilità", value: data.availability === 'Altro' ? data.availabilityOther : data.availability },
+            { label: "Prodotto best seller e prezzo", value: data.bestSeller },
+            { label: "Margine lordo medio", value: data.margin },
           ]
         },
         {
-          title: "🔹 Sezione 3 – Le tue vendite",
+          title: "🔹 Sezione 3 – Vendite & Marketing",
           fields: [
-            { label: "Vendi già online", value: data.onlineSales },
-            { label: "Ordini mensili", value: data.monthlyOrders },
-            { label: "Budget pubblicitario mensile", value: data.adInvestment },
-            { label: "Canali di vendita", value: Array.isArray(data.salesChannels) ? data.salesChannels.join(', ') : data.salesChannels },
+            { label: "Hai già venduto online", value: data.onlineSales },
+            { label: "Ordini mensili medi", value: data.monthlyOrders },
+            { label: "Ticket medio", value: data.ticketMedio },
+            { label: "Canali marketing attivi", value: Array.isArray(data.marketingChannels) ? data.marketingChannels.join(', ') : data.marketingChannels },
+            { label: "Investimento advertising passato", value: data.adInvestment },
           ]
         },
         {
@@ -172,8 +176,8 @@ export async function POST(req: NextRequest) {
         {
           title: "🔹 Sezione 5 – Obiettivi e situazione aziendale",
           fields: [
-            { label: "Obiettivo principale", value: data.objective },
-            { label: "Fatturato annuo", value: data.revenue },
+            { label: "Obiettivo principale", value: data.objective === 'Altro' ? data.objectiveOther : data.objective },
+            { label: "Fatturato medio mensile", value: data.revenue },
             { label: "Dimensione del team", value: data.team },
             { label: "Principali ostacoli", value: data.obstacles },
           ]

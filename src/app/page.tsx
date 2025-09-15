@@ -24,6 +24,8 @@ import {
   FaUserTie
 } from 'react-icons/fa';
 
+import Footer from '@/components/Footer';
+import Header from '@/components/Header';
 import OldAgencyBrokenBox from '@/components/OldAgencyBrokenBox';
 
 interface FeatureCard {
@@ -121,7 +123,6 @@ export default function HomePage() {
   const [showContactForm, setShowContactForm] = useState(false);
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [visibleSections, setVisibleSections] = useState<string[]>([]);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [_currentReviewIndex, setCurrentReviewIndex] = useState(0);
   const [_isTransitioning, _setIsTransitioning] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
@@ -169,18 +170,42 @@ export default function HomePage() {
     telefono: '',
     email: ''
   });
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [incompleteConfirmed, setIncompleteConfirmed] = useState(false);
+  const [modalData, setModalData] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+    cancelText?: string;
+    onConfirm?: () => void;
+    onCancel?: () => void;
+    type?: 'error' | 'warning' | 'confirm';
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'error'
+  });
   const [questionnaireData, setQuestionnaireData] = useState({
     brandName: '',
     website: '',
     instagram: '',
+    tiktok: '',
+    facebook: '',
+    otherSocial: '',
     sector: '',
     sectorOther: '',
     production: '',
+    productionOther: '',
     bestSeller: '',
     margin: '',
     availability: '',
+    availabilityOther: '',
     onlineSales: '',
     monthlyOrders: '',
+    ticketMedio: '',
+    marketingChannels: [] as string[],
     adInvestment: '',
     salesChannels: [] as string[],
     shipping: '',
@@ -188,6 +213,7 @@ export default function HomePage() {
     returns: '',
     countries: '',
     objective: '',
+    objectiveOther: '',
     revenue: '',
     team: '',
     obstacles: ''
@@ -198,7 +224,7 @@ export default function HomePage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [_activeStep, _setActiveStep] = useState(1);
   const [_activeTooltip, setActiveTooltip] = useState<string | null>(null);
-  const [neonTime, setNeonTime] = useState(0);
+  const [, setNeonTime] = useState(0);
   const [displayedTexts, setDisplayedTexts] = useState<string[]>(['', '', '']);
   const [currentPhase, setCurrentPhase] = useState<'typing' | 'deleting'>('typing');
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
@@ -458,12 +484,36 @@ export default function HomePage() {
     } else {
       document.body.style.overflow = 'unset';
     }
-    
+
     // Cleanup function per ripristinare lo scroll
     return () => {
       document.body.style.overflow = 'unset';
     };
   }, [showQuestionnaire]);
+
+  // Handle opening contact form from header or URL parameter
+  useEffect(() => {
+    // Check for URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('openForm') === 'true') {
+      setTimeout(() => {
+        scrollToContactForm();
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }, 500);
+    }
+
+    // Listen for custom event from header
+    const handleOpenContactForm = () => {
+      scrollToContactForm();
+    };
+
+    window.addEventListener('openContactForm', handleOpenContactForm);
+
+    return () => {
+      window.removeEventListener('openContactForm', handleOpenContactForm);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !isMounted) return;
@@ -750,6 +800,20 @@ export default function HomePage() {
   // Handle contact form submission
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Verifica che la privacy sia stata accettata
+    if (!privacyAccepted) {
+      setModalData({
+        isOpen: true,
+        title: 'Privacy Policy',
+        message: 'Devi accettare l\'informativa sulla privacy per procedere.',
+        type: 'error',
+        confirmText: 'OK',
+        onConfirm: () => setModalData(prev => ({ ...prev, isOpen: false }))
+      });
+      return;
+    }
+
     const formData = new FormData(e.target as HTMLFormElement);
     setContactFormData({
       nome: formData.get('nome') as string,
@@ -759,14 +823,71 @@ export default function HomePage() {
     });
     generateCaptcha();
     setShowQuestionnaire(true);
+    setPrivacyAccepted(false); // Reset for next time
+  };
+
+  // Check if questionnaire is complete (excluding required fields)
+  const isQuestionnaireComplete = () => {
+    // Check all optional fields in section 2 (I tuoi prodotti)
+    const section2Complete = questionnaireData.production &&
+                           questionnaireData.bestSeller &&
+                           questionnaireData.margin &&
+                           questionnaireData.availability;
+
+    // Check all optional fields in section 3 (La tua situazione)
+    const section3Complete = questionnaireData.onlineSales &&
+                           questionnaireData.monthlyOrders &&
+                           questionnaireData.ticketMedio &&
+                           questionnaireData.marketingChannels.length > 0 &&
+                           questionnaireData.adInvestment &&
+                           questionnaireData.salesChannels.length > 0;
+
+    // Check all optional fields in section 4 (I tuoi obiettivi)
+    const section4Complete = questionnaireData.shipping &&
+                           questionnaireData.returns &&
+                           questionnaireData.countries &&
+                           questionnaireData.objective &&
+                           questionnaireData.revenue &&
+                           questionnaireData.team &&
+                           questionnaireData.obstacles;
+
+    return section2Complete && section3Complete && section4Complete;
   };
 
   // Handle questionnaire form submission
   const handleQuestionnaireSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (parseInt(captchaAnswer) !== captchaQuestion.answer) {
-      alert('Captcha non corretto. Riprova.');
+      setModalData({
+        isOpen: true,
+        title: 'Verifica Captcha',
+        message: 'La risposta al captcha non è corretta. Per favore riprova.',
+        type: 'error',
+        confirmText: 'OK',
+        onConfirm: () => setModalData(prev => ({ ...prev, isOpen: false }))
+      });
+      return;
+    }
+
+    // Check if questionnaire is incomplete and user hasn't confirmed
+    if (!isQuestionnaireComplete() && !incompleteConfirmed) {
+      setModalData({
+        isOpen: true,
+        title: 'Questionario Incompleto',
+        message: 'Il questionario non è stato compilato completamente. Fornire informazioni dettagliate ci aiuta a valutare meglio il tuo progetto. Desideri procedere comunque con l\'invio?',
+        type: 'confirm',
+        confirmText: 'Procedi',
+        cancelText: 'Completa il questionario',
+        onConfirm: () => {
+          setModalData(prev => ({ ...prev, isOpen: false }));
+          setIncompleteConfirmed(true);
+          // Re-submit the form programmatically
+          const form = e.target as HTMLFormElement;
+          setTimeout(() => form.requestSubmit(), 100);
+        },
+        onCancel: () => setModalData(prev => ({ ...prev, isOpen: false }))
+      });
       return;
     }
     
@@ -781,7 +902,14 @@ export default function HomePage() {
       
       // Blocca se l'invio è stato fatto nelle ultime 24 ore
       if (hoursSinceSubmission < 24) {
-        alert('Hai già inviato una candidatura con questa email nelle ultime 24 ore. Riprova più tardi.');
+        setModalData({
+          isOpen: true,
+          title: 'Candidatura già inviata',
+          message: 'Hai già inviato una candidatura con questa email nelle ultime 24 ore. Per favore riprova più tardi.',
+          type: 'warning',
+          confirmText: 'OK',
+          onConfirm: () => setModalData(prev => ({ ...prev, isOpen: false }))
+        });
         return;
       }
     }
@@ -815,6 +943,7 @@ export default function HomePage() {
         
         // Show thank you message if email sent successfully
         setQuestionnaireSubmitted(true);
+        setIncompleteConfirmed(false); // Reset for next time
       } else {
         // Se il server dice che è un duplicato, salva anche in localStorage
         if (result.message && result.message.includes('già inviato')) {
@@ -824,11 +953,25 @@ export default function HomePage() {
             sessionToken: sessionToken
           }));
         }
-        alert(result.message || 'Errore nell\'invio della candidatura. Riprova più tardi.');
+        setModalData({
+          isOpen: true,
+          title: 'Errore',
+          message: result.message || 'Errore nell\'invio della candidatura. Riprova più tardi.',
+          type: 'error',
+          confirmText: 'OK',
+          onConfirm: () => setModalData(prev => ({ ...prev, isOpen: false }))
+        });
       }
     } catch (error) {
       // Errore invio candidatura
-      alert('Errore nell\'invio della candidatura. Riprova più tardi.');
+      setModalData({
+        isOpen: true,
+        title: 'Errore di Connessione',
+        message: 'Errore nell\'invio della candidatura. Per favore riprova più tardi.',
+        type: 'error',
+        confirmText: 'OK',
+        onConfirm: () => setModalData(prev => ({ ...prev, isOpen: false }))
+      });
     }
   };
 
@@ -993,62 +1136,6 @@ export default function HomePage() {
   }, [isMounted]);
 
   // Calculate rotating neon glow effect
-  const getButtonStyles = (): React.CSSProperties => {
-    if (typeof window === 'undefined' || !isMounted) {
-      return { 
-        boxShadow: '0 0 20px rgba(147, 51, 234, 0.4)',
-        position: 'relative' as const
-      };
-    }
-    
-    // Create rotating neon effect using time-based calculation
-    const time = neonTime / 1000; // Convert to seconds
-    const angle1 = (time * 120) % 360; // Slower rotation - 120 degrees per second
-    const angle2 = (time * -90) % 360; // Slower counter rotation
-    const angle3 = (time * 60) % 360; // Slowest third light
-    
-    // Calculate multiple rotating glow positions (smaller radius for subtler movement)
-    const radius1 = 5;
-    const radius2 = 4;
-    const radius3 = 6;
-    
-    const glow1X = Math.cos(angle1 * Math.PI / 180) * radius1;
-    const glow1Y = Math.sin(angle1 * Math.PI / 180) * radius1;
-    
-    const glow2X = Math.cos(angle2 * Math.PI / 180) * radius2;
-    const glow2Y = Math.sin(angle2 * Math.PI / 180) * radius2;
-    
-    const glow3X = Math.cos(angle3 * Math.PI / 180) * radius3;
-    const glow3Y = Math.sin(angle3 * Math.PI / 180) * radius3;
-    
-    // Create smaller, smoother neon effect
-    const neonShadows = [
-      // Primary rotating bright spot (smaller)
-      `${glow1X}px ${glow1Y}px 6px rgba(147, 51, 234, 0.8)`,
-      `${glow1X}px ${glow1Y}px 12px rgba(147, 51, 234, 0.6)`,
-      `${glow1X * 1.2}px ${glow1Y * 1.2}px 18px rgba(147, 51, 234, 0.4)`,
-      
-      // Secondary counter-rotating spot (smaller blue)
-      `${glow2X}px ${glow2Y}px 6px rgba(59, 130, 246, 0.7)`,
-      `${glow2X * 1.2}px ${glow2Y * 1.2}px 12px rgba(59, 130, 246, 0.5)`,
-      
-      // Third rotating spot for subtle animation (purple)
-      `${glow3X}px ${glow3Y}px 8px rgba(168, 85, 247, 0.6)`,
-      `${glow3X * 0.8}px ${glow3Y * 0.8}px 15px rgba(168, 85, 247, 0.4)`,
-      
-      // Moderate ambient base glow
-      `0 0 20px rgba(147, 51, 234, 0.3)`,
-      `0 0 30px rgba(147, 51, 234, 0.2)`
-    ].join(', ');
-    
-    return {
-      boxShadow: neonShadows,
-      position: 'relative' as const,
-      overflow: 'visible' as const,
-      willChange: 'box-shadow',
-      animation: 'none' // Remove any default animations to prevent conflicts
-    };
-  };
 
   const [active, setActive] = useState<number>(0);
   const [_expandedMobileItem, _setExpandedMobileItem] = useState<number | null>(null);
@@ -1068,85 +1155,7 @@ export default function HomePage() {
         </div>
       )}
       
-      {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
-        <div className="w-full max-w-7xl lg:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-12 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center cursor-pointer" onClick={() => window.location.reload()}>
-              <Image
-                src="/images/logo-2.png"
-                alt="SafeScale Agency Logo"
-                width={240}
-                height={80}
-                className="h-14 w-auto hover:opacity-90 transition-opacity"
-              />
-            </div>
-            <nav className="hidden md:flex space-x-8">
-              <Link href="#servizi" className="text-custom-dark hover:text-blue-600 transition-colors font-medium">Servizi</Link>
-              <Link href="#chi-siamo" className="text-custom-dark hover:text-blue-600 transition-colors font-medium">Chi Siamo</Link>
-              <Link href="#contatti" className="text-custom-dark hover:text-blue-600 transition-colors font-medium">Contatti</Link>
-            </nav>
-            
-            {/* Desktop Button */}
-            <button 
-              onClick={scrollToContactForm}
-              className="hidden md:block gradient-bg-brand gradient-bg-brand-hover text-white px-6 py-2 rounded-full transition-all transform hover:scale-105"
-              style={getButtonStyles()}
-            >
-              <FaEnvelope className="inline mr-2" /> Candidati
-            </button>
-            
-            {/* Mobile Menu Button */}
-            <button 
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden flex flex-col space-y-1 p-2"
-            >
-              <div className={`w-6 h-0.5 bg-gray-700 transition-all duration-300 ${mobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`}></div>
-              <div className={`w-6 h-0.5 bg-gray-700 transition-all duration-300 ${mobileMenuOpen ? 'opacity-0' : ''}`}></div>
-              <div className={`w-6 h-0.5 bg-gray-700 transition-all duration-300 ${mobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}></div>
-            </button>
-          </div>
-        </div>
-        
-        {/* Mobile Menu Dropdown */}
-        <div className={`md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-lg transition-all duration-300 ease-in-out ${mobileMenuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-6">
-            <nav className="flex flex-col space-y-4">
-              <Link 
-                href="#servizi" 
-                className="text-lg text-custom-dark hover:text-blue-600 transition-colors py-2 border-b border-gray-200/50 font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Servizi
-              </Link>
-              <Link 
-                href="#chi-siamo" 
-                className="text-lg text-custom-dark hover:text-blue-600 transition-colors py-2 border-b border-gray-200/50 font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Chi Siamo
-              </Link>
-              <Link 
-                href="#contatti" 
-                className="text-lg text-custom-dark hover:text-blue-600 transition-colors py-2 border-b border-gray-200/50 font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Contatti
-              </Link>
-              <button 
-                className="gradient-bg-brand gradient-bg-brand-hover text-white px-6 py-3 rounded-full transition-all text-center mt-4 transform hover:scale-105"
-                style={getButtonStyles()}
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  scrollToContactForm();
-                }}
-              >
-                <FaEnvelope className="inline mr-2" /> Candidati
-              </button>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Hero Section */}
       <section 
@@ -1180,8 +1189,8 @@ export default function HomePage() {
               
               {/* Mobile Icons - shown only on mobile between title and paragraph */}
               <div className="block lg:hidden">
-                <div id="contact-circle-mobile" className="relative flex justify-center items-center mb-6 -mt-4 mx-auto min-h-[400px] sm:min-h-[450px]">
-                  <div className="relative w-full max-w-sm sm:max-w-md aspect-square flex items-center justify-center mx-auto">
+                <div id="contact-circle-mobile" className="relative flex justify-center items-center mb-4 -mt-4 mx-auto" style={{minHeight: showContactForm ? 'auto' : '400px'}}>
+                  <div className={`relative w-full max-w-sm sm:max-w-md ${showContactForm ? '' : 'aspect-square'} flex items-center justify-center mx-auto`}>
                     {!showContactForm ? (
                   <>
                     {/* Step-by-Step Circular Rotation Icons Animation */}
@@ -1201,7 +1210,7 @@ export default function HomePage() {
                             opacity: 1;
                           }
                         }
-                        
+
                         @keyframes gradientShift {
                           0% {
                             background-position: 0% 50%;
@@ -1211,6 +1220,15 @@ export default function HomePage() {
                           }
                           100% {
                             background-position: 0% 50%;
+                          }
+                        }
+
+                        @keyframes pulseSubtle {
+                          0%, 100% {
+                            transform: scale(1);
+                          }
+                          50% {
+                            transform: scale(1.08);
                           }
                         }
                         
@@ -1494,14 +1512,14 @@ export default function HomePage() {
                   </>
                 ) : (
                   /* Contact Form - Mobile Responsive */
-                  <div className="absolute inset-0 flex items-center justify-center p-2 z-20">
-                    <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-200 backdrop-blur-sm w-full shadow-2xl relative">
+                  <div className="w-full flex items-center justify-center py-4 z-20">
+                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 backdrop-blur-sm w-full max-w-md shadow-2xl relative">
                       {/* Decorative background elements */}
                       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-100/20 to-transparent rounded-full"></div>
                       <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-100/20 to-transparent rounded-full"></div>
                       <div className="absolute inset-0 bg-gradient-to-r from-blue-50/5 via-transparent to-purple-50/5"></div>
                       <div className="flex justify-between items-center mb-4 sm:mb-6 relative z-10">
-                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">Contattaci</h3>
+                        <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800">Contattaci</h3>
                         <button 
                           onClick={() => setShowContactForm(false)}
                           className="text-gray-600 hover:text-gray-800 transition-colors text-lg sm:text-xl"
@@ -1586,13 +1604,37 @@ export default function HomePage() {
                             required
                           />
                         </div>
-                        
+
+                        <div className="bg-blue-50/50 p-2 sm:p-3 rounded-lg border border-blue-200">
+                          <label className="flex items-start space-x-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={privacyAccepted}
+                              onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                              className="mt-0.5 w-4 h-4 min-w-[16px] text-blue-600 border-blue-400 rounded focus:ring-blue-400"
+                              required
+                            />
+                            <span className="text-[11px] sm:text-xs text-gray-700 leading-relaxed">
+                              Accetto l'
+                              <Link
+                                href="/privacy-policy"
+                                target="_blank"
+                                className="text-blue-600 hover:text-blue-800 underline font-medium"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                informativa sulla privacy
+                              </Link>
+                              {' '}e autorizzo il trattamento dei miei dati personali per le finalità indicate nell'informativa stessa, ai sensi del Regolamento UE 2016/679 (GDPR).
+                            </span>
+                          </label>
+                        </div>
+
                         <button
                           type="submit"
-                          className="w-full gradient-bg-brand gradient-bg-brand-hover text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
-                          style={getButtonStyles()}
+                          className="w-full gradient-bg-brand gradient-bg-brand-hover text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 text-base sm:text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={!privacyAccepted}
                         >
-                          Invia Richiesta
+                          Procedi al Questionario
                         </button>
                       </form>
                     </div>
@@ -1601,16 +1643,17 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-              
-              <p className="text-base sm:text-lg lg:text-xl text-custom-dark leading-relaxed">
-                Proponici la tua <span className="font-bold">idea di Business</span> con <span className="font-bold">E-Commerce</span>: se la riterremo valida, <span className="font-bold">creeremo</span> il sistema di consegne, gestiremo il <span className="font-bold">marketing</span> e <span className="font-bold">investiremo</span> nel progetto con campagne pubblicitarie mirate.  
-Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</span> e ci prenderemo tutti i<span className="font-bold"> rischi</span>.
-              </p>
+
+              <div className="mt-8 sm:mt-12 lg:mt-16">
+                <p className="text-base sm:text-lg lg:text-xl text-custom-dark leading-relaxed">
+                  Proponici la tua <span className="font-bold">idea di Business</span> con <span className="font-bold">E-Commerce</span>: se la riterremo valida, <span className="font-bold">creeremo</span> il sistema di consegne, gestiremo il <span className="font-bold">marketing</span> e <span className="font-bold">investiremo</span> nel progetto con campagne pubblicitarie mirate.
+  Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</span> e ci prenderemo tutti i<span className="font-bold"> rischi</span>.
+                </p>
+              </div>
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <button 
+                <button
                   onClick={scrollToContactForm}
                   className="w-full sm:w-auto gradient-bg-brand gradient-bg-brand-hover text-white px-6 sm:px-8 py-3 rounded-full font-semibold transition-all text-sm sm:text-base transform hover:scale-105"
-                  style={getButtonStyles()}
                 >
                   <FaEnvelope className="inline mr-2" /> Candidati
                 </button>
@@ -1639,7 +1682,7 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                             opacity: 1;
                           }
                         }
-                        
+
                         @keyframes gradientShift {
                           0% {
                             background-position: 0% 50%;
@@ -1649,6 +1692,15 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                           }
                           100% {
                             background-position: 0% 50%;
+                          }
+                        }
+
+                        @keyframes pulseSubtle {
+                          0%, 100% {
+                            transform: scale(1);
+                          }
+                          50% {
+                            transform: scale(1.08);
                           }
                         }
                         
@@ -1932,14 +1984,14 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                   </>
                 ) : (
                   /* Contact Form - Desktop */
-                  <div className="absolute inset-0 flex items-center justify-center p-0 sm:p-6">
-                    <div className="bg-white p-6 sm:p-6 md:p-8 rounded-2xl border border-gray-200 backdrop-blur-sm w-full h-auto sm:max-w-lg shadow-2xl relative">
+                  <div className="absolute inset-0 flex items-center justify-center p-3 sm:p-6">
+                    <div className="bg-white p-5 sm:p-6 md:p-7 rounded-2xl border border-gray-200 backdrop-blur-sm w-full sm:max-w-lg shadow-2xl relative">
                       {/* Decorative background elements */}
                       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-100/20 to-transparent rounded-full"></div>
                       <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-100/20 to-transparent rounded-full"></div>
                       <div className="absolute inset-0 bg-gradient-to-r from-blue-50/5 via-transparent to-purple-50/5"></div>
                       <div className="flex justify-between items-center mb-4 sm:mb-6 relative z-10">
-                        <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">Contattaci</h3>
+                        <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800">Contattaci</h3>
                         <button 
                           onClick={() => setShowContactForm(false)}
                           className="text-gray-600 hover:text-gray-800 transition-colors text-lg sm:text-xl"
@@ -2024,13 +2076,37 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                             required
                           />
                         </div>
-                        
+
+                        <div className="bg-blue-50/50 p-2 sm:p-3 rounded-lg border border-blue-200">
+                          <label className="flex items-start space-x-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={privacyAccepted}
+                              onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                              className="mt-0.5 w-4 h-4 min-w-[16px] text-blue-600 border-blue-400 rounded focus:ring-blue-400"
+                              required
+                            />
+                            <span className="text-[11px] sm:text-xs text-gray-700 leading-relaxed">
+                              Accetto l'
+                              <Link
+                                href="/privacy-policy"
+                                target="_blank"
+                                className="text-blue-600 hover:text-blue-800 underline font-medium"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                informativa sulla privacy
+                              </Link>
+                              {' '}e autorizzo il trattamento dei miei dati personali per le finalità indicate nell'informativa stessa, ai sensi del Regolamento UE 2016/679 (GDPR).
+                            </span>
+                          </label>
+                        </div>
+
                         <button
                           type="submit"
-                          className="w-full gradient-bg-brand gradient-bg-brand-hover text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
-                          style={getButtonStyles()}
+                          className="w-full gradient-bg-brand gradient-bg-brand-hover text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 text-base sm:text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={!privacyAccepted}
                         >
-                          Invia Richiesta
+                          Procedi al Questionario
                         </button>
                       </form>
                     </div>
@@ -2044,32 +2120,53 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
 
       {/* Questionnaire Popup */}
       {showQuestionnaire && (
-        <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-2 sm:p-4"
+        <div
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-[60] p-2 sm:p-4 overflow-y-auto"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               sendIncompleteQuestionnaire();
               setShowQuestionnaire(false);
               setQuestionnaireSubmitted(false);
+              setIncompleteConfirmed(false);
             }
           }}
         >
-          <div className="bg-white p-4 sm:p-6 md:p-8 rounded-2xl border border-gray-200 shadow-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto relative my-2">
+          <div className="bg-white p-4 sm:p-6 md:p-8 rounded-3xl shadow-2xl max-w-3xl w-full max-h-[85vh] sm:max-h-[90vh] overflow-y-auto relative my-8 sm:my-4 border border-blue-100">
+            {/* Animation styles for questionnaire */}
+            <style jsx>{`
+              @keyframes pulseButton {
+                0%, 100% {
+                  transform: scale(1);
+                }
+                50% {
+                  transform: scale(1.08);
+                }
+              }
+
+              .pulse-button {
+                animation: pulseButton 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+              }
+            `}</style>
+
             {/* Decorative design elements */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-purple-100/30 to-transparent rounded-full -z-10"></div>
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-100/30 to-transparent rounded-full -z-10"></div>
-            <div className="absolute top-1/2 right-0 w-40 h-40 bg-gradient-to-l from-pink-100/20 to-transparent rounded-full -z-10"></div>
-            
+            <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-blue-100/40 to-transparent rounded-full -z-10"></div>
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-purple-100/40 to-transparent rounded-full -z-10"></div>
+            <div className="absolute top-1/2 right-0 w-56 h-56 bg-gradient-to-l from-blue-50/30 to-transparent rounded-full -z-10"></div>
+
             <div className="flex justify-between items-center mb-6">
                         <div>
-                          <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
-                            <FaClipboardList className="inline mr-2 text-purple-600" /> Candidatura SafeScale
+                          <h3 className="text-2xl sm:text-3xl font-bold mb-2">
+                            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+                              <FaClipboardList className="inline mr-2 text-purple-600" /> Candidatura SafeScale
+                            </span>
                           </h3>
+                          <p className="text-gray-600 text-sm">Raccontaci di più sul tuo progetto</p>
                         </div>
-                        <button 
+                        <button
                           onClick={() => {
                             sendIncompleteQuestionnaire();
                             setShowQuestionnaire(false);
+                            setIncompleteConfirmed(false);
                             generateCaptcha();
                           }}
                           className="text-gray-600 hover:text-gray-800 transition-colors text-xl"
@@ -2081,67 +2178,109 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                       {!questionnaireSubmitted ? (
                         <form className="space-y-6" onSubmit={handleQuestionnaireSubmit}>
                         {/* Sezione 1 - Chi sei */}
-                        <div className="bg-gray-100/10 p-4 rounded-lg border border-gray-200/10">
-                          <h4 className="text-lg font-bold text-gray-800 mb-4">
-                            <span className="inline-block w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full text-white text-center leading-8 text-sm mr-2">1</span>
-                            Sezione 1 – Chi sei
+                        <div className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 p-5 rounded-2xl border border-blue-100">
+                          <h4 className="text-xl font-bold mb-4 flex items-center">
+                            <span className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full text-white text-sm font-bold mr-3 shadow-lg">1</span>
+                            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+                              Chi sei
+                            </span>
                           </h4>
                           
                           <div className="space-y-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                1. Nome del tuo brand / azienda
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                1. Nome del tuo brand / azienda <span className="text-red-500">*</span>
                               </label>
                               <input
                                 type="text"
                                 value={questionnaireData.brandName}
                                 onChange={(e) => setQuestionnaireData({...questionnaireData, brandName: e.target.value})}
-                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all text-sm text-gray-800"
-                                required
+                                className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 hover:border-blue-300"
                               />
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                2. Inserisci il link al tuo sito web
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                2. Hai già un sito web?
                               </label>
+                              <p className="text-xs text-gray-600 mb-2">Inserisci il dominio o il link 👉</p>
                               <input
                                 type="text"
                                 value={questionnaireData.website}
                                 onChange={(e) => setQuestionnaireData({...questionnaireData, website: e.target.value})}
-                                placeholder="https://..."
-                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400"
+                                placeholder="es: esempio.com o https://esempio.com"
+                                className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
                               />
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                3. Inserisci il link al tuo profilo Instagram
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                3. Dove possiamo trovarti sui social?
                               </label>
-                              <input
-                                type="text"
-                                value={questionnaireData.instagram}
-                                onChange={(e) => setQuestionnaireData({...questionnaireData, instagram: e.target.value})}
-                                placeholder="https://instagram.com/..."
-                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400"
-                              />
+                              <p className="text-xs text-gray-600 mb-3">Condividi i link ai tuoi profili:</p>
+                              
+                              <div className="space-y-3">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">Instagram</label>
+                                  <input
+                                    type="url"
+                                    value={questionnaireData.instagram}
+                                    onChange={(e) => setQuestionnaireData({...questionnaireData, instagram: e.target.value})}
+                                    placeholder="https://instagram.com/..."
+                                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">TikTok</label>
+                                  <input
+                                    type="url"
+                                    value={questionnaireData.tiktok}
+                                    onChange={(e) => setQuestionnaireData({...questionnaireData, tiktok: e.target.value})}
+                                    placeholder="https://tiktok.com/..."
+                                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">Facebook</label>
+                                  <input
+                                    type="url"
+                                    value={questionnaireData.facebook}
+                                    onChange={(e) => setQuestionnaireData({...questionnaireData, facebook: e.target.value})}
+                                    placeholder="https://facebook.com/..."
+                                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
+                                  />
+                                </div>
+                                
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">Altro</label>
+                                  <input
+                                    type="url"
+                                    value={questionnaireData.otherSocial}
+                                    onChange={(e) => setQuestionnaireData({...questionnaireData, otherSocial: e.target.value})}
+                                    placeholder="Inserisci altro link social..."
+                                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
+                                  />
+                                </div>
+                              </div>
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                4. In quale settore operi principalmente?
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                4. In che settore ti muovi principalmente? <span className="text-red-500">*</span>
                               </label>
+                              <p className="text-xs text-gray-600 mb-3">Scegli quello che ti rappresenta meglio:</p>
                               <div className="space-y-1">
                                 {['Moda & Accessori', 'Beauty & Cosmetica', 'Food & Integratori', 'Home & Lifestyle', 'Altro'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-1 px-2 rounded hover:bg-purple-100 transition-colors">
+                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
                                     <input
                                       type="radio"
                                       name="sector"
                                       value={option}
                                       checked={questionnaireData.sector === option}
                                       onChange={(e) => setQuestionnaireData({...questionnaireData, sector: e.target.value})}
-                                      className="w-4 h-4 text-purple-600 border-purple-400 focus:ring-purple-400"
-                                      required
+                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
                                     />
                                     <span className="text-gray-700 text-sm">{option}</span>
                                   </label>
@@ -2152,8 +2291,8 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                                   type="text"
                                   value={questionnaireData.sectorOther}
                                   onChange={(e) => setQuestionnaireData({...questionnaireData, sectorOther: e.target.value})}
-                                  placeholder="Specifica..."
-                                  className="w-full mt-2 px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-white placeholder-blue-300/50"
+                                  placeholder="Scrivi il tuo settore..."
+                                  className="w-full mt-2 px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
                                 />
                               )}
                             </div>
@@ -2161,117 +2300,136 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                         </div>
 
                         {/* Sezione 2 - I tuoi prodotti */}
-                        <div className="bg-gray-100/10 p-4 rounded-lg border border-gray-200/10">
-                          <h4 className="text-lg font-bold text-gray-800 mb-4">
-                            <span className="inline-block w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full text-white text-center leading-8 text-sm mr-2">2</span>
-                            Sezione 2 – I tuoi prodotti
+                        <div className="bg-gradient-to-r from-purple-50/50 to-blue-50/50 p-5 rounded-2xl border border-purple-100">
+                          <h4 className="text-xl font-bold mb-4 flex items-center">
+                            <span className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full text-white text-sm font-bold mr-3 shadow-lg">2</span>
+                            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+                              I tuoi prodotti
+                            </span>
                           </h4>
                           
                           <div className="space-y-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                5. Chi produce i tuoi prodotti?
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                5. Come nascono i tuoi prodotti?
                               </label>
                               <div className="space-y-1">
-                                {['Produzione interna', 'Produzione in conto terzi', 'Acquisto stock già pronti', 'Dropshipping'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-1 px-2 rounded hover:bg-purple-100 transition-colors">
+                                {['Produzione interna', 'Produzione conto terzi', 'Acquisto stock già pronti', 'Altro'].map((option) => (
+                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
                                     <input
                                       type="radio"
                                       name="production"
                                       value={option}
                                       checked={questionnaireData.production === option}
                                       onChange={(e) => setQuestionnaireData({...questionnaireData, production: e.target.value})}
-                                      className="w-4 h-4 text-purple-600 border-purple-400 focus:ring-purple-400"
-                                      required
+                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
                                     />
                                     <span className="text-gray-700 text-sm">{option}</span>
                                   </label>
                                 ))}
                               </div>
+                              {questionnaireData.production === 'Altro' && (
+                                <input
+                                  type="text"
+                                  value={questionnaireData.productionOther}
+                                  onChange={(e) => setQuestionnaireData({...questionnaireData, productionOther: e.target.value})}
+                                  placeholder="Specifica come nascono i tuoi prodotti..."
+                                  className="w-full mt-2 px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
+                                />
+                              )}
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                6. Qual è il tuo prodotto best seller e il prezzo medio di vendita?
-                              </label>
-                              <textarea
-                                value={questionnaireData.bestSeller}
-                                onChange={(e) => setQuestionnaireData({...questionnaireData, bestSeller: e.target.value})}
-                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all text-sm text-gray-800 resize-none"
-                                rows={2}
-                                required
-                              />
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                7. Margine medio lordo sui tuoi prodotti (in %)?
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                6. Come gestisci la disponibilità del prodotto?
                               </label>
                               <div className="space-y-1">
-                                {['< 40%', '40–60%', '60–80%', '> 80%'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-1 px-2 rounded hover:bg-purple-100 transition-colors">
-                                    <input
-                                      type="radio"
-                                      name="margin"
-                                      value={option}
-                                      checked={questionnaireData.margin === option}
-                                      onChange={(e) => setQuestionnaireData({...questionnaireData, margin: e.target.value})}
-                                      className="w-4 h-4 text-purple-600 border-purple-400 focus:ring-purple-400"
-                                      required
-                                    />
-                                    <span className="text-gray-700 text-sm">{option}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                8. Come gestisci la disponibilità del prodotto?
-                              </label>
-                              <div className="space-y-1">
-                                {['Ho stock pronto', 'Produzione just-in-time', 'Misto'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-1 px-2 rounded hover:bg-purple-100 transition-colors">
+                                {['Ho stock pronto in magazzino', 'Produco su richiesta (just-in-time)', 'Altro'].map((option) => (
+                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
                                     <input
                                       type="radio"
                                       name="availability"
                                       value={option}
                                       checked={questionnaireData.availability === option}
                                       onChange={(e) => setQuestionnaireData({...questionnaireData, availability: e.target.value})}
-                                      className="w-4 h-4 text-purple-600 border-purple-400 focus:ring-purple-400"
-                                      required
+                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
+                                    />
+                                    <span className="text-gray-700 text-sm">{option}</span>
+                                  </label>
+                                ))}
+                              </div>
+                              {questionnaireData.availability === 'Altro' && (
+                                <input
+                                  type="text"
+                                  value={questionnaireData.availabilityOther}
+                                  onChange={(e) => setQuestionnaireData({...questionnaireData, availabilityOther: e.target.value})}
+                                  placeholder="Specifica come gestisci la disponibilità..."
+                                  className="w-full mt-2 px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
+                                />
+                              )}
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                7. Qual è il tuo prodotto best seller e il prezzo medio di vendita?
+                              </label>
+                              <input
+                                type="text"
+                                value={questionnaireData.bestSeller}
+                                onChange={(e) => setQuestionnaireData({...questionnaireData, bestSeller: e.target.value})}
+                                placeholder="Esempio: Sneakers X – €89"
+                                className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
+                              />
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                8. Qual è il margine lordo medio sui tuoi prodotti?
+                              </label>
+                              <div className="space-y-1">
+                                {['<40%', '40–60%', '60–80%', 'Oltre l\'80%'].map((option) => (
+                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
+                                    <input
+                                      type="radio"
+                                      name="margin"
+                                      value={option}
+                                      checked={questionnaireData.margin === option}
+                                      onChange={(e) => setQuestionnaireData({...questionnaireData, margin: e.target.value})}
+                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
                                     />
                                     <span className="text-gray-700 text-sm">{option}</span>
                                   </label>
                                 ))}
                               </div>
                             </div>
+                            
                           </div>
                         </div>
 
                         {/* Sezione 3 - Esperienza di vendita */}
-                        <div className="bg-gray-100/10 p-4 rounded-lg border border-gray-200/10">
-                          <h4 className="text-lg font-bold text-gray-800 mb-4">
-                            <span className="inline-block w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full text-white text-center leading-8 text-sm mr-2">3</span>
-                            Sezione 3 – Esperienza di vendita
+                        <div className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 p-5 rounded-2xl border border-blue-100">
+                          <h4 className="text-xl font-bold mb-4 flex items-center">
+                            <span className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full text-white text-sm font-bold mr-3 shadow-lg">3</span>
+                            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+                              Vendite & Marketing
+                            </span>
                           </h4>
                           
                           <div className="space-y-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
                                 9. Hai già venduto online?
                               </label>
                               <div className="space-y-1">
-                                {['Sì, e-commerce proprietario', 'Sì, marketplace (Amazon, Etsy, ecc.)', 'Sì, solo social media (IG, TikTok, WhatsApp)', 'No, mai venduto online'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-1 px-2 rounded hover:bg-purple-100 transition-colors">
+                                {['Sì, con e-commerce proprietario', 'Sì, su marketplace (Amazon, Etsy, ecc.)', 'Sì, solo tramite social (Instagram, TikTok, WhatsApp)', 'No, mai venduto online'].map((option) => (
+                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
                                     <input
                                       type="radio"
                                       name="onlineSales"
                                       value={option}
                                       checked={questionnaireData.onlineSales === option}
                                       onChange={(e) => setQuestionnaireData({...questionnaireData, onlineSales: e.target.value})}
-                                      className="w-4 h-4 text-purple-600 border-purple-400 focus:ring-purple-400"
-                                      required
+                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
                                     />
                                     <span className="text-gray-700 text-sm">{option}</span>
                                   </label>
@@ -2280,20 +2438,19 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                10. Ordini mensili medi attuali
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                10. Quanti ordini ricevi in media ogni mese?
                               </label>
                               <div className="space-y-1">
                                 {['0–50', '50–200', '200–500', '500+'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-1 px-2 rounded hover:bg-purple-100 transition-colors">
+                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
                                     <input
                                       type="radio"
                                       name="monthlyOrders"
                                       value={option}
                                       checked={questionnaireData.monthlyOrders === option}
                                       onChange={(e) => setQuestionnaireData({...questionnaireData, monthlyOrders: e.target.value})}
-                                      className="w-4 h-4 text-purple-600 border-purple-400 focus:ring-purple-400"
-                                      required
+                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
                                     />
                                     <span className="text-gray-700 text-sm">{option}</span>
                                   </label>
@@ -2302,45 +2459,74 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                11. Quanto hai investito in advertising digitale in passato?
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                11. Qual è il valore medio di un ordine (ticket medio)?
                               </label>
                               <div className="space-y-1">
-                                {['Mai', '< 1.000 €/mese', '1.000–5.000 €/mese', '> 5.000 €/mese'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-1 px-2 rounded hover:bg-purple-100 transition-colors">
+                                {['Meno di €50', '€50–150', '€150–300', 'Oltre €300'].map((option) => (
+                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
+                                    <input
+                                      type="radio"
+                                      name="ticketMedio"
+                                      value={option}
+                                      checked={questionnaireData.ticketMedio === option}
+                                      onChange={(e) => setQuestionnaireData({...questionnaireData, ticketMedio: e.target.value})}
+                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
+                                    />
+                                    <span className="text-gray-700 text-sm">{option}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                12. Su quali canali stai già facendo marketing? (puoi selezionare più opzioni)
+                              </label>
+                              <div className="space-y-1">
+                                {['Google Ads', 'Meta Ads (Facebook/Instagram)', 'TikTok Ads', 'SEO / Organico', 'Nessuno'].map((option) => (
+                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
+                                    <input
+                                      type="checkbox"
+                                      value={option}
+                                      checked={questionnaireData.marketingChannels.includes(option)}
+                                      onChange={(e) => {
+                                        let newChannels;
+                                        if (option === 'Nessuno') {
+                                          // Se si seleziona "Nessuno", deseleziona tutte le altre opzioni
+                                          newChannels = e.target.checked ? ['Nessuno'] : [];
+                                        } else {
+                                          // Se si seleziona qualsiasi altra opzione, rimuovi "Nessuno"
+                                          if (e.target.checked) {
+                                            newChannels = [...questionnaireData.marketingChannels.filter(c => c !== 'Nessuno'), option];
+                                          } else {
+                                            newChannels = questionnaireData.marketingChannels.filter(c => c !== option);
+                                          }
+                                        }
+                                        setQuestionnaireData({...questionnaireData, marketingChannels: newChannels});
+                                      }}
+                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
+                                    />
+                                    <span className="text-gray-700 text-sm">{option}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                13. Quanto hai investito in advertising digitale in passato (circa)?
+                              </label>
+                              <div className="space-y-1">
+                                {['Mai', 'Meno di €1.000 al mese', '€1.000–5.000 al mese', 'Più di €5.000 al mese'].map((option) => (
+                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
                                     <input
                                       type="radio"
                                       name="adInvestment"
                                       value={option}
                                       checked={questionnaireData.adInvestment === option}
                                       onChange={(e) => setQuestionnaireData({...questionnaireData, adInvestment: e.target.value})}
-                                      className="w-4 h-4 text-purple-600 border-purple-400 focus:ring-purple-400"
-                                      required
-                                    />
-                                    <span className="text-gray-700 text-sm">{option}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                12. Canali di vendita attuali (selezione multipla)
-                              </label>
-                              <div className="space-y-1">
-                                {['B2C diretto (e-commerce, social)', 'B2B / rivenditori', 'Offline (negozi fisici, fiere)'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-1 px-2 rounded hover:bg-purple-100 transition-colors">
-                                    <input
-                                      type="checkbox"
-                                      value={option}
-                                      checked={questionnaireData.salesChannels.includes(option)}
-                                      onChange={(e) => {
-                                        const newChannels = e.target.checked 
-                                          ? [...questionnaireData.salesChannels, option]
-                                          : questionnaireData.salesChannels.filter(c => c !== option);
-                                        setQuestionnaireData({...questionnaireData, salesChannels: newChannels});
-                                      }}
-                                      className="w-4 h-4 text-purple-600 border-purple-400 focus:ring-purple-400"
+                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
                                     />
                                     <span className="text-gray-700 text-sm">{option}</span>
                                   </label>
@@ -2351,28 +2537,29 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                         </div>
 
                         {/* Sezione 4 - Logistica & operatività */}
-                        <div className="bg-gray-100/10 p-4 rounded-lg border border-gray-200/10">
-                          <h4 className="text-lg font-bold text-gray-800 mb-4">
-                            <span className="inline-block w-8 h-8 bg-gradient-to-br from-pink-600 to-blue-600 rounded-full text-white text-center leading-8 text-sm mr-2">4</span>
-                            Sezione 4 – Logistica & operatività
+                        <div className="bg-gradient-to-r from-purple-50/50 to-blue-50/50 p-5 rounded-2xl border border-purple-100">
+                          <h4 className="text-xl font-bold mb-4 flex items-center">
+                            <span className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full text-white text-sm font-bold mr-3 shadow-lg">4</span>
+                            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+                              Logistica & Operatività
+                            </span>
                           </h4>
                           
                           <div className="space-y-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                13. Come gestisci attualmente le spedizioni?
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                14. Come gestisci attualmente le spedizioni?
                               </label>
                               <div className="space-y-1">
-                                {['Contratti con corrieri', 'Marketplace (es. Amazon FBA)', 'Gestione manuale senza contratti fissi', 'Altro'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-1 px-2 rounded hover:bg-purple-100 transition-colors">
+                                {['Contratti con corrieri', 'Gestione manuale senza contratti fissi', 'Marketplace (es. Amazon FBA)', 'Altro'].map((option) => (
+                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
                                     <input
                                       type="radio"
                                       name="shipping"
                                       value={option}
                                       checked={questionnaireData.shipping === option}
                                       onChange={(e) => setQuestionnaireData({...questionnaireData, shipping: e.target.value})}
-                                      className="w-4 h-4 text-purple-600 border-purple-400 focus:ring-purple-400"
-                                      required
+                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
                                     />
                                     <span className="text-gray-700 text-sm">{option}</span>
                                   </label>
@@ -2383,27 +2570,26 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                                   type="text"
                                   value={questionnaireData.shippingOther}
                                   onChange={(e) => setQuestionnaireData({...questionnaireData, shippingOther: e.target.value})}
-                                  placeholder="Specifica..."
-                                  className="w-full mt-2 px-3 py-2 bg-blue-800/30 border border-blue-500/50 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all text-sm text-white placeholder-blue-300/50"
+                                  placeholder="Specifica come gestisci le spedizioni..."
+                                  className="w-full mt-2 px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
                                 />
                               )}
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                14. % media di resi/mancata consegna (RTO)
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                15. % media di resi/mancata consegna (RTO)
                               </label>
                               <div className="space-y-1">
                                 {['< 5%', '5–10%', '10–20%', '> 20%'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-1 px-2 rounded hover:bg-purple-100 transition-colors">
+                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
                                     <input
                                       type="radio"
                                       name="returns"
                                       value={option}
                                       checked={questionnaireData.returns === option}
                                       onChange={(e) => setQuestionnaireData({...questionnaireData, returns: e.target.value})}
-                                      className="w-4 h-4 text-purple-600 border-purple-400 focus:ring-purple-400"
-                                      required
+                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
                                     />
                                     <span className="text-gray-700 text-sm">{option}</span>
                                   </label>
@@ -2412,69 +2598,74 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                15. In quali Paesi vendi o vorresti vendere?
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                16. In quali Paesi vendi o vorresti vendere?
                               </label>
                               <textarea
                                 value={questionnaireData.countries}
                                 onChange={(e) => setQuestionnaireData({...questionnaireData, countries: e.target.value})}
-                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all text-sm text-gray-800 resize-none"
+                                placeholder="Es: Italia, Spagna, Germania..."
+                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 resize-none"
                                 rows={2}
-                                required
                               />
                             </div>
                           </div>
                         </div>
 
                         {/* Sezione 5 - Potenziale del brand */}
-                        <div className="bg-gray-100/10 p-4 rounded-lg border border-gray-200/10">
-                          <h4 className="text-lg font-bold text-gray-800 mb-4">
-                            <span className="inline-block w-8 h-8 bg-gradient-to-br from-green-600 to-purple-600 rounded-full text-white text-center leading-8 text-sm mr-2">5</span>
-                            Sezione 5 – Potenziale del brand
+                        <div className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 p-5 rounded-2xl border border-blue-100">
+                          <h4 className="text-xl font-bold mb-4 flex items-center">
+                            <span className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full text-white text-sm font-bold mr-3 shadow-lg">5</span>
+                            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+                              Potenziale del Brand
+                            </span>
                           </h4>
                           
                           <div className="space-y-4">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                16. Obiettivo principale nei prossimi 12 mesi
-                              </label>
-                              <textarea
-                                value={questionnaireData.objective}
-                                onChange={(e) => setQuestionnaireData({...questionnaireData, objective: e.target.value})}
-                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all text-sm text-gray-800 resize-none"
-                                rows={3}
-                                required
-                              />
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                17. Fatturato medio mensile negli ultimi 6 mesi (€)
-                              </label>
-                              <input
-                                type="number"
-                                value={questionnaireData.revenue}
-                                onChange={(e) => setQuestionnaireData({...questionnaireData, revenue: e.target.value})}
-                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all text-sm text-gray-800"
-                                required
-                              />
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                18. Composizione del tuo team attuale
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                17. Qual è il tuo obiettivo principale nei prossimi 12 mesi?
                               </label>
                               <div className="space-y-1">
-                                {['Solo founder', '2–3 persone', '4–10 persone', '10+ persone'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-1 px-2 rounded hover:bg-purple-100 transition-colors">
+                                {['Aumentare le vendite', 'Lanciare un nuovo prodotto/brand', 'Espandere all\'estero', 'Migliorare la marginalità', 'Altro'].map((option) => (
+                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
                                     <input
                                       type="radio"
-                                      name="team"
+                                      name="objective"
                                       value={option}
-                                      checked={questionnaireData.team === option}
-                                      onChange={(e) => setQuestionnaireData({...questionnaireData, team: e.target.value})}
-                                      className="w-4 h-4 text-purple-600 border-purple-400 focus:ring-purple-400"
-                                      required
+                                      checked={questionnaireData.objective === option}
+                                      onChange={(e) => setQuestionnaireData({...questionnaireData, objective: e.target.value})}
+                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
+                                    />
+                                    <span className="text-gray-700 text-sm">{option}</span>
+                                  </label>
+                                ))}
+                              </div>
+                              {questionnaireData.objective === 'Altro' && (
+                                <input
+                                  type="text"
+                                  value={questionnaireData.objectiveOther}
+                                  onChange={(e) => setQuestionnaireData({...questionnaireData, objectiveOther: e.target.value})}
+                                  placeholder="Specifica il tuo obiettivo..."
+                                  className="w-full mt-2 px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
+                                />
+                              )}
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                18. Fatturato medio mensile
+                              </label>
+                              <div className="space-y-1">
+                                {['0-5.000€', '5.000-10.000€', '10.000-20.000€', '20.000-50.000€', '+50.000€'].map((option) => (
+                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
+                                    <input
+                                      type="radio"
+                                      name="revenue"
+                                      value={option}
+                                      checked={questionnaireData.revenue === option}
+                                      onChange={(e) => setQuestionnaireData({...questionnaireData, revenue: e.target.value})}
+                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
                                     />
                                     <span className="text-gray-700 text-sm">{option}</span>
                                   </label>
@@ -2483,69 +2674,113 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                             </div>
                             
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                19. Quali sono oggi i principali ostacoli che ti impediscono di crescere?
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                19. Composizione del tuo team attuale
+                              </label>
+                              <div className="space-y-1">
+                                {['Solo founder', '2–3 persone', '4–10 persone', '10+ persone'].map((option) => (
+                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
+                                    <input
+                                      type="radio"
+                                      name="team"
+                                      value={option}
+                                      checked={questionnaireData.team === option}
+                                      onChange={(e) => setQuestionnaireData({...questionnaireData, team: e.target.value})}
+                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
+                                    />
+                                    <span className="text-gray-700 text-sm">{option}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                20. Quali sono oggi i principali ostacoli che ti impediscono di crescere?
                               </label>
                               <textarea
                                 value={questionnaireData.obstacles}
                                 onChange={(e) => setQuestionnaireData({...questionnaireData, obstacles: e.target.value})}
                                 className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all text-sm text-gray-800 resize-none"
                                 rows={3}
-                                required
                               />
                             </div>
                           </div>
                         </div>
 
-                        {/* Captcha */}
-                        <div className="bg-gradient-to-r from-gray-50 to-purple-50 p-4 rounded-lg border border-purple-200/30">
-                          <label className="block text-sm font-medium text-gray-700 mb-3">
-                            🔐 Conferma che sei umano - Risolvi questa operazione:
-                          </label>
-                          <div className="flex items-center space-x-4" suppressHydrationWarning>
-                            {isMounted ? (
-                              <>
-                                <span className="text-lg font-bold text-gray-800">{captchaQuestion.question}</span>
-                                <input
-                                  type="number"
-                                  value={captchaAnswer}
-                                  onChange={(e) => setCaptchaAnswer(e.target.value)}
-                                  className="w-20 px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all text-center text-gray-800"
-                                  placeholder="?"
-                                  required
-                                />
-                                <button
-                                  type="button"
-                                  onClick={generateCaptcha}
-                                  className="text-purple-600 hover:text-purple-800 transition-colors text-sm underline"
-                                >
-                                  🔄 Nuova domanda
-                                </button>
-                              </>
-                            ) : (
-                              <div className="flex items-center space-x-4">
-                                <span className="text-lg font-bold text-gray-800">Caricamento...</span>
-                                <div className="w-20 h-10 bg-blue-800/30 border border-blue-500/50 rounded-lg animate-pulse"></div>
-                                <div className="w-24 h-6 bg-blue-800/30 rounded animate-pulse"></div>
-                              </div>
-                            )}
+                        {/* Captcha - Sezione Obbligatoria */}
+                        <div className="mt-8 bg-gradient-to-r from-yellow-50 via-orange-50 to-yellow-50 p-6 rounded-2xl border-2 border-orange-200 shadow-lg">
+                          <div className="flex items-start space-x-2 mb-4">
+                            <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h4 className="text-lg font-bold text-gray-800">
+                                Verifica di Sicurezza <span className="text-red-500">*</span>
+                              </h4>
+                              <p className="text-sm text-gray-600 mt-1">
+                                Conferma che sei umano risolvendo questa semplice operazione
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="bg-white/70 p-4 rounded-xl border border-orange-100">
+                            <div className="flex items-center space-x-4 justify-center" suppressHydrationWarning>
+                              {isMounted ? (
+                                <>
+                                  <span className="text-2xl font-bold text-gray-800 bg-white px-4 py-2 rounded-lg shadow-sm">
+                                    {captchaQuestion.question}
+                                  </span>
+                                  <span className="text-xl text-gray-600">=</span>
+                                  <input
+                                    type="number"
+                                    value={captchaAnswer}
+                                    onChange={(e) => setCaptchaAnswer(e.target.value)}
+                                    className="w-24 px-4 py-3 bg-white border-2 border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none transition-all text-center text-xl font-bold text-gray-800 shadow-sm"
+                                    placeholder="?"
+                                    required
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={generateCaptcha}
+                                    className="px-3 py-1 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg transition-colors text-sm font-medium flex items-center gap-1"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    Cambia
+                                  </button>
+                                </>
+                              ) : (
+                                <div className="flex items-center space-x-4 justify-center">
+                                  <span className="text-xl font-bold text-gray-400">Caricamento...</span>
+                                  <div className="w-24 h-12 bg-orange-100 border border-orange-200 rounded-lg animate-pulse"></div>
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-xs text-center text-gray-500 mt-3">
+                              <span className="text-orange-600 font-medium">Campo obbligatorio</span> - Inserisci la risposta corretta per procedere
+                            </p>
                           </div>
                         </div>
 
                         <button
                           type="submit"
-                          className="w-full gradient-bg-brand gradient-bg-brand-hover text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 text-base"
-                          style={getButtonStyles()}
+                          className="w-full gradient-bg-brand gradient-bg-brand-hover text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl pulse-button"
                         >
-                          <FaRocket className="inline mr-2" /> Invia Candidatura
+                          <FaRocket className="inline mr-2 text-xl" /> Invia Candidatura
                         </button>
                       </form>
                       ) : (
                         <div className="text-center py-8">
                           <div className="mb-6">
-                            <div className="text-6xl mb-4"><FaCheckCircle className="text-green-500 mx-auto" /></div>
-                            <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                              Candidatura Inviata con Successo!
+                            <div className="text-6xl mb-4 animate-bounce"><FaCheckCircle className="text-green-500 mx-auto" /></div>
+                            <h3 className="text-3xl font-bold mb-4">
+                              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+                                Candidatura Inviata con Successo!
+                              </span>
                             </h3>
                             <p className="text-gray-700 text-lg leading-relaxed mb-6">
                               Grazie per aver completato il questionario.<br />
@@ -2567,16 +2802,16 @@ Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</
                             onClick={() => {
                               setShowQuestionnaire(false);
                               setQuestionnaireSubmitted(false);
+                              setIncompleteConfirmed(false);
                               setShowContactForm(false);
                               setContactFormData({ nome: '', cognome: '', telefono: '', email: '' });
                               setQuestionnaireData({
-                                brandName: '', website: '', instagram: '', sector: '', sectorOther: '', production: '',
-                                bestSeller: '', margin: '', availability: '', onlineSales: '', monthlyOrders: '', adInvestment: '',
-                                salesChannels: [], shipping: '', shippingOther: '', returns: '', countries: '', objective: '', revenue: '', team: '', obstacles: ''
+                                brandName: '', website: '', instagram: '', tiktok: '', facebook: '', otherSocial: '', sector: '', sectorOther: '', production: '', productionOther: '',
+                                bestSeller: '', margin: '', availability: '', availabilityOther: '', onlineSales: '', monthlyOrders: '', ticketMedio: '', marketingChannels: [], adInvestment: '',
+                                salesChannels: [], shipping: '', shippingOther: '', returns: '', countries: '', objective: '', objectiveOther: '', revenue: '', team: '', obstacles: ''
                               });
                             }}
                             className="gradient-bg-brand gradient-bg-brand-hover text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 text-lg"
-                            style={getButtonStyles()}
                           >
                             Chiudi
                           </button>
@@ -3532,7 +3767,6 @@ const _labels: { [key: number]: string } = {
             <button 
               onClick={scrollToContactForm}
               className="gradient-bg-brand gradient-bg-brand-hover text-white px-6 sm:px-8 py-3 rounded-full font-semibold transition-all text-sm sm:text-base transform hover:scale-105"
-              style={getButtonStyles()}
             >
               <FaRocket className="inline mr-2" /> Proponi il tuo Brand
             </button>
@@ -3658,7 +3892,6 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
               <button 
                 onClick={scrollToContactForm}
                 className="gradient-bg-brand gradient-bg-brand-hover text-white px-6 sm:px-8 py-3 rounded-full font-semibold transition-all text-sm sm:text-base transform hover:scale-105"
-                style={getButtonStyles()}
               >
                 <FaEnvelope className="inline mr-2" /> Candidati
               </button>
@@ -3787,13 +4020,13 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px" height="48px">
                       <path fill="#0081fb" d="M47,29.36l-2.193,1.663L42.62,29.5c0-0.16,0-0.33-0.01-0.5c0-0.16,0-0.33-0.01-0.5c-0.14-3.94-1.14-8.16-3.14-11.25c-1.54-2.37-3.51-3.5-5.71-3.5c-2.31,0-4.19,1.38-6.27,4.38c-0.06,0.09-0.13,0.18-0.19,0.28c-0.04,0.05-0.07,0.1-0.11,0.16c-0.1,0.15-0.2,0.3-0.3,0.46c-0.9,1.4-1.84,3.03-2.86,4.83c-0.09,0.17-0.19,0.34-0.28,0.51c-0.03,0.04-0.06,0.09-0.08,0.13l-0.21,0.37l-1.24,2.19c-2.91,5.15-3.65,6.33-5.1,8.26C14.56,38.71,12.38,40,9.51,40c-3.4,0-5.56-1.47-6.89-3.69C1.53,34.51,1,32.14,1,29.44l4.97,0.17c0,1.76,0.38,3.1,0.89,3.92C7.52,34.59,8.49,35,9.5,35c1.29,0,2.49-0.27,4.77-3.43c1.83-2.53,3.99-6.07,5.44-8.3l1.37-2.09l0.29-0.46l0.3-0.45l0.5-0.77c0.76-1.16,1.58-2.39,2.46-3.57c0.1-0.14,0.2-0.28,0.31-0.42c0.1-0.14,0.21-0.28,0.31-0.41c0.9-1.15,1.85-2.22,2.87-3.1c1.85-1.61,3.84-2.5,5.85-2.5c3.37,0,6.58,1.95,9.04,5.61c2.51,3.74,3.82,8.4,3.97,13.25c0.01,0.16,0.01,0.33,0.01,0.5C47,29.03,47,29.19,47,29.36z"/>
                       <linearGradient id="metaGrad1" x1="42.304" x2="13.533" y1="24.75" y2="24.75" gradientUnits="userSpaceOnUse">
-                        <stop offset="0" stop-color="#0081fb"/>
-                        <stop offset=".995" stop-color="#0064e1"/>
+                        <stop offset="0" stopColor="#0081fb"/>
+                        <stop offset=".995" stopColor="#0064e1"/>
                       </linearGradient>
                       <path fill="url(#metaGrad1)" d="M4.918,15.456C7.195,11.951,10.483,9.5,14.253,9.5c2.184,0,4.354,0.645,6.621,2.493c2.479,2.02,5.122,5.346,8.419,10.828l1.182,1.967c2.854,4.746,4.477,7.187,5.428,8.339C37.125,34.606,37.888,35,39,35c2.82,0,3.617-2.54,3.617-5.501L47,29.362c0,3.095-0.611,5.369-1.651,7.165C44.345,38.264,42.387,40,39.093,40c-2.048,0-3.862-0.444-5.868-2.333c-1.542-1.45-3.345-4.026-4.732-6.341l-4.126-6.879c-2.07-3.452-3.969-6.027-5.068-7.192c-1.182-1.254-2.642-2.754-5.067-2.754c-1.963,0-3.689,1.362-5.084,3.465L4.918,15.456z"/>
                       <linearGradient id="metaGrad2" x1="7.635" x2="7.635" y1="32.87" y2="13.012" gradientUnits="userSpaceOnUse">
-                        <stop offset="0" stop-color="#0081fb"/>
-                        <stop offset=".995" stop-color="#0064e1"/>
+                        <stop offset="0" stopColor="#0081fb"/>
+                        <stop offset=".995" stopColor="#0064e1"/>
                       </linearGradient>
                       <path fill="url(#metaGrad2)" d="M14.25,14.5c-1.959,0-3.683,1.362-5.075,3.465C7.206,20.937,6,25.363,6,29.614c0,1.753-0.003,3.072,0.5,3.886l-3.84,2.813C1.574,34.507,1,32.2,1,29.5c0-4.91,1.355-10.091,3.918-14.044C7.192,11.951,10.507,9.5,14.27,9.5L14.25,14.5z"/>
                     </svg>
@@ -3847,7 +4080,6 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
               <button 
                 onClick={scrollToContactForm}
                 className="gradient-bg-brand gradient-bg-brand-hover text-white px-6 sm:px-8 py-3 rounded-full font-semibold transition-all text-sm sm:text-base transform hover:scale-105"
-                style={getButtonStyles()}
               >
                 <FaEnvelope className="inline mr-2" /> Candidati
               </button>
@@ -4004,7 +4236,6 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
               <button 
                 onClick={scrollToContactForm}
                 className="gradient-bg-brand gradient-bg-brand-hover text-white px-6 sm:px-8 py-3 rounded-full font-semibold transition-all text-sm sm:text-base transform hover:scale-105"
-                style={getButtonStyles()}
               >
                 <FaEnvelope className="inline mr-2" /> Candidati
               </button>
@@ -4329,7 +4560,6 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
               <button 
                 onClick={scrollToContactForm}
                 className="w-full py-3 px-6 rounded-xl text-white font-semibold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 hover:from-blue-700 hover:via-purple-700 hover:to-blue-900 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
-                style={getButtonStyles()}
               >
                 <FaRocket className="w-4 h-4" />
                 {projectTabs[activeProjectTab as keyof typeof projectTabs].ctaText}
@@ -4379,7 +4609,6 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
             <button 
               onClick={scrollToContactForm}
               className="w-full py-4 px-6 rounded-xl text-white font-semibold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 hover:from-blue-700 hover:via-purple-700 hover:to-blue-900 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
-              style={getButtonStyles()}
             >
               <FaRocket className="w-5 h-5" />
               {projectTabs[activeProjectTab as keyof typeof projectTabs].ctaText}
@@ -4493,113 +4722,71 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
       </section>
       */}
 
-      {/* Footer */}
-      <footer className="py-12 sm:py-16 px-4 sm:px-6 bg-gradient-to-b from-blue-50/60 to-blue-100/30 border-t border-blue-100 relative overflow-hidden">
-      
-        {/* Decorative Elements */}
-        <div className="absolute inset-0 pointer-events-none">
-          {/* Floating circles */}
-          <div className="absolute top-10 left-10 w-32 h-32 bg-blue-200/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute top-20 right-20 w-40 h-40 bg-blue-300/15 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
-          <div className="absolute bottom-10 left-1/3 w-36 h-36 bg-blue-200/20 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
-          <div className="absolute bottom-20 right-1/4 w-28 h-28 bg-blue-300/15 rounded-full blur-2xl animate-pulse" style={{animationDelay: '0.5s'}}></div>
-          
-          {/* Wave pattern */}
-          <svg className="absolute bottom-0 left-0 w-full h-24 opacity-20" viewBox="0 0 1440 100" preserveAspectRatio="none">
-            <path fill="currentColor" className="text-blue-300" d="M0,50 C320,90 420,10 720,50 C1020,90 1120,10 1440,50 L1440,100 L0,100 Z"></path>
-          </svg>
-          
-          {/* Grid pattern */}
-          <div className="absolute inset-0 opacity-5">
-            <div className="h-full w-full" style={{
-              backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 35px, rgba(59, 130, 246, 0.15) 35px, rgba(59, 130, 246, 0.15) 36px),
-                               repeating-linear-gradient(90deg, transparent, transparent 35px, rgba(59, 130, 246, 0.15) 35px, rgba(59, 130, 246, 0.15) 36px)`
-            }}></div>
+      <Footer />
+
+      {/* Custom Alert/Confirm Modal */}
+      {modalData.isOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[70] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative">
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-100/20 to-transparent rounded-full -z-10"></div>
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-100/20 to-transparent rounded-full -z-10"></div>
+
+            {/* Icon based on type */}
+            <div className="flex justify-center mb-4">
+              {modalData.type === 'error' && (
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              )}
+              {modalData.type === 'warning' && (
+                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+              )}
+              {modalData.type === 'confirm' && (
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                  <svg className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              )}
+            </div>
+
+            {/* Title */}
+            <h3 className="text-xl font-bold text-center mb-3 text-gray-800">
+              {modalData.title}
+            </h3>
+
+            {/* Message */}
+            <p className="text-gray-600 text-center mb-6 leading-relaxed">
+              {modalData.message}
+            </p>
+
+            {/* Buttons */}
+            <div className="flex gap-3 justify-center">
+              {modalData.type === 'confirm' && modalData.onCancel && (
+                <button
+                  onClick={modalData.onCancel}
+                  className="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                >
+                  {modalData.cancelText || 'Annulla'}
+                </button>
+              )}
+              <button
+                onClick={modalData.onConfirm || (() => setModalData(prev => ({ ...prev, isOpen: false })))}
+                className="px-6 py-2.5 gradient-bg-brand text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
+              >
+                {modalData.confirmText || 'OK'}
+              </button>
+            </div>
           </div>
         </div>
-        
-        <div className="w-full max-w-7xl lg:max-w-[1600px] mx-auto px-6 lg:px-12 relative z-10">
-          {/* Logo centered at top - BIGGER */}
-          <div className="flex justify-center mb-12">
-            <div className="relative cursor-pointer" onClick={() => window.location.reload()}>
-              <div className="absolute -inset-6 bg-gradient-to-r from-blue-200/30 to-blue-300/30 rounded-full blur-xl"></div>
-              <Image
-                src="/images/logo-2.png"
-                alt="SafeScale Agency Logo"
-                width={280}
-                height={90}
-                className="h-20 sm:h-24 w-auto relative z-10 hover:opacity-90 transition-opacity"
-              />
-            </div>
-          </div>
-          
-          {/* Motto centered below logo */}
-          <div className="text-center mb-12">
-            <p className="text-gray-600 text-xl font-medium">
-              We risk, you profit.
-            </p>
-            <p className="text-gray-500 text-base mt-2">
-              La prima agenzia di marketing che investe su di te e sui tuoi progetti.
-            </p>
-          </div>
-          
-          {/* Links Grid - Services Left, Company Right - AT MARGINS */}
-          <div className="flex flex-col md:flex-row justify-between mb-12 w-full">
-            <div className="text-center md:text-left mb-8 md:mb-0">
-              <h4 className="font-bold mb-5 text-gray-700 text-lg sm:text-xl">Servizi</h4>
-              <ul className="space-y-3 text-gray-500 text-base sm:text-lg">
-                <li><Link href="#" className="hover:text-blue-600 transition-colors">Google Ads</Link></li>
-                <li><Link href="#" className="hover:text-blue-600 transition-colors">SEO</Link></li>
-                <li><Link href="#" className="hover:text-blue-600 transition-colors">Social Media</Link></li>
-                <li><Link href="#" className="hover:text-blue-600 transition-colors">Web Design</Link></li>
-              </ul>
-            </div>
-            
-            <div className="text-center md:text-right">
-              <h4 className="font-bold mb-5 text-gray-700 text-lg sm:text-xl">Azienda</h4>
-              <ul className="space-y-3 text-gray-500 text-base sm:text-lg">
-                <li><Link href="#" className="hover:text-blue-600 transition-colors">Chi Siamo</Link></li>
-                <li><Link href="#" className="hover:text-blue-600 transition-colors">Servizi</Link></li>
-                <li><Link href="#" className="hover:text-blue-600 transition-colors">Come funziona</Link></li>
-                <li><Link href="#" className="hover:text-blue-600 transition-colors">Contatti</Link></li>
-              </ul>
-            </div>
-          </div>
-          
-          {/* Divider with design element */}
-          <div className="relative">
-            <div className="border-t border-blue-200/50"></div>
-            <div className="absolute left-1/2 -translate-x-1/2 -top-2 bg-gradient-to-b from-blue-50/60 to-blue-100/30 px-4">
-              <div className="w-4 h-4 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full"></div>
-            </div>
-          </div>
-          
-          {/* Contact Info and Copyright */}
-          <div className="mt-8 text-center">
-            {/* Contact Info FIRST */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-gray-400 text-base sm:text-lg mb-6">
-              <div className="flex items-center gap-2">
-                <FaEnvelope className="text-blue-400 text-lg" />
-                <span>info@safescale.com</span>
-              </div>
-              <div className="hidden sm:block text-gray-300">|</div>
-              <div className="flex items-center gap-2">
-                <FaPhone className="text-blue-400 text-lg" />
-                <span>+39 123 456 7890</span>
-              </div>
-              <div className="hidden sm:block text-gray-300">|</div>
-              <div className="flex items-center gap-2">
-                <FaBullseye className="text-blue-400 text-lg" />
-                <span>Milano, Italia</span>
-              </div>
-            </div>
-            
-            {/* Copyright BELOW contacts */}
-            <p className="text-sm sm:text-base text-gray-500">&copy; 2025 SafeScale Agency. Tutti i diritti riservati.</p>
-          </div>
-        </div>
-        
-      </footer>
+      )}
 
       {/* Image Modal */}
       {selectedImage && (
