@@ -4019,89 +4019,297 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
       </section>
 
       {/* Meta Ads Section */}
-      <section 
-        id="meta-ads" 
-        className="py-16 px-0 bg-gradient-to-br from-purple-50/15 via-white to-pink-50/10 relative"
+      <section
+        id="meta-ads"
+        className="py-16 px-0 bg-gradient-to-br from-purple-50/15 via-white to-pink-50/10 relative overflow-hidden"
         data-section="meta-ads"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-purple-50/30 via-transparent to-pink-50/30"></div>
-        
+
         <div className="w-full max-w-7xl mx-auto relative z-10 px-6 lg:px-12">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            
+
             {/* Text content for Meta Ads */}
             <div className={`lg:order-2 space-y-6 lg:space-y-8 slide-up-enter slide-up-delay-1 ${visibleSections.includes('meta-ads') ? 'slide-up-visible' : ''}`}>
               <div className="inline-block px-3 py-2 bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-200 rounded-full text-xs sm:text-sm">
                 Meta Ads
               </div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{color: '#1c1a31'}}>
-                Campagne Pubblicitarie Su <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Meta Ads</span>
+                Campagne Pubblicitarie su <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Meta Ads</span>
               </h2>
               
-              {/* Dashboard Box - mobile only, under title */}
-              <div className={`lg:hidden dashboard-window-drop ${visibleSections.includes('meta-ads') ? 'visible' : ''}`}>
-                {/* Dashboard Header */}
-                <div className="dashboard-header bg-white rounded-t-2xl border border-gray-200 hover:border-purple-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 p-4 relative">
-                  {/* Meta Logo in Corner */}
-                  <div className="absolute top-3 right-3 w-12 h-12 opacity-100 hover:scale-110 transition-transform cursor-pointer">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px" height="48px">
-                      <path fill="#0081fb" d="M47,29.36l-2.193,1.663L42.62,29.5c0-0.16,0-0.33-0.01-0.5c0-0.16,0-0.33-0.01-0.5c-0.14-3.94-1.14-8.16-3.14-11.25c-1.54-2.37-3.51-3.5-5.71-3.5c-2.31,0-4.19,1.38-6.27,4.38c-0.06,0.09-0.13,0.18-0.19,0.28c-0.04,0.05-0.07,0.1-0.11,0.16c-0.1,0.15-0.2,0.3-0.3,0.46c-0.9,1.4-1.84,3.03-2.86,4.83c-0.09,0.17-0.19,0.34-0.28,0.51c-0.03,0.04-0.06,0.09-0.08,0.13l-0.21,0.37l-1.24,2.19c-2.91,5.15-3.65,6.33-5.1,8.26C14.56,38.71,12.38,40,9.51,40c-3.4,0-5.56-1.47-6.89-3.69C1.53,34.51,1,32.14,1,29.44l4.97,0.17c0,1.76,0.38,3.1,0.89,3.92C7.52,34.59,8.49,35,9.5,35c1.29,0,2.49-0.27,4.77-3.43c1.83-2.53,3.99-6.07,5.44-8.3l1.37-2.09l0.29-0.46l0.3-0.45l0.5-0.77c0.76-1.16,1.58-2.39,2.46-3.57c0.1-0.14,0.2-0.28,0.31-0.42c0.1-0.14,0.21-0.28,0.31-0.41c0.9-1.15,1.85-2.22,2.87-3.1c1.85-1.61,3.84-2.5,5.85-2.5c3.37,0,6.58,1.95,9.04,5.61c2.51,3.74,3.82,8.4,3.97,13.25c0.01,0.16,0.01,0.33,0.01,0.5C47,29.03,47,29.19,47,29.36z"/>
-                      <linearGradient id="metaGrad1" x1="42.304" x2="13.533" y1="24.75" y2="24.75" gradientUnits="userSpaceOnUse">
-                        <stop offset="0" stopColor="#0081fb"/>
-                        <stop offset=".995" stopColor="#0064e1"/>
-                      </linearGradient>
-                      <path fill="url(#metaGrad1)" d="M4.918,15.456C7.195,11.951,10.483,9.5,14.253,9.5c2.184,0,4.354,0.645,6.621,2.493c2.479,2.02,5.122,5.346,8.419,10.828l1.182,1.967c2.854,4.746,4.477,7.187,5.428,8.339C37.125,34.606,37.888,35,39,35c2.82,0,3.617-2.54,3.617-5.501L47,29.362c0,3.095-0.611,5.369-1.651,7.165C44.345,38.264,42.387,40,39.093,40c-2.048,0-3.862-0.444-5.868-2.333c-1.542-1.45-3.345-4.026-4.732-6.341l-4.126-6.879c-2.07-3.452-3.969-6.027-5.068-7.192c-1.182-1.254-2.642-2.754-5.067-2.754c-1.963,0-3.689,1.362-5.084,3.465L4.918,15.456z"/>
-                      <linearGradient id="metaGrad2" x1="7.635" x2="7.635" y1="32.87" y2="13.012" gradientUnits="userSpaceOnUse">
-                        <stop offset="0" stopColor="#0081fb"/>
-                        <stop offset=".995" stopColor="#0064e1"/>
-                      </linearGradient>
-                      <path fill="url(#metaGrad2)" d="M14.25,14.5c-1.959,0-3.683,1.362-5.075,3.465C7.206,20.937,6,25.363,6,29.614c0,1.753-0.003,3.072,0.5,3.886l-3.84,2.813C1.574,34.507,1,32.2,1,29.5c0-4.91,1.355-10.091,3.918-14.044C7.192,11.951,10.507,9.5,14.27,9.5L14.25,14.5z"/>
-                    </svg>
-                  </div>
-                  
-                  {/* Mock Meta Ads Interface */}
-                  <div className="flex items-center space-x-3">
-                    <span className="font-semibold text-sm sm:text-base text-gray-800">Meta Business Suite</span>
+              {/* Mobile Video Mockup - Under title */}
+              <div className={`lg:hidden ${visibleSections.includes('meta-ads') ? 'visible' : ''}`}>
+                {/* Animated Instagram Reel Mockup */}
+                <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl mx-auto" style={{maxWidth: '320px'}}>
+                  <div className="aspect-[9/16] relative bg-gradient-to-br from-purple-900 via-purple-700 to-pink-600">
+                    {/* Simulated Phone Screen */}
+                    <div className="absolute inset-0 flex flex-col">
+                      {/* Instagram Feed Animation */}
+                      <div className={`h-full w-full relative overflow-hidden ${visibleSections.includes('meta-ads') ? 'animate-funnel-sequence' : ''}`}>
+                        {/* Step 1: Instagram Home Feed */}
+                        <div className="absolute inset-0 step-feed bg-white">
+                          {/* Instagram Header */}
+                          <div className="bg-white border-b border-gray-200 px-4 py-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xl font-bold">Instagram</span>
+                              <div className="flex gap-4">
+                                <span className="text-xl">❤️</span>
+                                <span className="text-xl">✉️</span>
+                              </div>
+                            </div>
+                          </div>
+                          {/* Stories Row */}
+                          <div className="bg-white p-3 border-b border-gray-100">
+                            <div className="flex gap-3 overflow-x-auto">
+                              <div className="flex-shrink-0 text-center story-profile-1">
+                                <div className="relative">
+                                  <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 p-[2px]">
+                                    <div className="w-full h-full bg-white rounded-full p-[2px]">
+                                      <div className="w-full h-full bg-gray-300 rounded-full"></div>
+                                    </div>
+                                  </div>
+                                  {/* Tap indicator */}
+                                  <div className="absolute inset-0 rounded-full tap-story-indicator"></div>
+                                </div>
+                                <p className="text-xs mt-1">fashion</p>
+                              </div>
+                              <div className="flex-shrink-0 text-center">
+                                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 p-[2px]">
+                                  <div className="w-full h-full bg-white rounded-full p-[2px]">
+                                    <div className="w-full h-full bg-gray-300 rounded-full"></div>
+                                  </div>
+                                </div>
+                                <p className="text-xs mt-1">travel</p>
+                              </div>
+                              <div className="flex-shrink-0 text-center">
+                                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 p-[2px]">
+                                  <div className="w-full h-full bg-white rounded-full p-[2px]">
+                                    <div className="w-full h-full bg-gray-300 rounded-full"></div>
+                                  </div>
+                                </div>
+                                <p className="text-xs mt-1">food</p>
+                              </div>
+                            </div>
+                          </div>
+                          {/* Feed Posts Preview */}
+                          <div className="flex-1 bg-white p-2">
+                            <div className="bg-gray-100 rounded-lg h-32 mb-2"></div>
+                            <div className="bg-gray-100 rounded-lg h-32"></div>
+                          </div>
+                        </div>
+
+                        {/* Step 2: Story View - First Story */}
+                        <div className="absolute inset-0 step-story-1 bg-black">
+                          {/* Story Progress Bar */}
+                          <div className="absolute top-0 left-0 right-0 p-2 z-20">
+                            <div className="flex gap-1">
+                              <div className="flex-1 h-0.5 bg-white/30 rounded overflow-hidden">
+                                <div className="h-full bg-white story-progress-1"></div>
+                              </div>
+                              <div className="flex-1 h-0.5 bg-white/30 rounded"></div>
+                            </div>
+                          </div>
+                          {/* Story Header */}
+                          <div className="absolute top-4 left-0 right-0 px-3 z-10 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 p-[1px]">
+                                <div className="w-full h-full bg-gray-300 rounded-full"></div>
+                              </div>
+                              <span className="text-white text-xs font-medium">fashion</span>
+                              <span className="text-white/60 text-xs">2h</span>
+                            </div>
+                            <span className="text-white">✕</span>
+                          </div>
+                          {/* Story Content */}
+                          <div className="h-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center">
+                            <div className="text-white text-center">
+                              <div className="text-5xl mb-3">👗</div>
+                              <p className="text-lg font-bold">New Collection</p>
+                              <p className="text-sm opacity-90">Summer 2024</p>
+                            </div>
+                          </div>
+                          {/* Next Story Arrow */}
+                          <div className="absolute right-2 top-1/2 -translate-y-1/2 text-white/50 text-3xl story-next-arrow">
+                            ❯
+                          </div>
+                        </div>
+
+                        {/* Step 3: Sponsored Story */}
+                        <div className="absolute inset-0 step-story-sponsored bg-black">
+                          {/* Story Progress Bar */}
+                          <div className="absolute top-0 left-0 right-0 p-2 z-20">
+                            <div className="flex gap-1">
+                              <div className="flex-1 h-0.5 bg-white rounded"></div>
+                              <div className="flex-1 h-0.5 bg-white/30 rounded overflow-hidden">
+                                <div className="h-full bg-white story-progress-2"></div>
+                              </div>
+                            </div>
+                          </div>
+                          {/* Story Header with Sponsored Badge */}
+                          <div className="absolute top-4 left-0 right-0 px-3 z-10 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 p-[1px]">
+                                <div className="w-full h-full bg-gray-300 rounded-full"></div>
+                              </div>
+                              <div>
+                                <p className="text-white text-xs font-medium">yourbrand</p>
+                                <p className="text-white/60 text-[10px]">Sponsorizzato</p>
+                              </div>
+                            </div>
+                            <span className="text-white">✕</span>
+                          </div>
+                          {/* Sponsored Story Content with Image */}
+                          <div className="h-full relative">
+                            <Image
+                              src="/images/Storie-instagram.png"
+                              alt="Sponsored Story"
+                              fill
+                              className="object-cover"
+                              priority
+                            />
+                            {/* CTA Button */}
+                            <div className="absolute bottom-20 left-1/2 -translate-x-1/2">
+                              <button className="bg-white text-black px-8 py-3 rounded-full font-bold flex items-center gap-2 shop-now-tap">
+                                Acquista Ora
+                                <span className="text-sm">→</span>
+                              </button>
+                              {/* Touch Effect */}
+                              <div className="absolute inset-0 rounded-full touch-effect"></div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Step 4: Shopify Landing Page */}
+                        <div className="absolute inset-0 step-shopify-landing bg-gray-50">
+                          {/* Shopify Header */}
+                          <div className="bg-white border-b border-gray-200 px-4 py-3">
+                            <div className="flex items-center justify-between">
+                              <h1 className="text-lg font-bold">YourBrand</h1>
+                              <div className="flex items-center gap-3">
+                                <span className="text-gray-600">🔍</span>
+                                <span className="text-gray-600">🛒</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Product Hero */}
+                          <div className="p-4">
+                            <div className="bg-white rounded-lg overflow-hidden shadow-sm">
+                              <div className="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 relative">
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <div className="text-center">
+                                    <div className="w-32 h-32 mx-auto mb-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg"></div>
+                                    <p className="text-gray-600 text-sm">Premium Product</p>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="p-4">
+                                <h2 className="text-xl font-bold mb-2">Prodotto Esclusivo</h2>
+                                <p className="text-2xl font-bold text-green-600 mb-4">€49,99</p>
+
+                                {/* Add to Cart Buttons */}
+                                <button className="w-full bg-black text-white py-3 rounded font-bold hover:bg-gray-800 transition-colors add-to-cart-pulse">
+                                  Aggiungi al Carrello
+                                </button>
+
+                                {/* Trust Badges */}
+                                <div className="flex justify-around mt-4 pt-4 border-t">
+                                  <div className="text-center">
+                                    <span className="text-2xl">🚚</span>
+                                    <p className="text-xs text-gray-600 mt-1">Spedizione Gratuita</p>
+                                  </div>
+                                  <div className="text-center">
+                                    <span className="text-2xl">🔒</span>
+                                    <p className="text-xs text-gray-600 mt-1">Pagamento Sicuro</p>
+                                  </div>
+                                  <div className="text-center">
+                                    <span className="text-2xl">↩️</span>
+                                    <p className="text-xs text-gray-600 mt-1">Reso Facile</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Step 5: Order Confirmation */}
+                        <div className="absolute inset-0 step-order-complete bg-gray-50">
+                          {/* Shopify Header */}
+                          <div className="bg-white border-b border-gray-200 px-4 py-3">
+                            <div className="flex items-center justify-center">
+                              <h1 className="text-lg font-bold">Ordine Completato</h1>
+                            </div>
+                          </div>
+
+                          {/* Success Animation */}
+                          <div className="flex flex-col items-center justify-center h-full p-8">
+                            <div className="success-checkmark mb-6">
+                              <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center text-white text-5xl animate-pulse">
+                                ✓
+                              </div>
+                            </div>
+
+                            <h2 className="text-2xl font-bold mb-2">Grazie per il tuo ordine!</h2>
+                            <p className="text-gray-600 text-center mb-6">Il tuo ordine #12345 è stato confermato</p>
+
+                            {/* Order Summary */}
+                            <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-sm">
+                              <div className="flex justify-between mb-2">
+                                <span className="text-gray-600">Prodotto Esclusivo</span>
+                                <span className="font-medium">€49,99</span>
+                              </div>
+                              <div className="flex justify-between mb-2">
+                                <span className="text-gray-600">Spedizione</span>
+                                <span className="font-medium text-green-600">Gratis</span>
+                              </div>
+                              <div className="border-t pt-2 mt-2">
+                                <div className="flex justify-between">
+                                  <span className="font-bold">Totale</span>
+                                  <span className="font-bold text-xl">€49,99</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Email Confirmation */}
+                            <p className="text-sm text-gray-500 mt-4">
+                              📧 Riceverai un'email di conferma a breve
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                
-                {/* Dashboard Content */}
-                <div className="dashboard-content bg-white rounded-b-2xl border border-t-0 border-gray-200 p-4">
-                  <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
-                    <div className="metric-box text-center bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-lg">
-                      <div className="text-lg sm:text-2xl font-bold text-gray-800">
-                        {useCountUp(892341, 2000, visibleSections.includes('meta-ads')).toLocaleString('it-IT')}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-600">Reach</div>
+
+                {/* Performance Box - Under Video */}
+                <div className="mt-6 bg-white rounded-xl p-4 border border-gray-200 shadow-lg max-w-sm mx-auto">
+                  <div className="grid grid-cols-2 gap-4 text-center">
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1">CPA medio</p>
+                      <p className="text-xl font-bold text-purple-600">€3.16</p>
                     </div>
-                    <div className="metric-box text-center bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-lg">
-                      <div className="text-lg sm:text-2xl font-bold text-gray-800">
-                        €{useCountUp(15234, 2000, visibleSections.includes('meta-ads')).toLocaleString('it-IT')}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-600">Spesa</div>
-                    </div>
-                    <div className="metric-box text-center bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-lg">
-                      <div className="text-lg sm:text-2xl font-bold text-gray-800">
-                        €{useCountUp(312456, 2000, visibleSections.includes('meta-ads')).toLocaleString('it-IT')}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-600">Ricavi</div>
-                    </div>
-                  </div>
-                  
-                  {/* Mock Chart */}
-                  <div className="chart-box bg-gradient-to-r from-blue-100 to-purple-100 border border-purple-200 p-3 sm:p-4 rounded-lg">
-                    <div className="h-24 sm:h-32 flex items-end space-x-1">
-                      {[50, 75, 55, 85, 65, 90, 70, 85, 95, 85, 80, 100].map((height, i) => (
-                        <div key={i} className="flex-1 bg-gradient-to-t from-blue-600 to-purple-600 rounded-t transform hover:scale-110 transition-transform duration-300" style={{height: `${height}%`, animationDelay: `${i * 0.1}s`}}></div>
-                      ))}
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1">Ordini generati</p>
+                      <p className="text-xl font-bold text-blue-600">4,823</p>
                     </div>
                   </div>
                 </div>
               </div>
-              
+
+              {/* Main KPI Highlight Box */}
+              <div className={`bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-6 text-white shadow-2xl transform hover:scale-105 transition-all duration-300 ${visibleSections.includes('meta-ads') ? 'animate-pulse-slow' : ''}`}>
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">👉</span>
+                  <p className="text-lg lg:text-xl font-semibold">
+                    💰 Ogni <span className="text-2xl font-bold">€1</span> investito ha generato <span className="text-2xl font-bold">€12,5</span> di ritorno medio.
+                  </p>
+                </div>
+              </div>
+
               <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-                Sfruttiamo il potere di <span className="font-bold">Facebook e Instagram</span> per raggiungere il tuo pubblico ideale con campagne mirate e altamente personalizzate. <br />
-                Il nostro team di esperti crea <span className="font-bold">contenuti virali</span> e <span className="font-bold">strategie di targeting avanzate</span> per massimizzare l'engagement e le conversioni. <br />
+                Sfruttiamo il potere di Facebook e Instagram per creare <span className="font-bold">campagne mirate</span> e <span className="font-bold">contenuti virali</span>.<br />
+                Grazie a strategie di <span className="font-bold">targeting avanzato</span>, portiamo milioni di persone a scoprire e acquistare il tuo brand.<br />
                 Con Meta Ads, <span className="font-bold">investiamo sul tuo successo</span> e condividiamo i risultati.
               </p>
               <button 
@@ -4112,62 +4320,158 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
               </button>
             </div>
             
-            {/* Desktop Dashboard - left side */}
-            <div className={`lg:order-1 hidden lg:block dashboard-window-drop ${visibleSections.includes('meta-ads') ? 'visible' : ''}`}>
-              {/* Dashboard Header */}
-              <div className="dashboard-header bg-white rounded-t-2xl border border-gray-200 hover:border-purple-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 p-6 relative">
-                {/* Meta Logo in Corner */}
-                <div className="absolute top-4 right-4 w-14 h-14 opacity-100 hover:scale-110 transition-transform cursor-pointer">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px" height="48px">
-                    <path fill="#0081fb" d="M47,29.36l-2.193,1.663L42.62,29.5c0-0.16,0-0.33-0.01-0.5c0-0.16,0-0.33-0.01-0.5c-0.14-3.94-1.14-8.16-3.14-11.25c-1.54-2.37-3.51-3.5-5.71-3.5c-2.31,0-4.19,1.38-6.27,4.38c-0.06,0.09-0.13,0.18-0.19,0.28c-0.04,0.05-0.07,0.1-0.11,0.16c-0.1,0.15-0.2,0.3-0.3,0.46c-0.9,1.4-1.84,3.03-2.86,4.83c-0.09,0.17-0.19,0.34-0.28,0.51c-0.03,0.04-0.06,0.09-0.08,0.13l-0.21,0.37l-1.24,2.19c-2.91,5.15-3.65,6.33-5.1,8.26C14.56,38.71,12.38,40,9.51,40c-3.4,0-5.56-1.47-6.89-3.69C1.53,34.51,1,32.14,1,29.44l4.97,0.17c0,1.76,0.38,3.1,0.89,3.92C7.52,34.59,8.49,35,9.5,35c1.29,0,2.49-0.27,4.77-3.43c1.83-2.53,3.99-6.07,5.44-8.3l1.37-2.09l0.29-0.46l0.3-0.45l0.5-0.77c0.76-1.16,1.58-2.39,2.46-3.57c0.1-0.14,0.2-0.28,0.31-0.42c0.1-0.14,0.21-0.28,0.31-0.41c0.9-1.15,1.85-2.22,2.87-3.1c1.85-1.61,3.84-2.5,5.85-2.5c3.37,0,6.58,1.95,9.04,5.61c2.51,3.74,3.82,8.4,3.97,13.25c0.01,0.16,0.01,0.33,0.01,0.5C47,29.03,47,29.19,47,29.36z"/>
-                    <linearGradient id="metaGrad3" x1="42.304" x2="13.533" y1="24.75" y2="24.75" gradientUnits="userSpaceOnUse">
-                      <stop offset="0" stop-color="#0081fb"/>
-                      <stop offset=".995" stop-color="#0064e1"/>
-                    </linearGradient>
-                    <path fill="url(#metaGrad3)" d="M4.918,15.456C7.195,11.951,10.483,9.5,14.253,9.5c2.184,0,4.354,0.645,6.621,2.493c2.479,2.02,5.122,5.346,8.419,10.828l1.182,1.967c2.854,4.746,4.477,7.187,5.428,8.339C37.125,34.606,37.888,35,39,35c2.82,0,3.617-2.54,3.617-5.501L47,29.362c0,3.095-0.611,5.369-1.651,7.165C44.345,38.264,42.387,40,39.093,40c-2.048,0-3.862-0.444-5.868-2.333c-1.542-1.45-3.345-4.026-4.732-6.341l-4.126-6.879c-2.07-3.452-3.969-6.027-5.068-7.192c-1.182-1.254-2.642-2.754-5.067-2.754c-1.963,0-3.689,1.362-5.084,3.465L4.918,15.456z"/>
-                    <linearGradient id="metaGrad4" x1="7.635" x2="7.635" y1="32.87" y2="13.012" gradientUnits="userSpaceOnUse">
-                      <stop offset="0" stop-color="#0081fb"/>
-                      <stop offset=".995" stop-color="#0064e1"/>
-                    </linearGradient>
-                    <path fill="url(#metaGrad4)" d="M14.25,14.5c-1.959,0-3.683,1.362-5.075,3.465C7.206,20.937,6,25.363,6,29.614c0,1.753-0.003,3.072,0.5,3.886l-3.84,2.813C1.574,34.507,1,32.2,1,29.5c0-4.91,1.355-10.091,3.918-14.044C7.192,11.951,10.507,9.5,14.27,9.5L14.25,14.5z"/>
-                  </svg>
-                </div>
-                
-                {/* Mock Meta Ads Interface */}
-                <div className="flex items-center space-x-3">
-                  <span className="font-semibold text-base text-gray-800">Meta Business Suite</span>
-                </div>
-              </div>
-              
-              {/* Dashboard Content */}
-              <div className="dashboard-content bg-white rounded-b-2xl border border-t-0 border-gray-200 p-6">
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="metric-box text-center bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-lg">
-                    <div className="text-2xl font-bold text-gray-800">
-                      {useCountUp(892341, 2000, visibleSections.includes('meta-ads')).toLocaleString('it-IT')}
+            {/* Desktop Video Mockup - left side */}
+            <div className={`lg:order-1 hidden lg:block ${visibleSections.includes('meta-ads') ? 'visible' : ''}`}>
+              <div className="flex gap-8">
+                {/* Animated Instagram Reel Mockup - Larger on Desktop */}
+                <div className="flex-1">
+                  <div className="relative bg-black rounded-3xl overflow-hidden shadow-2xl mx-auto" style={{maxWidth: '380px'}}>
+                    <div className="aspect-[9/16] relative bg-gradient-to-br from-purple-900 via-purple-700 to-pink-600">
+                      {/* Simulated Phone Screen with Funnel Animation */}
+                      <div className="absolute inset-0 flex flex-col">
+                        {/* Instagram Feed Animation */}
+                        <div className={`h-full w-full relative overflow-hidden ${visibleSections.includes('meta-ads') ? 'animate-funnel-sequence' : ''}`}>
+                          {/* Step 1: Instagram Stories Style - Desktop */}
+                          <div className="absolute inset-0 step-feed bg-black">
+                            {/* Instagram Stories Header */}
+                            <div className="absolute top-0 left-0 right-0 bg-black p-4 z-10">
+                              <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                  </svg>
+                                  <span className="text-white text-base font-semibold">Storie</span>
+                                </div>
+                                <div className="flex gap-4">
+                                  <span className="text-white text-2xl">🔍</span>
+                                  <span className="text-white text-2xl">❤️</span>
+                                </div>
+                              </div>
+                              {/* Stories Row - Desktop */}
+                              <div className="flex gap-3 overflow-x-auto scrollbar-hide">
+                                <div className="flex-shrink-0">
+                                  <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 p-0.5">
+                                    <div className="w-full h-full bg-black rounded-full flex items-center justify-center">
+                                      <span className="text-white text-sm">+</span>
+                                    </div>
+                                  </div>
+                                  <p className="text-white text-xs mt-1 text-center">La tua storia</p>
+                                </div>
+                                {[1,2,3,4,5,6].map((i) => (
+                                  <div key={i} className="flex-shrink-0">
+                                    <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 p-0.5">
+                                      <div className="w-full h-full bg-gray-300 rounded-full"></div>
+                                    </div>
+                                    <p className="text-white text-xs mt-1 text-center">user{i}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            {/* Stories Content with Image - Desktop */}
+                            <div className="h-full flex items-center justify-center pt-28">
+                              <div className="relative w-full h-full">
+                                <Image
+                                  src="/images/Storie-instagram.png"
+                                  alt="Instagram Stories"
+                                  fill
+                                  className="object-cover"
+                                  priority
+                                />
+                                {/* Overlay for better visibility */}
+                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50"></div>
+                                {/* Swipe up indicator - Desktop */}
+                                <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-white text-center animate-bounce">
+                                  <p className="text-sm mb-3 opacity-75">Swipe up</p>
+                                  <span className="text-3xl">⬆️</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Step 2: Sponsored Reel Appears */}
+                          <div className="absolute inset-0 flex flex-col step-reel">
+                            <div className="flex-1 relative">
+                              {/* Sponsored Badge */}
+                              <div className="absolute top-6 left-6 bg-black/70 px-4 py-2 rounded-full text-white text-sm z-10 font-medium">
+                                Sponsorizzato
+                              </div>
+                              {/* Product Display */}
+                              <div className="h-full flex items-center justify-center px-8">
+                                <div className="text-white text-center">
+                                  <div className="text-7xl mb-4 animate-bounce-slow">🛍️</div>
+                                  <p className="text-2xl font-bold mb-3">Nuova Collezione</p>
+                                  <p className="text-base opacity-90 mb-8">Scopri i prodotti esclusivi</p>
+                                  {/* Shop Now Button with Pulse Animation */}
+                                  <button className="bg-white text-black px-8 py-4 rounded-full font-bold text-lg relative transform hover:scale-105 transition-transform">
+                                    Shop Now
+                                    <span className="absolute inset-0 rounded-full bg-white animate-ping-slow opacity-50"></span>
+                                  </button>
+                                </div>
+                              </div>
+                              {/* Click Animation Indicator */}
+                              <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 pointer-events-none">
+                                <div className="w-16 h-16 rounded-full border-3 border-white animate-tap-effect opacity-80"></div>
+                              </div>
+                              {/* Side Actions */}
+                              <div className="absolute bottom-12 right-6 text-white space-y-6 text-center">
+                                <div>
+                                  <div className="text-3xl">❤️</div>
+                                  <p className="text-sm">23.5k</p>
+                                </div>
+                                <div>
+                                  <div className="text-3xl">💬</div>
+                                  <p className="text-sm">892</p>
+                                </div>
+                                <div>
+                                  <div className="text-3xl">➤</div>
+                                  <p className="text-sm">1.2k</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Step 3: Landing Page */}
+                          <div className="absolute inset-0 flex items-center justify-center step-landing bg-white">
+                            <div className="text-center px-8">
+                              <div className="text-6xl mb-4">🛒</div>
+                              <p className="text-gray-900 font-bold text-xl mb-3">Il tuo prodotto esclusivo</p>
+                              <p className="text-4xl font-bold text-purple-600 mb-6">€49.99</p>
+                              <div className="space-y-3">
+                                <button className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-10 py-4 rounded-xl font-bold text-lg w-full transform hover:scale-105 transition-transform">
+                                  Aggiungi al Carrello
+                                </button>
+                                <p className="text-sm text-gray-500">Spedizione gratuita • Reso facile</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Step 4: Order Complete */}
+                          <div className="absolute inset-0 flex items-center justify-center step-complete bg-gradient-to-br from-green-500 to-emerald-600">
+                            <div className="text-white text-center">
+                              <div className="text-7xl mb-6 animate-bounce">✅</div>
+                              <p className="text-2xl font-bold mb-3">Ordine Completato!</p>
+                              <p className="text-lg opacity-90 mb-4">Grazie per il tuo acquisto</p>
+                              <div className="text-6xl animate-pulse">📦</div>
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-600">Reach</div>
                   </div>
-                  <div className="metric-box text-center bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-lg">
-                    <div className="text-2xl font-bold text-gray-800">
-                      €{useCountUp(15234, 2000, visibleSections.includes('meta-ads')).toLocaleString('it-IT')}
+
+                  {/* Performance Summary Box - Under Video */}
+                  <div className="mt-8 bg-white rounded-2xl p-6 border border-gray-200 shadow-xl">
+                    <div className="grid grid-cols-2 gap-6 text-center">
+                      <div className="border-r border-gray-200">
+                        <p className="text-sm text-gray-600 mb-2">CPA medio</p>
+                        <p className="text-3xl font-bold text-purple-600">€3.16</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 mb-2">Ordini generati</p>
+                        <p className="text-3xl font-bold text-blue-600">4,823</p>
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-600">Spesa</div>
-                  </div>
-                  <div className="metric-box text-center bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-lg">
-                    <div className="text-2xl font-bold text-gray-800">
-                      €{useCountUp(312456, 2000, visibleSections.includes('meta-ads')).toLocaleString('it-IT')}
-                    </div>
-                    <div className="text-sm text-gray-600">Ricavi</div>
-                  </div>
-                </div>
-                
-                {/* Mock Chart */}
-                <div className="chart-box bg-gradient-to-r from-blue-100 to-purple-100 border border-purple-200 p-4 rounded-lg">
-                  <div className="h-32 flex items-end space-x-1">
-                    {[50, 75, 55, 85, 65, 90, 70, 85, 95, 85, 80, 100].map((height, i) => (
-                      <div key={i} className="flex-1 bg-gradient-to-t from-blue-600 to-purple-600 rounded-t transform hover:scale-110 transition-transform duration-300" style={{height: `${height}%`, animationDelay: `${i * 0.1}s`}}></div>
-                    ))}
                   </div>
                 </div>
               </div>

@@ -807,12 +807,364 @@
   .dashboard-window-drop.visible {
     animation-duration: 1.8s;
   }
-  
+
   .dashboard-window-drop.visible .metric-box {
     animation-duration: 0.7s;
   }
-  
+
   .dashboard-window-drop.visible .chart-box {
     animation-duration: 0.9s;
   }
+}
+
+/* Meta Ads Funnel Animations - 5 Steps */
+@keyframes funnel-sequence {
+  0%, 15% {
+    /* Step 1: Instagram Home Feed */
+  }
+  16%, 30% {
+    /* Step 2: First Story */
+  }
+  31%, 45% {
+    /* Step 3: Sponsored Story */
+  }
+  46%, 65% {
+    /* Step 4: Shopify Landing */
+  }
+  66%, 85% {
+    /* Step 5: Order Confirmation */
+  }
+  86%, 100% {
+    /* Loop back to start */
+  }
+}
+
+.animate-funnel-sequence .step-feed {
+  opacity: 0;
+  animation: funnel-step-feed 15s infinite;
+}
+
+.animate-funnel-sequence .step-story-1 {
+  opacity: 0;
+  animation: funnel-step-story-1 15s infinite;
+}
+
+.animate-funnel-sequence .step-story-sponsored {
+  opacity: 0;
+  animation: funnel-step-story-sponsored 15s infinite;
+}
+
+.animate-funnel-sequence .step-shopify-landing {
+  opacity: 0;
+  animation: funnel-step-shopify 15s infinite;
+}
+
+.animate-funnel-sequence .step-order-complete {
+  opacity: 0;
+  animation: funnel-step-order 15s infinite;
+}
+
+@keyframes funnel-step-feed {
+  0%, 12% { opacity: 1; transform: translateY(0); }
+  15%, 100% { opacity: 0; transform: translateY(-20px); }
+}
+
+@keyframes funnel-step-story-1 {
+  0%, 15% { opacity: 0; transform: scale(0.95); }
+  18%, 27% { opacity: 1; transform: scale(1); }
+  30%, 100% { opacity: 0; transform: scale(1.05); }
+}
+
+@keyframes funnel-step-story-sponsored {
+  0%, 30% { opacity: 0; transform: scale(0.95); }
+  33%, 42% { opacity: 1; transform: scale(1); }
+  45%, 100% { opacity: 0; transform: scale(1.05); }
+}
+
+@keyframes funnel-step-shopify {
+  0%, 45% { opacity: 0; transform: translateX(100%); }
+  48%, 62% { opacity: 1; transform: translateX(0); }
+  65%, 100% { opacity: 0; transform: translateX(-100%); }
+}
+
+@keyframes funnel-step-order {
+  0%, 65% { opacity: 0; transform: scale(0.8); }
+  68%, 82% { opacity: 1; transform: scale(1); }
+  85%, 100% { opacity: 0; transform: scale(0.8); }
+}
+
+/* Tap effect animation */
+@keyframes tap-effect {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+/* Touch Effect for Button */
+.touch-effect {
+  pointer-events: none;
+  opacity: 0;
+}
+
+.shop-now-tap:active .touch-effect,
+.animate-funnel-sequence .step-story-sponsored .touch-effect {
+  animation: touch-pulse 0.6s ease-out;
+}
+
+@keyframes touch-pulse {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+/* Story Progress Animation */
+.story-progress-1 {
+  animation: story-progress 4s linear forwards;
+  animation-delay: 2.7s;
+}
+
+.story-progress-2 {
+  animation: story-progress 4s linear forwards;
+  animation-delay: 4.95s;
+}
+
+@keyframes story-progress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+/* Story Next Arrow Animation */
+.story-next-arrow {
+  animation: arrow-pulse 1.5s ease-in-out infinite;
+  animation-delay: 3s;
+}
+
+@keyframes arrow-pulse {
+  0%, 100% { transform: translateY(-50%) translateX(0); }
+  50% { transform: translateY(-50%) translateX(3px); }
+}
+
+/* Add to Cart Button Pulse */
+.add-to-cart-pulse {
+  animation: cart-pulse 2s ease-in-out infinite;
+  animation-delay: 7.5s;
+}
+
+@keyframes cart-pulse {
+  0%, 100% { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+  50% { box-shadow: 0 6px 12px rgba(0,0,0,0.2); transform: scale(1.02); }
+}
+
+/* Success Checkmark Animation */
+.success-checkmark {
+  animation: checkmark-bounce 0.8s ease-out;
+  animation-delay: 10s;
+}
+
+@keyframes checkmark-bounce {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.animate-tap-effect {
+  animation: tap-effect 2s infinite;
+  animation-delay: 3s;
+}
+
+/* KPI Badge Animations - Slide-in with Stack Effect */
+.kpi-badge-1 {
+  animation: badge-slide-1 12s infinite;
+}
+
+.kpi-badge-2 {
+  animation: badge-slide-2 12s infinite;
+}
+
+.kpi-badge-3 {
+  animation: badge-slide-3 12s infinite;
+}
+
+.kpi-badge-4 {
+  animation: badge-slide-4 12s infinite;
+}
+
+.kpi-badge-5 {
+  animation: badge-slide-5 12s infinite;
+}
+
+/* Primary Badge - Impressions */
+@keyframes badge-slide-1 {
+  0%, 5% {
+    opacity: 0;
+    transform: translateX(50px) scale(0.8);
+  }
+  10% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  15%, 20% {
+    /* Stay in initial position */
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  25%, 85% {
+    /* Move to stacked position */
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  90%, 100% {
+    opacity: 0;
+    transform: translateX(50px) scale(0.8);
+  }
+}
+
+/* CTR Badge */
+@keyframes badge-slide-2 {
+  0%, 10% {
+    opacity: 0;
+    transform: translateX(50px) scale(0.8);
+  }
+  15% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  20%, 25% {
+    /* Stay in initial position */
+    transform: translateX(0) translateY(0) scale(0.9);
+  }
+  30%, 85% {
+    /* Stack below first badge */
+    transform: translateX(0) translateY(40px) scale(0.9);
+  }
+  90%, 100% {
+    opacity: 0;
+    transform: translateX(50px) translateY(40px) scale(0.8);
+  }
+}
+
+/* Engagement Badge */
+@keyframes badge-slide-3 {
+  0%, 15% {
+    opacity: 0;
+    transform: translateX(50px) scale(0.8);
+  }
+  20% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  25%, 30% {
+    /* Stay in initial position */
+    transform: translateX(0) translateY(0) scale(0.9);
+  }
+  35%, 85% {
+    /* Stack below second badge */
+    transform: translateX(0) translateY(70px) scale(0.9);
+  }
+  90%, 100% {
+    opacity: 0;
+    transform: translateX(50px) translateY(70px) scale(0.8);
+  }
+}
+
+/* ROAS Badge */
+@keyframes badge-slide-4 {
+  0%, 20% {
+    opacity: 0;
+    transform: translateX(50px) scale(0.8);
+  }
+  25% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  30%, 35% {
+    /* Stay in initial position */
+    transform: translateX(0) translateY(0) scale(0.9);
+  }
+  40%, 85% {
+    /* Stack below third badge */
+    transform: translateX(0) translateY(100px) scale(0.9);
+  }
+  90%, 100% {
+    opacity: 0;
+    transform: translateX(50px) translateY(100px) scale(0.8);
+  }
+}
+
+/* Orders Badge - Special Animation */
+@keyframes badge-slide-5 {
+  0%, 60% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  70%, 85% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  90%, 100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+}
+
+/* Ping animation variations */
+@keyframes ping-slow {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-ping-slow {
+  animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Bounce slow animation */
+@keyframes bounce-slow {
+  0%, 100% {
+    transform: translateY(-10%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 2s infinite;
+}
+
+/* Pulse slow animation for KPI box */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
