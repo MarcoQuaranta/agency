@@ -5098,7 +5098,7 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
               {modalData.message}
             </p>
 
-            {/* Buttons */}
+            {/* Ciaone */}
             <div className="flex gap-3 justify-center">
               {modalData.type === 'confirm' && modalData.onCancel && (
                 <button
