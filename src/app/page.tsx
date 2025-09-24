@@ -1,17 +1,14 @@
 'use client';
 
 import { BarChart2, CheckCircle, FileText, Gauge, Settings } from "lucide-react";
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { 
   FaBolt,
   FaBriefcase,
   FaBullseye,
   FaChartBar,
-  FaChartLine,
-  FaCheckCircle,
-  FaClipboardList,
   FaEnvelope,
   FaLightbulb,
   FaPalette,
@@ -24,44 +21,52 @@ import {
   FaUserTie
 } from 'react-icons/fa';
 
-import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import MetaAdsJourney from '@/components/MetaAdsJourney';
-import OldAgencyBrokenBox from '@/components/OldAgencyBrokenBox';
+
+// Lazy load heavy components
+const Footer = dynamic(() => import('@/components/Footer'), {
+  loading: () => <div className="h-96 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 animate-pulse" />
+});
+const MetaAdsJourney = dynamic(() => import('@/components/MetaAdsJourney'), {
+  loading: () => <div className="h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 animate-pulse" />
+});
+const OldAgencyBrokenBox = dynamic(() => import('@/components/OldAgencyBrokenBox'), {
+  loading: () => <div className="h-96 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 animate-pulse" />
+});
 
 interface FeatureCard {
   icon: JSX.Element;
   title: string;
 }
 
-// Custom hook for counting animation
+// Custom hook for countin animation
 const useCountUp = (end: number, duration = 2000, isVisible = false) => {
   const [count, setCount] = useState(0);
-  
+
   useEffect(() => {
     if (!isVisible) return;
-    
+
     let startTime: number | null = null;
     const startValue = 0;
-    
+
     const animate = (currentTime: number) => {
       if (!startTime) startTime = currentTime;
       const progress = Math.min((currentTime - startTime) / duration, 1);
-      
-      // Easing function for smooth animation  
+
+      // Easing function for smooth animation
       const easeOutQuart = 1 - Math.pow(1 - progress, 4);
       const currentCount = Math.floor(easeOutQuart * (end - startValue) + startValue);
-      
+
       setCount(currentCount);
-      
+
       if (progress < 1) {
         requestAnimationFrame(animate);
       }
     };
-    
+
     requestAnimationFrame(animate);
   }, [end, duration, isVisible]);
-  
+
   return count;
 };
 
@@ -72,6 +77,734 @@ type Item = {
   image: string;
 };
 
+// Questionnaire Form Component
+interface ContactData {
+  nome: string;
+  cognome: string;
+  email: string;
+  telefono: string;
+}
+
+interface QuestionnaireData {
+  brandName: string;
+  website: string;
+  instagram: string;
+  tiktok: string;
+  facebook: string;
+  otherSocial: string;
+  sector: string;
+  sectorOther: string;
+  production: string;
+  productionOther: string;
+  bestSeller: string;
+  margin: string;
+  availability: string;
+  availabilityOther: string;
+  onlineSales: string;
+  monthlyOrders: string;
+  ticketMedio: string;
+  marketingChannels: string[];
+  adInvestment: string;
+  salesChannels: string[];
+  shipping: string;
+  shippingOther: string;
+  returns: string;
+  countries: string;
+  objective: string;
+  objectiveOther: string;
+  revenue: string;
+  team: string;
+  obstacles: string;
+}
+
+const QuestionnaireForm = ({
+  _contactData,
+  _onClose,
+  questionnaireData,
+  setQuestionnaireData,
+  captchaQuestion,
+  captchaAnswer,
+  setCaptchaAnswer,
+  generateCaptcha,
+  handleQuestionnaireSubmit
+}: {
+  _contactData: ContactData;
+  _onClose: () => void;
+  questionnaireData: QuestionnaireData;
+  setQuestionnaireData: React.Dispatch<React.SetStateAction<QuestionnaireData>>;
+  captchaQuestion: { question: string; answer: number };
+  captchaAnswer: string;
+  setCaptchaAnswer: (answer: string) => void;
+  generateCaptcha: () => void;
+  handleQuestionnaireSubmit: (e: React.FormEvent) => void;
+}) => {
+  const [currentSection, setCurrentSection] = useState(1);
+
+  const handleInputChange = (field: string, value: string | string[]) => {
+    setQuestionnaireData((prev) => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleCheckboxChange = (field: keyof QuestionnaireData, value: string, checked: boolean) => {
+    setQuestionnaireData((prev) => {
+      const currentValue = prev[field];
+      if (Array.isArray(currentValue)) {
+        // Special handling for question 12 - marketing channels
+        if (field === 'marketingChannels' && value === 'Nessuno' && checked) {
+          // If "Nessuno" is checked, clear all other options
+          return {
+            ...prev,
+            [field]: ['Nessuno']
+          };
+        } else if (field === 'marketingChannels' && value !== 'Nessuno' && checked) {
+          // If any other option is checked, remove "Nessuno"
+          const filtered = currentValue.filter((item: string) => item !== 'Nessuno');
+          return {
+            ...prev,
+            [field]: [...filtered, value]
+          };
+        }
+
+        return {
+          ...prev,
+          [field]: checked
+            ? [...currentValue, value]
+            : currentValue.filter((item: string) => item !== value)
+        };
+      }
+      return prev;
+    });
+  };
+
+  return (
+    <div className="w-full">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">
+        {currentSection === 1 && <>Sezione 1 - <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">Chi sei</span></>}
+        {currentSection === 2 && <>Sezione 2 - <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">I tuoi prodotti</span></>}
+        {currentSection === 3 && <>Sezione 3 - <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">Vendite & Marketing</span></>}
+        {currentSection === 4 && <>Sezione 4 - <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">Logistica & Operatività</span></>}
+        {currentSection === 5 && <>Sezione 5 - <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">Potenziale del Brand</span></>}
+      </h2>
+
+      {/* Progress indicator */}
+      <div className="flex space-x-2 mb-6">
+        {[1, 2, 3, 4, 5].map((step) => (
+          <div
+            key={step}
+            className={`flex-1 h-2 rounded-full transition-all duration-300 ${
+              step <= currentSection
+                ? 'bg-gradient-to-r from-blue-600 to-purple-600'
+                : 'bg-gray-200'
+            }`}
+          />
+        ))}
+      </div>
+
+      <form onSubmit={handleQuestionnaireSubmit} className="space-y-4">
+        {/* Sezione 1: Chi sei */}
+        {currentSection === 1 && (
+          <>
+            <div className="space-y-6">
+              {/* 1. Nome del brand */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">1.</span> Nome del tuo brand / azienda *
+                </label>
+                <input
+                  type="text"
+                  value={questionnaireData.brandName}
+                  onChange={(e) => handleInputChange('brandName', e.target.value)}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
+                  placeholder="Inserisci il nome..."
+                />
+              </div>
+
+              {/* 2. Sito web */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">2.</span> Hai già un sito web?
+                </label>
+                <p className="text-xs text-gray-500 mb-2">Inserisci il dominio o il link 👉</p>
+                <input
+                  type="text"
+                  value={questionnaireData.website}
+                  onChange={(e) => handleInputChange('website', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
+                  placeholder="es: esempio.com o https://esempio.com"
+                />
+              </div>
+
+              {/* 3. Social */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">3.</span> Dove possiamo trovarti sui social?
+                </label>
+                <p className="text-xs text-gray-500 mb-3">Condividi i link ai tuoi profili:</p>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Instagram</label>
+                    <input
+                      type="text"
+                      value={questionnaireData.instagram}
+                      onChange={(e) => handleInputChange('instagram', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
+                      placeholder="https://instagram.com/..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">TikTok</label>
+                    <input
+                      type="text"
+                      value={questionnaireData.tiktok}
+                      onChange={(e) => handleInputChange('tiktok', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
+                      placeholder="https://tiktok.com/..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Facebook</label>
+                    <input
+                      type="text"
+                      value={questionnaireData.facebook}
+                      onChange={(e) => handleInputChange('facebook', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
+                      placeholder="https://facebook.com/..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Altro</label>
+                    <input
+                      type="text"
+                      value={questionnaireData.otherSocial}
+                      onChange={(e) => handleInputChange('otherSocial', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
+                      placeholder="Inserisci altro link social..."
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Settore */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">4.</span> In che settore ti muovi principalmente? *
+                </label>
+                <p className="text-xs text-gray-500 mb-2">Scegli quello che ti rappresenta meglio:</p>
+                <select
+                  value={questionnaireData.sector}
+                  onChange={(e) => handleInputChange('sector', e.target.value)}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
+                >
+                  <option value="">Seleziona...</option>
+                  <option value="moda">Moda & Accessori</option>
+                  <option value="beauty">Beauty & Cosmetica</option>
+                  <option value="food">Food & Integratori</option>
+                  <option value="home">Home & Lifestyle</option>
+                  <option value="altro">Altro</option>
+                </select>
+                {questionnaireData.sector === 'altro' && (
+                  <input
+                    type="text"
+                    value={questionnaireData.sectorOther}
+                    onChange={(e) => handleInputChange('sectorOther', e.target.value)}
+                    className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder="Specifica il settore..."
+                  />
+                )}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCurrentSection(2)}
+              className="w-full gradient-bg-brand gradient-bg-brand-hover text-white py-3 rounded-lg font-semibold transition-all transform hover:scale-[1.02]"
+            >
+              Avanti →
+            </button>
+          </>
+        )}
+
+        {/* Sezione 2: I tuoi prodotti */}
+        {currentSection === 2 && (
+          <>
+            <div className="space-y-6">
+              {/* 5. Come nascono */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">5.</span> Come nascono i tuoi prodotti?
+                </label>
+                <div className="space-y-2">
+                  {['Produzione interna', 'Produzione conto terzi', 'Acquisto stock già pronti', 'Altro'].map((option) => (
+                    <label key={option} className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-white/70 cursor-pointer transition-all">
+                      <input
+                        type="radio"
+                        name="production"
+                        value={option}
+                        checked={questionnaireData.production === option}
+                        onChange={(e) => handleInputChange('production', e.target.value)}
+                        className="mr-3 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm">{option}</span>
+                    </label>
+                  ))}
+                </div>
+                {questionnaireData.production === 'Altro' && (
+                  <input
+                    type="text"
+                    value={questionnaireData.productionOther}
+                    onChange={(e) => handleInputChange('productionOther', e.target.value)}
+                    className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder="Specifica..."
+                  />
+                )}
+              </div>
+
+              {/* 6. Disponibilità */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">6.</span> Come gestisci la disponibilità del prodotto?
+                </label>
+                <div className="space-y-2">
+                  {['Ho stock pronto in magazzino', 'Produco su richiesta (just-in-time)', 'Altro'].map((option) => (
+                    <label key={option} className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-white/70 cursor-pointer transition-all">
+                      <input
+                        type="radio"
+                        name="availability"
+                        value={option}
+                        checked={questionnaireData.availability === option}
+                        onChange={(e) => handleInputChange('availability', e.target.value)}
+                        className="mr-3 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm">{option}</span>
+                    </label>
+                  ))}
+                </div>
+                {questionnaireData.availability === 'Altro' && (
+                  <input
+                    type="text"
+                    value={questionnaireData.availabilityOther}
+                    onChange={(e) => handleInputChange('availabilityOther', e.target.value)}
+                    className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder="Specifica..."
+                  />
+                )}
+              </div>
+
+              {/* 7. Best seller */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">7.</span> Qual è il tuo prodotto best seller e il prezzo medio di vendita?
+                </label>
+                <input
+                  type="text"
+                  value={questionnaireData.bestSeller}
+                  onChange={(e) => handleInputChange('bestSeller', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
+                  placeholder="Esempio: Sneakers X – €89"
+                />
+              </div>
+
+              {/* 8. Margine */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">8.</span> Qual è il margine lordo medio sui tuoi prodotti?
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {['<40%', '40–60%', '60–80%', 'Oltre l\'80%'].map((option) => (
+                    <label key={option} className="flex items-center justify-center p-3 border border-gray-200 rounded-lg hover:bg-white/70 cursor-pointer transition-all">
+                      <input
+                        type="radio"
+                        name="margin"
+                        value={option}
+                        checked={questionnaireData.margin === option}
+                        onChange={(e) => handleInputChange('margin', e.target.value)}
+                        className="mr-2 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm">{option}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentSection(1)}
+                className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-all"
+              >
+                ← Indietro
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentSection(3)}
+                className="flex-1 gradient-bg-brand gradient-bg-brand-hover text-white py-3 rounded-lg font-semibold transition-all transform hover:scale-[1.02]"
+              >
+                Avanti →
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Sezione 3: Vendite & Marketing */}
+        {currentSection === 3 && (
+          <>
+            <div className="space-y-6">
+              {/* 9. Venduto online */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">9.</span> Hai già venduto online?
+                </label>
+                <select
+                  value={questionnaireData.onlineSales}
+                  onChange={(e) => handleInputChange('onlineSales', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
+                >
+                  <option value="">Seleziona...</option>
+                  <option value="ecommerce">Sì, con e-commerce proprietario</option>
+                  <option value="marketplace">Sì, su marketplace (Amazon, Etsy, ecc.)</option>
+                  <option value="social">Sì, solo tramite social (Instagram, TikTok, WhatsApp)</option>
+                  <option value="no">No, mai venduto online</option>
+                </select>
+              </div>
+
+              {/* 10. Ordini mensili */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">10.</span> Quanti ordini ricevi in media ogni mese?
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {['0–50', '50–200', '200–500', '500+'].map((option) => (
+                    <label key={option} className="flex items-center justify-center p-3 border border-gray-200 rounded-lg hover:bg-white/70 cursor-pointer transition-all">
+                      <input
+                        type="radio"
+                        name="monthlyOrders"
+                        value={option}
+                        checked={questionnaireData.monthlyOrders === option}
+                        onChange={(e) => handleInputChange('monthlyOrders', e.target.value)}
+                        className="mr-2 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm">{option}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* 11. Ticket medio */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">11.</span> Qual è il valore medio di un ordine (ticket medio)?
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {['Meno di €50', '€50–150', '€150–300', 'Oltre €300'].map((option) => (
+                    <label key={option} className="flex items-center justify-center p-3 border border-gray-200 rounded-lg hover:bg-white/70 cursor-pointer transition-all">
+                      <input
+                        type="radio"
+                        name="ticketMedio"
+                        value={option}
+                        checked={questionnaireData.ticketMedio === option}
+                        onChange={(e) => handleInputChange('ticketMedio', e.target.value)}
+                        className="mr-2 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm">{option}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* 12. Canali marketing */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">12.</span> Su quali canali stai già facendo marketing?
+                </label>
+                <p className="text-xs text-gray-500 mb-2">(puoi selezionare più opzioni)</p>
+                <div className="space-y-2">
+                  {['Google Ads', 'Meta Ads (Facebook/Instagram)', 'TikTok Ads', 'SEO / Organico', 'Nessuno'].map((option) => (
+                    <label key={option} className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-white/70 cursor-pointer transition-all">
+                      <input
+                        type="checkbox"
+                        value={option}
+                        checked={questionnaireData.marketingChannels?.includes(option) || false}
+                        onChange={(e) => handleCheckboxChange('marketingChannels', option, e.target.checked)}
+                        className="mr-3 text-purple-600 focus:ring-purple-500 rounded"
+                      />
+                      <span className="text-sm">{option}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* 13. Investimento ads */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">13.</span> Quanto hai investito in advertising digitale in passato (circa)?
+                </label>
+                <select
+                  value={questionnaireData.adInvestment}
+                  onChange={(e) => handleInputChange('adInvestment', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
+                >
+                  <option value="">Seleziona...</option>
+                  <option value="mai">Mai</option>
+                  <option value="<1000">Meno di €1.000 al mese</option>
+                  <option value="1000-5000">€1.000–5.000 al mese</option>
+                  <option value=">5000">Più di €5.000 al mese</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentSection(2)}
+                className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-all"
+              >
+                ← Indietro
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentSection(4)}
+                className="flex-1 gradient-bg-brand gradient-bg-brand-hover text-white py-3 rounded-lg font-semibold transition-all transform hover:scale-[1.02]"
+              >
+                Avanti →
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Sezione 4: Logistica & Operatività */}
+        {currentSection === 4 && (
+          <>
+            <div className="space-y-6">
+              {/* 14. Spedizioni */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">14.</span> Come gestisci attualmente le spedizioni?
+                </label>
+                <div className="space-y-2">
+                  {['Contratti con corrieri', 'Gestione manuale senza contratti fissi', 'Marketplace (es. Amazon FBA)', 'Altro'].map((option) => (
+                    <label key={option} className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-white/70 cursor-pointer transition-all">
+                      <input
+                        type="radio"
+                        name="shipping"
+                        value={option}
+                        checked={questionnaireData.shipping === option}
+                        onChange={(e) => handleInputChange('shipping', e.target.value)}
+                        className="mr-3 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm">{option}</span>
+                    </label>
+                  ))}
+                </div>
+                {questionnaireData.shipping === 'Altro' && (
+                  <input
+                    type="text"
+                    value={questionnaireData.shippingOther || ''}
+                    onChange={(e) => handleInputChange('shippingOther', e.target.value)}
+                    className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder="Specifica..."
+                  />
+                )}
+              </div>
+
+              {/* 15. Resi */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">15.</span> % media di resi/mancata consegna (RTO)
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {['< 5%', '5–10%', '10–20%', '> 20%'].map((option) => (
+                    <label key={option} className="flex items-center justify-center p-3 border border-gray-200 rounded-lg hover:bg-white/70 cursor-pointer transition-all">
+                      <input
+                        type="radio"
+                        name="returns"
+                        value={option}
+                        checked={questionnaireData.returns === option}
+                        onChange={(e) => handleInputChange('returns', e.target.value)}
+                        className="mr-2 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm">{option}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* 16. Paesi */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">16.</span> In quali Paesi vendi o vorresti vendere?
+                </label>
+                <input
+                  type="text"
+                  value={questionnaireData.countries || ''}
+                  onChange={(e) => handleInputChange('countries', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
+                  placeholder="Es: Italia, Spagna, Germania..."
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentSection(3)}
+                className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-all"
+              >
+                ← Indietro
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentSection(5)}
+                className="flex-1 gradient-bg-brand gradient-bg-brand-hover text-white py-3 rounded-lg font-semibold transition-all transform hover:scale-[1.02]"
+              >
+                Avanti →
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Sezione 5: Potenziale del Brand */}
+        {currentSection === 5 && (
+          <>
+            <div className="space-y-6">
+              {/* 17. Obiettivo */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">17.</span> Qual è il tuo obiettivo principale nei prossimi 12 mesi?
+                </label>
+                <select
+                  value={questionnaireData.objective}
+                  onChange={(e) => handleInputChange('objective', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
+                >
+                  <option value="">Seleziona...</option>
+                  <option value="aumentare_vendite">Aumentare le vendite</option>
+                  <option value="nuovo_prodotto">Lanciare un nuovo prodotto/brand</option>
+                  <option value="espandere">Espandere all'estero</option>
+                  <option value="marginalita">Migliorare la marginalità</option>
+                  <option value="altro">Altro</option>
+                </select>
+                {questionnaireData.objective === 'altro' && (
+                  <input
+                    type="text"
+                    value={questionnaireData.objectiveOther}
+                    onChange={(e) => handleInputChange('objectiveOther', e.target.value)}
+                    className="w-full mt-2 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder="Specifica il tuo obiettivo..."
+                  />
+                )}
+              </div>
+
+              {/* 18. Fatturato */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">18.</span> Fatturato medio mensile
+                </label>
+                <select
+                  value={questionnaireData.revenue}
+                  onChange={(e) => handleInputChange('revenue', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
+                >
+                  <option value="">Seleziona...</option>
+                  <option value="0-5k">0-5.000€</option>
+                  <option value="5k-10k">5.000-10.000€</option>
+                  <option value="10k-20k">10.000-20.000€</option>
+                  <option value="20k-50k">20.000-50.000€</option>
+                  <option value="+50k">+50.000€</option>
+                </select>
+              </div>
+
+              {/* 19. Team */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">19.</span> Composizione del tuo team attuale
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {['Solo founder', '2–3 persone', '4–10 persone', '10+ persone'].map((option) => (
+                    <label key={option} className="flex items-center justify-center p-3 border border-gray-200 rounded-lg hover:bg-white/70 cursor-pointer transition-all">
+                      <input
+                        type="radio"
+                        name="team"
+                        value={option}
+                        checked={questionnaireData.team === option}
+                        onChange={(e) => handleInputChange('team', e.target.value)}
+                        className="mr-2 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm">{option}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* 20. Ostacoli */}
+              <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 rounded-lg">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">20.</span> Quali sono oggi i principali ostacoli che ti impediscono di crescere?
+                </label>
+                <textarea
+                  value={questionnaireData.obstacles}
+                  onChange={(e) => handleInputChange('obstacles', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 transition-all"
+                  rows={4}
+                  placeholder="Descrivi brevemente le tue sfide principali..."
+                />
+              </div>
+
+              {/* CAPTCHA */}
+              <div className="bg-gradient-to-r from-yellow-50 via-orange-50 to-red-50 p-4 rounded-lg border-2 border-orange-300">
+                <p className="text-sm font-semibold text-gray-700 mb-2">
+                  ⚠️ Verifica di sicurezza (obbligatoria)
+                </p>
+                <p className="text-lg font-bold text-gray-800 mb-3">
+                  {captchaQuestion.question}
+                </p>
+                <input
+                  type="text"
+                  value={captchaAnswer}
+                  onChange={(e) => setCaptchaAnswer(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                  placeholder="Inserisci la risposta"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={generateCaptcha}
+                  className="mt-2 text-sm text-purple-600 hover:text-purple-700 font-medium"
+                >
+                  🔄 Cambia domanda
+                </button>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentSection(4)}
+                className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-all"
+              >
+                ← Indietro
+              </button>
+              <button
+                type="submit"
+                className="flex-1 gradient-bg-brand gradient-bg-brand-hover text-white py-3 rounded-lg font-semibold transition-all transform hover:scale-[1.02]"
+              >
+                ✨ Invia candidatura
+              </button>
+            </div>
+          </>
+        )}
+      </form>
+    </div>
+  );
+};
 const _ITEMS: Item[] = [
   {
     id: 0,
@@ -102,6 +835,9 @@ export default function HomePage() {
   const [isDesktop, setIsDesktop] = useState(false);
   const [_autoPlay, setAutoPlay] = useState(true);
   const [stepBoxProgress, setStepBoxProgress] = useState(0);
+  const [counter95, setCounter95] = useState(0);
+  const [expandedGoogleAd, setExpandedGoogleAd] = useState<string | null>(null);
+  const [expandedMetaAd, setExpandedMetaAd] = useState<string | null>(null);
   const _features: FeatureCard[] = [
   { icon: <Settings className="w-5 h-5 text-gray-700" />, title: "Flexible workflows for every team" },
   { icon: <FileText className="w-5 h-5 text-gray-700" />, title: "Tasks, docs, spreadsheets, and more" },
@@ -160,7 +896,7 @@ export default function HomePage() {
     message: '',
     type: 'error'
   });
-  const [questionnaireData, setQuestionnaireData] = useState({
+  const [questionnaireData, setQuestionnaireData] = useState<QuestionnaireData>({
     brandName: '',
     website: '',
     instagram: '',
@@ -198,19 +934,22 @@ export default function HomePage() {
   const [_activeStep, _setActiveStep] = useState(1);
   const [_activeTooltip, setActiveTooltip] = useState<string | null>(null);
   const [, setNeonTime] = useState(0);
-  const [displayedTexts, setDisplayedTexts] = useState<string[]>(['', '', '']);
+  const [_displayedTexts, setDisplayedTexts] = useState<string[]>(['', '', '']);
   const [currentPhase, setCurrentPhase] = useState<'typing' | 'deleting'>('typing');
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const [currentCharIndex, setCurrentCharIndex] = useState(0);
   const [deleteCharIndex, setDeleteCharIndex] = useState(0);
-  
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isMouseInHero, setIsMouseInHero] = useState(false);
+  const heroSectionRef = useRef<HTMLDivElement>(null);
+
   const fullTexts = useMemo(() => [
     'Noi Investiamo',
     'Tu Guadagni', 
     'Zero Rischi'
   ], []);
   
-  const renderTextWithColors = (text: string) => {
+  const _renderTextWithColors = (text: string) => {
     const parts = text.split(' ');
     if (parts.length >= 2) {
       const firstWord = parts[0]; // Noi, Tu, Zero
@@ -373,11 +1112,11 @@ export default function HomePage() {
   // Typewriter effect - prima scrive tutto, poi cancella tutto insieme
   useEffect(() => {
     if (!isMounted) return; // Wait for component to mount
-    
-    const typeSpeed = 80;
-    const deleteSpeed = 30; // Velocità di cancellazione più naturale
-    const pauseBetweenLines = 800;
-    const pauseBeforeDelete = 2000; // Pausa più lunga prima di cancellare
+
+    const typeSpeed = 60; // Più veloce per animazione più fluida
+    const deleteSpeed = 25; // Velocità di cancellazione più naturale
+    const pauseBetweenLines = 600;
+    const pauseBeforeDelete = 1800; // Pausa più lunga prima di cancellare
     
     const animate = () => {
       if (currentPhase === 'typing') {
@@ -463,6 +1202,36 @@ export default function HomePage() {
       document.body.style.overflow = 'unset';
     };
   }, [showQuestionnaire]);
+
+  // Effect per tracciare il movimento del mouse nella hero section
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (heroSectionRef.current && isMouseInHero) {
+        const rect = heroSectionRef.current.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        setMousePosition({ x, y });
+      }
+    };
+
+    const handleMouseEnter = () => setIsMouseInHero(true);
+    const handleMouseLeave = () => setIsMouseInHero(false);
+
+    const heroElement = heroSectionRef.current;
+    if (heroElement) {
+      heroElement.addEventListener('mousemove', handleMouseMove);
+      heroElement.addEventListener('mouseenter', handleMouseEnter);
+      heroElement.addEventListener('mouseleave', handleMouseLeave);
+    }
+
+    return () => {
+      if (heroElement) {
+        heroElement.removeEventListener('mousemove', handleMouseMove);
+        heroElement.removeEventListener('mouseenter', handleMouseEnter);
+        heroElement.removeEventListener('mouseleave', handleMouseLeave);
+      }
+    };
+  }, [isMouseInHero]);
 
   // Handle opening contact form from header or URL parameter
   useEffect(() => {
@@ -712,14 +1481,14 @@ export default function HomePage() {
 
 
   const _nextReview = () => {
-    setCurrentReviewIndex((prev) => {
+    setCurrentReviewIndex((prev: number) => {
       const maxIndex = isDesktop ? reviews.length - 3 : reviews.length - 1;
       return prev >= maxIndex ? 0 : prev + 1;
     });
   };
 
   const _prevReview = () => {
-    setCurrentReviewIndex((prev) => {
+    setCurrentReviewIndex((prev: number) => {
       const maxIndex = isDesktop ? reviews.length - 3 : reviews.length - 1;
       return prev <= 0 ? maxIndex : prev - 1;
     });
@@ -728,16 +1497,40 @@ export default function HomePage() {
   // Generate captcha question
   const generateCaptcha = () => {
     if (typeof window === 'undefined') return;
-    
+
     const num1 = Math.floor(Math.random() * 9) + 1; // Single digit 1-9
     const num2 = Math.floor(Math.random() * 9) + 1; // Single digit 1-9
     const operation = { op: '+', calc: (a: number, b: number) => a + b };
-    
+
     const question = `${num1} ${operation.op} ${num2} = ?`;
     const answer = operation.calc(num1, num2);
-    
+
     setCaptchaQuestion({ question, answer });
   };
+
+  // Animate 95% counter when Google Ads section becomes visible
+  useEffect(() => {
+    if (visibleSections.includes('google-ads') && counter95 === 0) {
+      const start = 0;
+      const end = 95;
+      const duration = 2000;
+      const startTime = Date.now();
+
+      const animate = () => {
+        const now = Date.now();
+        const progress = Math.min((now - startTime) / duration, 1);
+        const current = Math.floor(start + (end - start) * progress);
+        setCounter95(current);
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
+
+      animate();
+    }
+  }, [visibleSections, counter95]);
+
 
   // Helper function to scroll to contact form and open it
   const scrollToContactForm = () => {
@@ -815,16 +1608,18 @@ export default function HomePage() {
                            questionnaireData.adInvestment &&
                            questionnaireData.salesChannels.length > 0;
 
-    // Check all optional fields in section 4 (I tuoi obiettivi)
+    // Check all optional fields in section 4 (Logistica e operazioni)
     const section4Complete = questionnaireData.shipping &&
                            questionnaireData.returns &&
-                           questionnaireData.countries &&
-                           questionnaireData.objective &&
+                           questionnaireData.countries;
+
+    // Check all optional fields in section 5 (I tuoi obiettivi)
+    const section5Complete = questionnaireData.objective &&
                            questionnaireData.revenue &&
                            questionnaireData.team &&
                            questionnaireData.obstacles;
 
-    return section2Complete && section3Complete && section4Complete;
+    return section2Complete && section3Complete && section4Complete && section5Complete;
   };
 
   // Handle questionnaire form submission
@@ -1125,13 +1920,16 @@ export default function HomePage() {
   useEffect(() => {
     if (typeof window === 'undefined' || !isMounted) return;
     
-    // Update every 16ms for ~60fps smooth animation
-    const intervalId = setInterval(() => {
+    // Use requestAnimationFrame for smoother animation
+    let animationId: number;
+    const animate = () => {
       setNeonTime(Date.now());
-    }, 16);
+      animationId = requestAnimationFrame(animate);
+    };
+    animationId = requestAnimationFrame(animate);
     
     return () => {
-      if (intervalId) clearInterval(intervalId);
+      if (animationId) cancelAnimationFrame(animationId);
     };
   }, [isMounted]);
 
@@ -1146,7 +1944,7 @@ export default function HomePage() {
   const _ctaHref = '#contact-form'; // cambia con l'anchor o il link che vuoi
 
   return (
-    <div className="min-h-screen bg-white text-custom-dark overflow-x-hidden">
+    <div className="min-h-screen bg-white text-custom-dark">
       {/* IP Indicator - Solo per sviluppo locale */}
       {userIP && (process.env.NODE_ENV === 'development' || (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))) && (
         <div className="fixed bottom-4 right-4 bg-black/80 text-white p-3 rounded-lg z-[100] text-xs font-mono">
@@ -1157,1669 +1955,481 @@ export default function HomePage() {
       
       <Header />
 
-      {/* Hero Section */}
-      <section 
+      {/* Hero Section Premium - Full Bleed */}
+      <section
+        ref={heroSectionRef}
         id="hero-section"
-        data-section="hero" 
-        className="pt-24 sm:pt-20 pb-8 lg:px-12 min-h-screen flex items-center relative overflow-hidden bg-white"
+        data-section="hero"
+        className="h-screen w-full flex flex-col items-center justify-center relative overflow-hidden bg-black"
+        style={{
+          background: 'linear-gradient(135deg, #000000 0%, #0a0a0a 25%, #1a0033 75%, #2d1b69 100%)'
+        }}
       >
-        <div className="w-full max-w-7xl lg:max-w-[1600px] mx-auto relative z-10 px-4 sm:px-6 lg:px-12">
-          <div className="grid lg:grid-cols-5 gap-8 lg:gap-12 items-center">
-            <div className="space-y-6 lg:space-y-8 order-1 lg:order-1 lg:col-span-2">
-              <div className="inline-block px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-200 rounded-full text-xs sm:text-sm font-medium gradient-text-brand mt-4 sm:mt-0">
-                🚀 Investiamo sul tuo progetto
-              </div>
-              <h1 className="text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-black leading-none sm:leading-tight h-32 sm:h-40 md:h-48 lg:h-56 mb-8" style={{color: '#1c1a31', lineHeight: 'calc(1.1em + 1px)'}}>
-                <div className="space-y-2">
-                  {displayedTexts.map((text, index) => (
-                    <div key={index} className="min-h-[1.2em]">
-                      <span className="font-bold">
-                        {renderTextWithColors(text)}
-                      </span>
-                      {currentPhase === 'typing' && currentTextIndex === index && (
-                        <span className="animate-pulse text-blue-600 ml-1">|</span>
-                      )}
-                      {currentPhase === 'deleting' && index === displayedTexts.findIndex((t, i) => i === displayedTexts.length - 1 && t.length > 0) && (
-                        <span className="animate-pulse text-blue-600 ml-1">|</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </h1>
-              
-              {/* Mobile Icons - shown only on mobile between title and paragraph */}
-              <div className="block lg:hidden">
-                <div id="contact-circle-mobile" className="relative flex justify-center items-center mb-4 -mt-4 mx-auto" style={{minHeight: showContactForm ? 'auto' : '400px'}}>
-                  <div className={`relative w-full max-w-sm sm:max-w-md ${showContactForm ? '' : 'aspect-square'} flex items-center justify-center mx-auto`}>
-                    {!showContactForm ? (
-                  <>
-                    {/* Step-by-Step Circular Rotation Icons Animation */}
-                    <div className="absolute inset-0 flex items-center justify-center z-10">
-                      <style jsx>{`
-                        @keyframes expandCard {
-                          0% {
-                            transform: scale(0.5);
-                            opacity: 0;
-                          }
-                          60% {
-                            transform: scale(1.05);
-                            opacity: 1;
-                          }
-                          100% {
-                            transform: scale(1);
-                            opacity: 1;
-                          }
-                        }
-
-                        @keyframes gradientShift {
-                          0% {
-                            background-position: 0% 50%;
-                          }
-                          50% {
-                            background-position: 100% 50%;
-                          }
-                          100% {
-                            background-position: 0% 50%;
-                          }
-                        }
-
-                        @keyframes pulseSubtle {
-                          0%, 100% {
-                            transform: scale(1);
-                          }
-                          50% {
-                            transform: scale(1.08);
-                          }
-                        }
-                        
-                        /* Mobile distance */
-                        @media (max-width: 640px) {
-                          @keyframes stepCircular1 {
-                            0%, 10% {
-                              transform: translate(-50%, -50%) rotate(0deg) translateX(90px) rotate(0deg) scale(1.5);
-                              z-index: 3;
-                            }
-                            15%, 25% {
-                              transform: translate(-50%, -50%) rotate(120deg) translateX(90px) rotate(-120deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            30%, 43.33% {
-                              transform: translate(-50%, -50%) rotate(120deg) translateX(90px) rotate(-120deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            48.33%, 58.33% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            63.33%, 76.66% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            81.66%, 91.66% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
-                              z-index: 3;
-                            }
-                            96.66%, 100% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
-                              z-index: 3;
-                            }
-                          }
-                          
-                          @keyframes stepCircular2 {
-                            0%, 10% {
-                              transform: translate(-50%, -50%) rotate(120deg) translateX(90px) rotate(-120deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            15%, 25% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            30%, 43.33% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            48.33%, 58.33% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
-                              z-index: 3;
-                            }
-                            63.33%, 76.66% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
-                              z-index: 3;
-                            }
-                            81.66%, 91.66% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            96.66%, 100% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
-                              z-index: 1;
-                            }
-                          }
-                          
-                          @keyframes stepCircular3 {
-                            0%, 10% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            15%, 25% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
-                              z-index: 3;
-                            }
-                            30%, 43.33% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
-                              z-index: 3;
-                            }
-                            48.33%, 58.33% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            63.33%, 76.66% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            81.66%, 91.66% {
-                              transform: translate(-50%, -50%) rotate(600deg) translateX(90px) rotate(-600deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            96.66%, 100% {
-                              transform: translate(-50%, -50%) rotate(600deg) translateX(90px) rotate(-600deg) scale(0.8);
-                              z-index: 1;
-                            }
-                          }
-                        }
-                        
-                        /* Desktop distance */
-                        @media (min-width: 641px) {
-                          @keyframes stepCircular1 {
-                          0%, 10% {
-                            transform: translate(-50%, -50%) rotate(0deg) translateX(140px) rotate(0deg) scale(1.5);
-                            z-index: 3;
-                          }
-                          15%, 25% {
-                            transform: translate(-50%, -50%) rotate(120deg) translateX(140px) rotate(-120deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          30%, 43.33% {
-                            transform: translate(-50%, -50%) rotate(120deg) translateX(140px) rotate(-120deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          48.33%, 58.33% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          63.33%, 76.66% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          81.66%, 91.66% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
-                            z-index: 3;
-                          }
-                          96.66%, 100% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
-                            z-index: 3;
-                          }
-                        }
-                        
-                        @keyframes stepCircular2 {
-                          0%, 10% {
-                            transform: translate(-50%, -50%) rotate(120deg) translateX(140px) rotate(-120deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          15%, 25% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          30%, 43.33% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          48.33%, 58.33% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
-                            z-index: 3;
-                          }
-                          63.33%, 76.66% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
-                            z-index: 3;
-                          }
-                          81.66%, 91.66% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          96.66%, 100% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
-                            z-index: 1;
-                          }
-                        }
-                        
-                        @keyframes stepCircular3 {
-                          0%, 10% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          15%, 25% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
-                            z-index: 3;
-                          }
-                          30%, 43.33% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
-                            z-index: 3;
-                          }
-                          48.33%, 58.33% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          63.33%, 76.66% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          81.66%, 91.66% {
-                            transform: translate(-50%, -50%) rotate(600deg) translateX(140px) rotate(-600deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          96.66%, 100% {
-                            transform: translate(-50%, -50%) rotate(600deg) translateX(140px) rotate(-600deg) scale(0.8);
-                            z-index: 1;
-                          }
-                        }
-                        }
-                        
-                        @media (max-width: 640px) {
-                          .icon-1 {
-                            animation: stepCircular1 9s ease-in-out infinite;
-                          }
-                          
-                          .icon-2 {
-                            animation: stepCircular2 9s ease-in-out infinite;
-                          }
-                          
-                          .icon-3 {
-                            animation: stepCircular3 9s ease-in-out infinite;
-                          }
-                        }
-                        
-                        @media (min-width: 641px) {
-                          .icon-1 {
-                            animation: stepCircular1 9s ease-in-out infinite;
-                          }
-                          
-                          .icon-2 {
-                            animation: stepCircular2 9s ease-in-out infinite;
-                          }
-                          
-                          .icon-3 {
-                            animation: stepCircular3 9s ease-in-out infinite;
-                          }
-                        }
-                      `}</style>
-                      
-                      {/* Icons Container */}
-                      <div className="relative w-full h-full flex items-center justify-center">
-                        {(() => {
-                          const icons = [
-                            { 
-                              Icon: FaRocket, 
-                              label: 'Crescita',
-                              gradient: 'linear-gradient(135deg, #2563eb, #ec4899, #9333ea, #2563eb)'
-                            },
-                            { 
-                              Icon: FaChartLine, 
-                              label: 'Analytics',
-                              gradient: 'linear-gradient(135deg, #3b82f6, #d946ef, #8b5cf6, #3b82f6)'
-                            },
-                            { 
-                              Icon: FaBullseye, 
-                              label: 'Obiettivi',
-                              gradient: 'linear-gradient(135deg, #7c3aed, #2563eb, #ec4899, #7c3aed)'
-                            }
-                          ];
-                          
-                          return icons.map((item, index) => {
-                            const IconComponent = item.Icon;
-                            return (
-                              <div
-                                key={index}
-                                className={`icon-${index + 1} absolute`}
-                                style={{
-                                  left: '50%',
-                                  top: '50%',
-                                }}
-                              >
-                                <div className="relative w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 flex items-center justify-center">
-                                  {/* Icon container with animated gradient background */}
-                                  <div 
-                                    className="relative w-full h-full rounded-full shadow-2xl flex items-center justify-center group transition-all hover:shadow-3xl hover:scale-105"
-                                    style={{
-                                      background: item.gradient,
-                                      backgroundSize: '200% 200%',
-                                      animation: 'gradientShift 4s ease infinite'
-                                    }}>
-                                    {/* White icon */}
-                                    <IconComponent 
-                                      className="w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 text-white"
-                                    />
-                                    
-                                    {/* Glow effect on hover */}
-                                    <div className="absolute inset-0 rounded-full bg-white/0 group-hover:bg-white/10 transition-all duration-300"></div>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          });
-                        })()}
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  /* Contact Form - Mobile Responsive */
-                  <div className="w-full flex items-center justify-center py-4 z-20">
-                    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 backdrop-blur-sm w-full max-w-md shadow-2xl relative">
-                      {/* Decorative background elements */}
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-100/20 to-transparent rounded-full"></div>
-                      <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-100/20 to-transparent rounded-full"></div>
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-50/5 via-transparent to-purple-50/5"></div>
-                      <div className="flex justify-between items-center mb-4 sm:mb-6 relative z-10">
-                        <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800">Contattaci</h3>
-                        <button 
-                          onClick={() => setShowContactForm(false)}
-                          className="text-gray-600 hover:text-gray-800 transition-colors text-lg sm:text-xl"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                      
-                      <form className="space-y-3 sm:space-y-4 relative z-10" onSubmit={handleContactSubmit}>
-                        <div className="grid grid-cols-2 gap-2 sm:gap-4">
-                          <div>
-                            <label htmlFor="nome" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                              Nome
-                            </label>
-                            <input
-                              type="text"
-                              id="nome"
-                              name="nome"
-                              className="w-full px-2 sm:px-3 md:px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label htmlFor="cognome" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                              Cognome
-                            </label>
-                            <input
-                              type="text"
-                              id="cognome"
-                              name="cognome"
-                              className="w-full px-2 sm:px-3 md:px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400"
-                              required
-                            />
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <label htmlFor="telefono" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                            Telefono
-                          </label>
-                          <input
-                            type="tel"
-                            id="telefono"
-                            name="telefono"
-                            pattern=".*[0-9].*"
-                            placeholder="es: +39 123 456 7890"
-                            className="w-full px-2 sm:px-3 md:px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400"
-                            onInput={(e) => {
-                              const target = e.target as HTMLInputElement;
-                              // Rimuovi caratteri non validi
-                              target.value = target.value.replace(/[^0-9+\-\s()]/g, '');
-                              
-                              // Reset validità personalizzata
-                              target.setCustomValidity('');
-                              
-                              // Controlla se contiene almeno un numero
-                              if (target.value.length > 0 && !/\d/.test(target.value)) {
-                                target.setCustomValidity('Il telefono deve contenere almeno un numero');
-                              }
-                            }}
-                            onInvalid={(e) => {
-                              const target = e.target as HTMLInputElement;
-                              if (!target.value) {
-                                target.setCustomValidity('Il numero di telefono è obbligatorio');
-                              } else if (!/\d/.test(target.value)) {
-                                target.setCustomValidity('Il telefono deve contenere almeno un numero');
-                              }
-                            }}
-                            required
-                          />
-                        </div>
-                        
-                        <div>
-                          <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                            Email
-                          </label>
-                          <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            className="w-full px-2 sm:px-3 md:px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400"
-                            required
-                          />
-                        </div>
-
-                        <div className="bg-blue-50/50 p-2 sm:p-3 rounded-lg border border-blue-200">
-                          <label className="flex items-start space-x-2 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={privacyAccepted}
-                              onChange={(e) => setPrivacyAccepted(e.target.checked)}
-                              className="mt-0.5 w-4 h-4 min-w-[16px] text-blue-600 border-blue-400 rounded focus:ring-blue-400"
-                              required
-                            />
-                            <span className="text-[11px] sm:text-xs text-gray-700 leading-relaxed">
-                              Accetto l'
-                              <Link
-                                href="/privacy-policy"
-                                target="_blank"
-                                className="text-blue-600 hover:text-blue-800 underline font-medium"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                informativa sulla privacy
-                              </Link>
-                              {' '}e autorizzo il trattamento dei miei dati personali per le finalità indicate nell'informativa stessa, ai sensi del Regolamento UE 2016/679 (GDPR).
-                            </span>
-                          </label>
-                        </div>
-
-                        <button
-                          type="submit"
-                          className="w-full gradient-bg-brand gradient-bg-brand-hover text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 text-base sm:text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                          disabled={!privacyAccepted}
-                        >
-                          Procedi al Questionario
-                        </button>
-                      </form>
-                    </div>
-                  </div>
-                )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 sm:mt-12 lg:mt-16">
-                <p className="text-base sm:text-lg lg:text-xl text-custom-dark leading-relaxed">
-                  Proponici la tua <span className="font-bold">idea di Business</span> con <span className="font-bold">E-Commerce</span>: se la riterremo valida, <span className="font-bold">creeremo</span> il sistema di consegne, gestiremo il <span className="font-bold">marketing</span> e <span className="font-bold">investiremo</span> nel progetto con campagne pubblicitarie mirate.
-  Tranquillo, <span className="font-bold">copriremo eventuali perdite economiche</span> e ci prenderemo tutti i<span className="font-bold"> rischi</span>.
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <button
-                  onClick={scrollToContactForm}
-                  className="w-full sm:w-auto gradient-bg-brand gradient-bg-brand-hover text-white px-6 sm:px-8 py-3 rounded-full font-semibold transition-all text-sm sm:text-base transform hover:scale-105"
-                >
-                  <FaEnvelope className="inline mr-2" /> Candidati
-                </button>
-              </div>
-            </div>
-            
-            {/* Rotating Icons Animation - Desktop Only */}
-            <div id="contact-circle" className="relative hidden lg:flex justify-center lg:justify-end order-2 lg:order-2 mb-8 lg:mb-0 lg:col-span-3 lg:pr-4">
-              <div className="relative w-full max-w-sm aspect-square sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl">
-                {!showContactForm ? (
-                  <>
-                    {/* Step-by-Step Circular Rotation Icons Animation */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <style jsx>{`
-                        @keyframes expandCard {
-                          0% {
-                            transform: scale(0.5);
-                            opacity: 0;
-                          }
-                          60% {
-                            transform: scale(1.05);
-                            opacity: 1;
-                          }
-                          100% {
-                            transform: scale(1);
-                            opacity: 1;
-                          }
-                        }
-
-                        @keyframes gradientShift {
-                          0% {
-                            background-position: 0% 50%;
-                          }
-                          50% {
-                            background-position: 100% 50%;
-                          }
-                          100% {
-                            background-position: 0% 50%;
-                          }
-                        }
-
-                        @keyframes pulseSubtle {
-                          0%, 100% {
-                            transform: scale(1);
-                          }
-                          50% {
-                            transform: scale(1.08);
-                          }
-                        }
-                        
-                        /* Mobile distance */
-                        @media (max-width: 640px) {
-                          @keyframes stepCircular1 {
-                            0%, 10% {
-                              transform: translate(-50%, -50%) rotate(0deg) translateX(90px) rotate(0deg) scale(1.5);
-                              z-index: 3;
-                            }
-                            15%, 25% {
-                              transform: translate(-50%, -50%) rotate(120deg) translateX(90px) rotate(-120deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            30%, 43.33% {
-                              transform: translate(-50%, -50%) rotate(120deg) translateX(90px) rotate(-120deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            48.33%, 58.33% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            63.33%, 76.66% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            81.66%, 91.66% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
-                              z-index: 3;
-                            }
-                            96.66%, 100% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
-                              z-index: 3;
-                            }
-                          }
-                          
-                          @keyframes stepCircular2 {
-                            0%, 10% {
-                              transform: translate(-50%, -50%) rotate(120deg) translateX(90px) rotate(-120deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            15%, 25% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            30%, 43.33% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            48.33%, 58.33% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
-                              z-index: 3;
-                            }
-                            63.33%, 76.66% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
-                              z-index: 3;
-                            }
-                            81.66%, 91.66% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            96.66%, 100% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
-                              z-index: 1;
-                            }
-                          }
-                          
-                          @keyframes stepCircular3 {
-                            0%, 10% {
-                              transform: translate(-50%, -50%) rotate(240deg) translateX(90px) rotate(-240deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            15%, 25% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
-                              z-index: 3;
-                            }
-                            30%, 43.33% {
-                              transform: translate(-50%, -50%) rotate(360deg) translateX(90px) rotate(-360deg) scale(1.5);
-                              z-index: 3;
-                            }
-                            48.33%, 58.33% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            63.33%, 76.66% {
-                              transform: translate(-50%, -50%) rotate(480deg) translateX(90px) rotate(-480deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            81.66%, 91.66% {
-                              transform: translate(-50%, -50%) rotate(600deg) translateX(90px) rotate(-600deg) scale(0.8);
-                              z-index: 1;
-                            }
-                            96.66%, 100% {
-                              transform: translate(-50%, -50%) rotate(600deg) translateX(90px) rotate(-600deg) scale(0.8);
-                              z-index: 1;
-                            }
-                          }
-                        }
-                        
-                        /* Desktop distance */
-                        @media (min-width: 641px) {
-                          @keyframes stepCircular1 {
-                          0%, 10% {
-                            transform: translate(-50%, -50%) rotate(0deg) translateX(140px) rotate(0deg) scale(1.5);
-                            z-index: 3;
-                          }
-                          15%, 25% {
-                            transform: translate(-50%, -50%) rotate(120deg) translateX(140px) rotate(-120deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          30%, 43.33% {
-                            transform: translate(-50%, -50%) rotate(120deg) translateX(140px) rotate(-120deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          48.33%, 58.33% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          63.33%, 76.66% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          81.66%, 91.66% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
-                            z-index: 3;
-                          }
-                          96.66%, 100% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
-                            z-index: 3;
-                          }
-                        }
-                        
-                        @keyframes stepCircular2 {
-                          0%, 10% {
-                            transform: translate(-50%, -50%) rotate(120deg) translateX(140px) rotate(-120deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          15%, 25% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          30%, 43.33% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          48.33%, 58.33% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
-                            z-index: 3;
-                          }
-                          63.33%, 76.66% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
-                            z-index: 3;
-                          }
-                          81.66%, 91.66% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          96.66%, 100% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
-                            z-index: 1;
-                          }
-                        }
-                        
-                        @keyframes stepCircular3 {
-                          0%, 10% {
-                            transform: translate(-50%, -50%) rotate(240deg) translateX(140px) rotate(-240deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          15%, 25% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
-                            z-index: 3;
-                          }
-                          30%, 43.33% {
-                            transform: translate(-50%, -50%) rotate(360deg) translateX(140px) rotate(-360deg) scale(1.5);
-                            z-index: 3;
-                          }
-                          48.33%, 58.33% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          63.33%, 76.66% {
-                            transform: translate(-50%, -50%) rotate(480deg) translateX(140px) rotate(-480deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          81.66%, 91.66% {
-                            transform: translate(-50%, -50%) rotate(600deg) translateX(140px) rotate(-600deg) scale(0.8);
-                            z-index: 1;
-                          }
-                          96.66%, 100% {
-                            transform: translate(-50%, -50%) rotate(600deg) translateX(140px) rotate(-600deg) scale(0.8);
-                            z-index: 1;
-                          }
-                        }
-                        }
-                        
-                        @media (max-width: 640px) {
-                          .icon-1 {
-                            animation: stepCircular1 9s ease-in-out infinite;
-                          }
-                          
-                          .icon-2 {
-                            animation: stepCircular2 9s ease-in-out infinite;
-                          }
-                          
-                          .icon-3 {
-                            animation: stepCircular3 9s ease-in-out infinite;
-                          }
-                        }
-                        
-                        @media (min-width: 641px) {
-                          .icon-1 {
-                            animation: stepCircular1 9s ease-in-out infinite;
-                          }
-                          
-                          .icon-2 {
-                            animation: stepCircular2 9s ease-in-out infinite;
-                          }
-                          
-                          .icon-3 {
-                            animation: stepCircular3 9s ease-in-out infinite;
-                          }
-                        }
-                      `}</style>
-                      
-                      {/* Icons Container */}
-                      <div className="relative w-full h-full flex items-center justify-center">
-                        {(() => {
-                          const icons = [
-                            { 
-                              Icon: FaRocket, 
-                              label: 'Crescita',
-                              gradient: 'linear-gradient(135deg, #2563eb, #ec4899, #9333ea, #2563eb)'
-                            },
-                            { 
-                              Icon: FaChartLine, 
-                              label: 'Analytics',
-                              gradient: 'linear-gradient(135deg, #3b82f6, #d946ef, #8b5cf6, #3b82f6)'
-                            },
-                            { 
-                              Icon: FaBullseye, 
-                              label: 'Obiettivi',
-                              gradient: 'linear-gradient(135deg, #7c3aed, #2563eb, #ec4899, #7c3aed)'
-                            }
-                          ];
-                          
-                          return icons.map((item, index) => {
-                            const IconComponent = item.Icon;
-                            return (
-                              <div
-                                key={index}
-                                className={`icon-${index + 1} absolute`}
-                                style={{
-                                  left: '50%',
-                                  top: '50%',
-                                }}
-                              >
-                                <div className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 lg:w-44 lg:h-44 xl:w-48 xl:h-48 flex items-center justify-center">
-                                  {/* Icon container with animated gradient background */}
-                                  <div 
-                                    className="relative w-full h-full rounded-full shadow-2xl flex items-center justify-center group transition-all hover:shadow-3xl hover:scale-105"
-                                    style={{
-                                      background: item.gradient,
-                                      backgroundSize: '200% 200%',
-                                      animation: 'gradientShift 4s ease infinite'
-                                    }}>
-                                    {/* White icon */}
-                                    <IconComponent 
-                                      className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 lg:w-22 lg:h-22 xl:w-24 xl:h-24 text-white"
-                                    />
-                                    
-                                    {/* Glow effect on hover */}
-                                    <div className="absolute inset-0 rounded-full bg-white/0 group-hover:bg-white/10 transition-all duration-300"></div>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          });
-                        })()}
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  /* Contact Form - Desktop */
-                  <div className="absolute inset-0 flex items-center justify-center p-3 sm:p-6">
-                    <div className="bg-white p-5 sm:p-6 md:p-7 rounded-2xl border border-gray-200 backdrop-blur-sm w-full sm:max-w-lg shadow-2xl relative">
-                      {/* Decorative background elements */}
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-100/20 to-transparent rounded-full"></div>
-                      <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-100/20 to-transparent rounded-full"></div>
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-50/5 via-transparent to-purple-50/5"></div>
-                      <div className="flex justify-between items-center mb-4 sm:mb-6 relative z-10">
-                        <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800">Contattaci</h3>
-                        <button 
-                          onClick={() => setShowContactForm(false)}
-                          className="text-gray-600 hover:text-gray-800 transition-colors text-lg sm:text-xl"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                      
-                      <form className="space-y-3 sm:space-y-4 relative z-10" onSubmit={handleContactSubmit}>
-                        <div className="grid grid-cols-2 gap-2 sm:gap-4">
-                          <div>
-                            <label htmlFor="nome" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                              Nome
-                            </label>
-                            <input
-                              type="text"
-                              id="nome"
-                              name="nome"
-                              className="w-full px-2 sm:px-3 md:px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label htmlFor="cognome" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                              Cognome
-                            </label>
-                            <input
-                              type="text"
-                              id="cognome"
-                              name="cognome"
-                              className="w-full px-2 sm:px-3 md:px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400"
-                              required
-                            />
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <label htmlFor="telefono" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                            Telefono
-                          </label>
-                          <input
-                            type="tel"
-                            id="telefono"
-                            name="telefono"
-                            pattern=".*[0-9].*"
-                            placeholder="es: +39 123 456 7890"
-                            className="w-full px-2 sm:px-3 md:px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400"
-                            onInput={(e) => {
-                              const target = e.target as HTMLInputElement;
-                              // Rimuovi caratteri non validi
-                              target.value = target.value.replace(/[^0-9+\-\s()]/g, '');
-                              
-                              // Reset validità personalizzata
-                              target.setCustomValidity('');
-                              
-                              // Controlla se contiene almeno un numero
-                              if (target.value.length > 0 && !/\d/.test(target.value)) {
-                                target.setCustomValidity('Il telefono deve contenere almeno un numero');
-                              }
-                            }}
-                            onInvalid={(e) => {
-                              const target = e.target as HTMLInputElement;
-                              if (!target.value) {
-                                target.setCustomValidity('Il numero di telefono è obbligatorio');
-                              } else if (!/\d/.test(target.value)) {
-                                target.setCustomValidity('Il telefono deve contenere almeno un numero');
-                              }
-                            }}
-                            required
-                          />
-                        </div>
-                        
-                        <div>
-                          <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                            Email
-                          </label>
-                          <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            className="w-full px-2 sm:px-3 md:px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400"
-                            required
-                          />
-                        </div>
-
-                        <div className="bg-blue-50/50 p-2 sm:p-3 rounded-lg border border-blue-200">
-                          <label className="flex items-start space-x-2 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={privacyAccepted}
-                              onChange={(e) => setPrivacyAccepted(e.target.checked)}
-                              className="mt-0.5 w-4 h-4 min-w-[16px] text-blue-600 border-blue-400 rounded focus:ring-blue-400"
-                              required
-                            />
-                            <span className="text-[11px] sm:text-xs text-gray-700 leading-relaxed">
-                              Accetto l'
-                              <Link
-                                href="/privacy-policy"
-                                target="_blank"
-                                className="text-blue-600 hover:text-blue-800 underline font-medium"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                informativa sulla privacy
-                              </Link>
-                              {' '}e autorizzo il trattamento dei miei dati personali per le finalità indicate nell'informativa stessa, ai sensi del Regolamento UE 2016/679 (GDPR).
-                            </span>
-                          </label>
-                        </div>
-
-                        <button
-                          type="submit"
-                          className="w-full gradient-bg-brand gradient-bg-brand-hover text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 text-base sm:text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                          disabled={!privacyAccepted}
-                        >
-                          Procedi al Questionario
-                        </button>
-                      </form>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+        {/* Background motion sottile */}
+        <div className="absolute inset-0 opacity-20">
+          {/* Blob sottile 1 */}
+          <div
+            className="absolute top-0 -left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-blue-600/20 to-purple-600/10 rounded-full filter blur-[100px]"
+            style={{
+              animation: 'slowFloat 30s ease-in-out infinite'
+            }}
+          />
+          {/* Blob sottile 2 */}
+          <div
+            className="absolute bottom-0 -right-1/4 w-[600px] h-[600px] bg-gradient-to-tl from-purple-600/20 to-pink-600/10 rounded-full filter blur-[100px]"
+            style={{
+              animation: 'slowFloat 30s ease-in-out infinite reverse',
+              animationDelay: '10s'
+            }}
+          />
         </div>
-      </section>
 
-      {/* Questionnaire Popup */}
-      {showQuestionnaire && (
+        {/* Mouse trail background effect - Layer 1 */}
         <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-[60] p-2 sm:p-4 overflow-y-auto"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              sendIncompleteQuestionnaire();
-              setShowQuestionnaire(false);
-              setQuestionnaireSubmitted(false);
-              setIncompleteConfirmed(false);
-            }
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: isMouseInHero
+              ? `radial-gradient(600px circle at ${mousePosition.x}% ${mousePosition.y}%,
+                  rgba(168, 85, 247, 0.4) 0%,
+                  rgba(147, 51, 234, 0.25) 10%,
+                  rgba(139, 92, 246, 0.15) 25%,
+                  rgba(124, 58, 237, 0.08) 40%,
+                  transparent 60%)`
+              : 'none',
+            transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+            opacity: 0.8
           }}
-        >
-          <div className="bg-white p-4 sm:p-6 md:p-8 rounded-3xl shadow-2xl max-w-3xl w-full max-h-[85vh] sm:max-h-[90vh] overflow-y-auto relative my-8 sm:my-4 border border-blue-100">
-            {/* Animation styles for questionnaire */}
-            <style jsx>{`
-              @keyframes pulseButton {
-                0%, 100% {
-                  transform: scale(1);
-                }
-                50% {
-                  transform: scale(1.08);
-                }
-              }
+        />
 
-              .pulse-button {
-                animation: pulseButton 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-              }
-            `}</style>
+        {/* Mouse trail background effect - Layer 2 (lighter, larger) */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: isMouseInHero
+              ? `radial-gradient(1000px circle at ${mousePosition.x}% ${mousePosition.y}%,
+                  rgba(196, 181, 253, 0.3) 0%,
+                  rgba(167, 139, 250, 0.2) 15%,
+                  rgba(147, 51, 234, 0.1) 30%,
+                  transparent 50%)`
+              : 'none',
+            mixBlendMode: 'screen',
+            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}
+        />
 
-            {/* Decorative design elements */}
-            <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-blue-100/40 to-transparent rounded-full -z-10"></div>
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-purple-100/40 to-transparent rounded-full -z-10"></div>
-            <div className="absolute top-1/2 right-0 w-56 h-56 bg-gradient-to-l from-blue-50/30 to-transparent rounded-full -z-10"></div>
+        {/* Trail glow effect - moving light */}
+        {isMouseInHero && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: `radial-gradient(400px circle at ${mousePosition.x}% ${mousePosition.y}%,
+                rgba(217, 70, 239, 0.2) 0%,
+                rgba(196, 181, 253, 0.15) 20%,
+                transparent 40%)`,
+              filter: 'blur(60px)',
+              animation: 'trailPulse 2s ease-in-out infinite',
+              transition: 'all 0.1s ease-out'
+            }}
+          />
+        )}
 
-            <div className="flex justify-between items-center mb-6">
-                        <div>
-                          <h3 className="text-2xl sm:text-3xl font-bold mb-2">
-                            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
-                              <FaClipboardList className="inline mr-2 text-purple-600" /> Candidatura SafeScale
-                            </span>
-                          </h3>
-                          <p className="text-gray-600 text-sm">Raccontaci di più sul tuo progetto</p>
-                        </div>
-                        <button
-                          onClick={() => {
-                            sendIncompleteQuestionnaire();
-                            setShowQuestionnaire(false);
-                            setIncompleteConfirmed(false);
-                            generateCaptcha();
-                          }}
-                          className="text-gray-600 hover:text-gray-800 transition-colors text-xl"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                      
-                      {!questionnaireSubmitted ? (
-                        <form className="space-y-6" onSubmit={handleQuestionnaireSubmit}>
-                        {/* Sezione 1 - Chi sei */}
-                        <div className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 p-5 rounded-2xl border border-blue-100">
-                          <h4 className="text-xl font-bold mb-4 flex items-center">
-                            <span className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full text-white text-sm font-bold mr-3 shadow-lg">1</span>
-                            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
-                              Chi sei
-                            </span>
-                          </h4>
-                          
-                          <div className="space-y-4">
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                1. Nome del tuo brand / azienda <span className="text-red-500">*</span>
-                              </label>
-                              <input
-                                type="text"
-                                value={questionnaireData.brandName}
-                                onChange={(e) => setQuestionnaireData({...questionnaireData, brandName: e.target.value})}
-                                className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 hover:border-blue-300"
-                              />
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                2. Hai già un sito web?
-                              </label>
-                              <p className="text-xs text-gray-600 mb-2">Inserisci il dominio o il link 👉</p>
-                              <input
-                                type="text"
-                                value={questionnaireData.website}
-                                onChange={(e) => setQuestionnaireData({...questionnaireData, website: e.target.value})}
-                                placeholder="es: esempio.com o https://esempio.com"
-                                className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
-                              />
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                3. Dove possiamo trovarti sui social?
-                              </label>
-                              <p className="text-xs text-gray-600 mb-3">Condividi i link ai tuoi profili:</p>
-                              
-                              <div className="space-y-3">
-                                <div>
-                                  <label className="block text-xs font-medium text-gray-600 mb-1">Instagram</label>
-                                  <input
-                                    type="url"
-                                    value={questionnaireData.instagram}
-                                    onChange={(e) => setQuestionnaireData({...questionnaireData, instagram: e.target.value})}
-                                    placeholder="https://instagram.com/..."
-                                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
-                                  />
-                                </div>
-                                
-                                <div>
-                                  <label className="block text-xs font-medium text-gray-600 mb-1">TikTok</label>
-                                  <input
-                                    type="url"
-                                    value={questionnaireData.tiktok}
-                                    onChange={(e) => setQuestionnaireData({...questionnaireData, tiktok: e.target.value})}
-                                    placeholder="https://tiktok.com/..."
-                                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
-                                  />
-                                </div>
-                                
-                                <div>
-                                  <label className="block text-xs font-medium text-gray-600 mb-1">Facebook</label>
-                                  <input
-                                    type="url"
-                                    value={questionnaireData.facebook}
-                                    onChange={(e) => setQuestionnaireData({...questionnaireData, facebook: e.target.value})}
-                                    placeholder="https://facebook.com/..."
-                                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
-                                  />
-                                </div>
-                                
-                                <div>
-                                  <label className="block text-xs font-medium text-gray-600 mb-1">Altro</label>
-                                  <input
-                                    type="url"
-                                    value={questionnaireData.otherSocial}
-                                    onChange={(e) => setQuestionnaireData({...questionnaireData, otherSocial: e.target.value})}
-                                    placeholder="Inserisci altro link social..."
-                                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                4. In che settore ti muovi principalmente? <span className="text-red-500">*</span>
-                              </label>
-                              <p className="text-xs text-gray-600 mb-3">Scegli quello che ti rappresenta meglio:</p>
-                              <div className="space-y-1">
-                                {['Moda & Accessori', 'Beauty & Cosmetica', 'Food & Integratori', 'Home & Lifestyle', 'Altro'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
-                                    <input
-                                      type="radio"
-                                      name="sector"
-                                      value={option}
-                                      checked={questionnaireData.sector === option}
-                                      onChange={(e) => setQuestionnaireData({...questionnaireData, sector: e.target.value})}
-                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
-                                    />
-                                    <span className="text-gray-700 text-sm">{option}</span>
-                                  </label>
-                                ))}
-                              </div>
-                              {questionnaireData.sector === 'Altro' && (
-                                <input
-                                  type="text"
-                                  value={questionnaireData.sectorOther}
-                                  onChange={(e) => setQuestionnaireData({...questionnaireData, sectorOther: e.target.value})}
-                                  placeholder="Scrivi il tuo settore..."
-                                  className="w-full mt-2 px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
-                                />
-                              )}
-                            </div>
-                          </div>
-                        </div>
+        {/* Contenuto centrale */}
+        <div className="relative z-10 text-center px-6 sm:px-8 lg:px-12 max-w-6xl mx-auto">
+          {/* Titolo principale con animazioni */}
+          <div className="relative">
+            {/* Glow effect blob behind entire title */}
+            <div
+              className="absolute inset-0 flex items-center justify-center pointer-events-none"
+              style={{
+                animation: 'fadeIn 1s ease-out 2s both'
+              }}
+            >
+              <div
+                className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-40 blur-[100px] w-[600px] h-[300px]"
+                style={{
+                  animation: 'glowPulse 3s ease-in-out 2.5s infinite',
+                  transform: 'scale(1.2)'
+                }}
+              />
+            </div>
 
-                        {/* Sezione 2 - I tuoi prodotti */}
-                        <div className="bg-gradient-to-r from-purple-50/50 to-blue-50/50 p-5 rounded-2xl border border-purple-100">
-                          <h4 className="text-xl font-bold mb-4 flex items-center">
-                            <span className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full text-white text-sm font-bold mr-3 shadow-lg">2</span>
-                            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
-                              I tuoi prodotti
-                            </span>
-                          </h4>
-                          
-                          <div className="space-y-4">
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                5. Come nascono i tuoi prodotti?
-                              </label>
-                              <div className="space-y-1">
-                                {['Produzione interna', 'Produzione conto terzi', 'Acquisto stock già pronti', 'Altro'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
-                                    <input
-                                      type="radio"
-                                      name="production"
-                                      value={option}
-                                      checked={questionnaireData.production === option}
-                                      onChange={(e) => setQuestionnaireData({...questionnaireData, production: e.target.value})}
-                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
-                                    />
-                                    <span className="text-gray-700 text-sm">{option}</span>
-                                  </label>
-                                ))}
-                              </div>
-                              {questionnaireData.production === 'Altro' && (
-                                <input
-                                  type="text"
-                                  value={questionnaireData.productionOther}
-                                  onChange={(e) => setQuestionnaireData({...questionnaireData, productionOther: e.target.value})}
-                                  placeholder="Specifica come nascono i tuoi prodotti..."
-                                  className="w-full mt-2 px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
-                                />
-                              )}
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                6. Come gestisci la disponibilità del prodotto?
-                              </label>
-                              <div className="space-y-1">
-                                {['Ho stock pronto in magazzino', 'Produco su richiesta (just-in-time)', 'Altro'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
-                                    <input
-                                      type="radio"
-                                      name="availability"
-                                      value={option}
-                                      checked={questionnaireData.availability === option}
-                                      onChange={(e) => setQuestionnaireData({...questionnaireData, availability: e.target.value})}
-                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
-                                    />
-                                    <span className="text-gray-700 text-sm">{option}</span>
-                                  </label>
-                                ))}
-                              </div>
-                              {questionnaireData.availability === 'Altro' && (
-                                <input
-                                  type="text"
-                                  value={questionnaireData.availabilityOther}
-                                  onChange={(e) => setQuestionnaireData({...questionnaireData, availabilityOther: e.target.value})}
-                                  placeholder="Specifica come gestisci la disponibilità..."
-                                  className="w-full mt-2 px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
-                                />
-                              )}
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                7. Qual è il tuo prodotto best seller e il prezzo medio di vendita?
-                              </label>
-                              <input
-                                type="text"
-                                value={questionnaireData.bestSeller}
-                                onChange={(e) => setQuestionnaireData({...questionnaireData, bestSeller: e.target.value})}
-                                placeholder="Esempio: Sneakers X – €89"
-                                className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
-                              />
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                8. Qual è il margine lordo medio sui tuoi prodotti?
-                              </label>
-                              <div className="space-y-1">
-                                {['<40%', '40–60%', '60–80%', 'Oltre l\'80%'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
-                                    <input
-                                      type="radio"
-                                      name="margin"
-                                      value={option}
-                                      checked={questionnaireData.margin === option}
-                                      onChange={(e) => setQuestionnaireData({...questionnaireData, margin: e.target.value})}
-                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
-                                    />
-                                    <span className="text-gray-700 text-sm">{option}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
-                            
-                          </div>
-                        </div>
+            <h1 className="relative text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-8 leading-tight">
+              {/* Riga 1: Fade in con blur */}
+              <span
+                className="block text-white"
+                style={{
+                  animation: 'blurFadeIn 2s cubic-bezier(0.4, 0, 0.2, 1) 0.5s both'
+                }}
+              >
+                Noi investiamo,
+              </span>
 
-                        {/* Sezione 3 - Esperienza di vendita */}
-                        <div className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 p-5 rounded-2xl border border-blue-100">
-                          <h4 className="text-xl font-bold mb-4 flex items-center">
-                            <span className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full text-white text-sm font-bold mr-3 shadow-lg">3</span>
-                            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
-                              Vendite & Marketing
-                            </span>
-                          </h4>
-                          
-                          <div className="space-y-4">
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                9. Hai già venduto online?
-                              </label>
-                              <div className="space-y-1">
-                                {['Sì, con e-commerce proprietario', 'Sì, su marketplace (Amazon, Etsy, ecc.)', 'Sì, solo tramite social (Instagram, TikTok, WhatsApp)', 'No, mai venduto online'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
-                                    <input
-                                      type="radio"
-                                      name="onlineSales"
-                                      value={option}
-                                      checked={questionnaireData.onlineSales === option}
-                                      onChange={(e) => setQuestionnaireData({...questionnaireData, onlineSales: e.target.value})}
-                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
-                                    />
-                                    <span className="text-gray-700 text-sm">{option}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                10. Quanti ordini ricevi in media ogni mese?
-                              </label>
-                              <div className="space-y-1">
-                                {['0–50', '50–200', '200–500', '500+'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
-                                    <input
-                                      type="radio"
-                                      name="monthlyOrders"
-                                      value={option}
-                                      checked={questionnaireData.monthlyOrders === option}
-                                      onChange={(e) => setQuestionnaireData({...questionnaireData, monthlyOrders: e.target.value})}
-                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
-                                    />
-                                    <span className="text-gray-700 text-sm">{option}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                11. Qual è il valore medio di un ordine (ticket medio)?
-                              </label>
-                              <div className="space-y-1">
-                                {['Meno di €50', '€50–150', '€150–300', 'Oltre €300'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
-                                    <input
-                                      type="radio"
-                                      name="ticketMedio"
-                                      value={option}
-                                      checked={questionnaireData.ticketMedio === option}
-                                      onChange={(e) => setQuestionnaireData({...questionnaireData, ticketMedio: e.target.value})}
-                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
-                                    />
-                                    <span className="text-gray-700 text-sm">{option}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                12. Su quali canali stai già facendo marketing? (puoi selezionare più opzioni)
-                              </label>
-                              <div className="space-y-1">
-                                {['Google Ads', 'Meta Ads (Facebook/Instagram)', 'TikTok Ads', 'SEO / Organico', 'Nessuno'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
-                                    <input
-                                      type="checkbox"
-                                      value={option}
-                                      checked={questionnaireData.marketingChannels.includes(option)}
-                                      onChange={(e) => {
-                                        let newChannels;
-                                        if (option === 'Nessuno') {
-                                          // Se si seleziona "Nessuno", deseleziona tutte le altre opzioni
-                                          newChannels = e.target.checked ? ['Nessuno'] : [];
-                                        } else {
-                                          // Se si seleziona qualsiasi altra opzione, rimuovi "Nessuno"
-                                          if (e.target.checked) {
-                                            newChannels = [...questionnaireData.marketingChannels.filter(c => c !== 'Nessuno'), option];
-                                          } else {
-                                            newChannels = questionnaireData.marketingChannels.filter(c => c !== option);
-                                          }
-                                        }
-                                        setQuestionnaireData({...questionnaireData, marketingChannels: newChannels});
-                                      }}
-                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
-                                    />
-                                    <span className="text-gray-700 text-sm">{option}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                13. Quanto hai investito in advertising digitale in passato (circa)?
-                              </label>
-                              <div className="space-y-1">
-                                {['Mai', 'Meno di €1.000 al mese', '€1.000–5.000 al mese', 'Più di €5.000 al mese'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
-                                    <input
-                                      type="radio"
-                                      name="adInvestment"
-                                      value={option}
-                                      checked={questionnaireData.adInvestment === option}
-                                      onChange={(e) => setQuestionnaireData({...questionnaireData, adInvestment: e.target.value})}
-                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
-                                    />
-                                    <span className="text-gray-700 text-sm">{option}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+              {/* Riga 2: Fade in con blur */}
+              <span
+                className="block text-white"
+                style={{
+                  animation: 'blurFadeIn 2s cubic-bezier(0.4, 0, 0.2, 1) 1s both'
+                }}
+              >
+                tu guadagni,
+              </span>
 
-                        {/* Sezione 4 - Logistica & operatività */}
-                        <div className="bg-gradient-to-r from-purple-50/50 to-blue-50/50 p-5 rounded-2xl border border-purple-100">
-                          <h4 className="text-xl font-bold mb-4 flex items-center">
-                            <span className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full text-white text-sm font-bold mr-3 shadow-lg">4</span>
-                            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
-                              Logistica & Operatività
-                            </span>
-                          </h4>
-                          
-                          <div className="space-y-4">
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                14. Come gestisci attualmente le spedizioni?
-                              </label>
-                              <div className="space-y-1">
-                                {['Contratti con corrieri', 'Gestione manuale senza contratti fissi', 'Marketplace (es. Amazon FBA)', 'Altro'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
-                                    <input
-                                      type="radio"
-                                      name="shipping"
-                                      value={option}
-                                      checked={questionnaireData.shipping === option}
-                                      onChange={(e) => setQuestionnaireData({...questionnaireData, shipping: e.target.value})}
-                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
-                                    />
-                                    <span className="text-gray-700 text-sm">{option}</span>
-                                  </label>
-                                ))}
-                              </div>
-                              {questionnaireData.shipping === 'Altro' && (
-                                <input
-                                  type="text"
-                                  value={questionnaireData.shippingOther}
-                                  onChange={(e) => setQuestionnaireData({...questionnaireData, shippingOther: e.target.value})}
-                                  placeholder="Specifica come gestisci le spedizioni..."
-                                  className="w-full mt-2 px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
-                                />
-                              )}
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                15. % media di resi/mancata consegna (RTO)
-                              </label>
-                              <div className="space-y-1">
-                                {['< 5%', '5–10%', '10–20%', '> 20%'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
-                                    <input
-                                      type="radio"
-                                      name="returns"
-                                      value={option}
-                                      checked={questionnaireData.returns === option}
-                                      onChange={(e) => setQuestionnaireData({...questionnaireData, returns: e.target.value})}
-                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
-                                    />
-                                    <span className="text-gray-700 text-sm">{option}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                16. In quali Paesi vendi o vorresti vendere?
-                              </label>
-                              <textarea
-                                value={questionnaireData.countries}
-                                onChange={(e) => setQuestionnaireData({...questionnaireData, countries: e.target.value})}
-                                placeholder="Es: Italia, Spagna, Germania..."
-                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 resize-none"
-                                rows={2}
-                              />
-                            </div>
-                          </div>
-                        </div>
+              {/* Riga 3: White text */}
+              <span
+                className="block text-white font-bold"
+                style={{
+                  animation: 'blurFadeIn 2s cubic-bezier(0.4, 0, 0.2, 1) 1.5s both'
+                }}
+              >
+                zero rischi.
+              </span>
+            </h1>
+          </div>
 
-                        {/* Sezione 5 - Potenziale del brand */}
-                        <div className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 p-5 rounded-2xl border border-blue-100">
-                          <h4 className="text-xl font-bold mb-4 flex items-center">
-                            <span className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full text-white text-sm font-bold mr-3 shadow-lg">5</span>
-                            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
-                              Potenziale del Brand
-                            </span>
-                          </h4>
-                          
-                          <div className="space-y-4">
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                17. Qual è il tuo obiettivo principale nei prossimi 12 mesi?
-                              </label>
-                              <div className="space-y-1">
-                                {['Aumentare le vendite', 'Lanciare un nuovo prodotto/brand', 'Espandere all\'estero', 'Migliorare la marginalità', 'Altro'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
-                                    <input
-                                      type="radio"
-                                      name="objective"
-                                      value={option}
-                                      checked={questionnaireData.objective === option}
-                                      onChange={(e) => setQuestionnaireData({...questionnaireData, objective: e.target.value})}
-                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
-                                    />
-                                    <span className="text-gray-700 text-sm">{option}</span>
-                                  </label>
-                                ))}
-                              </div>
-                              {questionnaireData.objective === 'Altro' && (
-                                <input
-                                  type="text"
-                                  value={questionnaireData.objectiveOther}
-                                  onChange={(e) => setQuestionnaireData({...questionnaireData, objectiveOther: e.target.value})}
-                                  placeholder="Specifica il tuo obiettivo..."
-                                  className="w-full mt-2 px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition-all text-sm text-gray-800 placeholder-gray-400 hover:border-blue-300"
-                                />
-                              )}
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                18. Fatturato medio mensile
-                              </label>
-                              <div className="space-y-1">
-                                {['0-5.000€', '5.000-10.000€', '10.000-20.000€', '20.000-50.000€', '+50.000€'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
-                                    <input
-                                      type="radio"
-                                      name="revenue"
-                                      value={option}
-                                      checked={questionnaireData.revenue === option}
-                                      onChange={(e) => setQuestionnaireData({...questionnaireData, revenue: e.target.value})}
-                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
-                                    />
-                                    <span className="text-gray-700 text-sm">{option}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                19. Composizione del tuo team attuale
-                              </label>
-                              <div className="space-y-1">
-                                {['Solo founder', '2–3 persone', '4–10 persone', '10+ persone'].map((option) => (
-                                  <label key={option} className="flex items-center space-x-2 cursor-pointer py-2 px-3 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200">
-                                    <input
-                                      type="radio"
-                                      name="team"
-                                      value={option}
-                                      checked={questionnaireData.team === option}
-                                      onChange={(e) => setQuestionnaireData({...questionnaireData, team: e.target.value})}
-                                      className="w-4 h-4 text-blue-600 border-blue-400 focus:ring-blue-400"
-                                    />
-                                    <span className="text-gray-700 text-sm">{option}</span>
-                                  </label>
-                                ))}
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                20. Quali sono oggi i principali ostacoli che ti impediscono di crescere?
-                              </label>
-                              <textarea
-                                value={questionnaireData.obstacles}
-                                onChange={(e) => setQuestionnaireData({...questionnaireData, obstacles: e.target.value})}
-                                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-400 focus:border-purple-400 outline-none transition-all text-sm text-gray-800 resize-none"
-                                rows={3}
-                              />
-                            </div>
-                          </div>
-                        </div>
+          {/* Sub-headline */}
+          <p
+            className="text-lg sm:text-xl lg:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto"
+            style={{
+              animation: 'fadeIn 1.5s ease-out 2.5s both'
+            }}
+          >
+            Copriamo le spese ads e gestiamo tutto il funnel.
+            Tu incassi i risultati.
+          </p>
 
-                        {/* Captcha - Sezione Obbligatoria */}
-                        <div className="mt-8 bg-gradient-to-r from-yellow-50 via-orange-50 to-yellow-50 p-6 rounded-2xl border-2 border-orange-200 shadow-lg">
-                          <div className="flex items-start space-x-2 mb-4">
-                            <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
-                              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                              </svg>
-                            </div>
-                            <div>
-                              <h4 className="text-lg font-bold text-gray-800">
-                                Verifica di Sicurezza <span className="text-red-500">*</span>
-                              </h4>
-                              <p className="text-sm text-gray-600 mt-1">
-                                Conferma che sei umano risolvendo questa semplice operazione
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="bg-white/70 p-4 rounded-xl border border-orange-100">
-                            <div className="flex items-center gap-2 sm:gap-4 justify-center flex-nowrap" suppressHydrationWarning>
-                              {isMounted ? (
-                                <>
-                                  <span className="text-lg sm:text-2xl font-bold text-gray-800 bg-white px-2 sm:px-4 py-1 sm:py-2 rounded-lg shadow-sm whitespace-nowrap">
-                                    {captchaQuestion.question}
-                                  </span>
-                                  <span className="text-lg sm:text-xl text-gray-600">=</span>
-                                  <input
-                                    type="number"
-                                    value={captchaAnswer}
-                                    onChange={(e) => setCaptchaAnswer(e.target.value)}
-                                    className="w-16 sm:w-24 px-2 sm:px-4 py-2 sm:py-3 bg-white border-2 border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none transition-all text-center text-lg sm:text-xl font-bold text-gray-800 shadow-sm"
-                                    placeholder="?"
-                                    required
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={generateCaptcha}
-                                    className="px-2 sm:px-3 py-1 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg transition-colors text-xs sm:text-sm font-medium flex items-center gap-1 whitespace-nowrap"
-                                  >
-                                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                    </svg>
-                                    <span className="hidden sm:inline">Cambia</span>
-                                  </button>
-                                </>
-                              ) : (
-                                <div className="flex items-center space-x-4 justify-center">
-                                  <span className="text-xl font-bold text-gray-400">Caricamento...</span>
-                                  <div className="w-24 h-12 bg-orange-100 border border-orange-200 rounded-lg animate-pulse"></div>
-                                </div>
-                              )}
-                            </div>
-                            <p className="text-xs text-center text-gray-500 mt-3">
-                              <span className="text-orange-600 font-medium">Campo obbligatorio</span> - Inserisci la risposta corretta per procedere
-                            </p>
-                          </div>
-                        </div>
-
-                        <button
-                          type="submit"
-                          className="w-full gradient-bg-brand gradient-bg-brand-hover text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl pulse-button"
-                        >
-                          <FaRocket className="inline mr-2 text-xl" /> Invia Candidatura
-                        </button>
-                      </form>
-                      ) : (
-                        <div className="text-center py-8">
-                          <div className="mb-6">
-                            <div className="text-6xl mb-4 animate-bounce"><FaCheckCircle className="text-green-500 mx-auto" /></div>
-                            <h3 className="text-3xl font-bold mb-4">
-                              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
-                                Candidatura Inviata con Successo!
-                              </span>
-                            </h3>
-                            <p className="text-gray-700 text-lg leading-relaxed mb-6">
-                              Grazie per aver completato il questionario.<br />
-                              Se il tuo brand è idoneo, un nostro commerciale ti contatterà entro <span className="text-purple-600 font-semibold">48 ore</span> per valutare la collaborazione.
-                            </p>
-                            <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-xl border border-green-200">
-                              <p className="text-green-700 font-semibold mb-2">
-                                <FaBullseye className="inline mr-2 text-green-600" /> Prossimi passi:
-                              </p>
-                              <ul className="text-gray-700 text-left space-y-2">
-                                <li>• Analizzeremo il tuo profilo aziendale</li>
-                                <li>• Valuteremo il potenziale del tuo brand</li>
-                                <li>• Ti contatteremo per un colloquio preliminare</li>
-                                <li>• Definiremo insieme la strategia di crescita</li>
-                              </ul>
-                            </div>
-                          </div>
-                          <button 
-                            onClick={() => {
-                              setShowQuestionnaire(false);
-                              setQuestionnaireSubmitted(false);
-                              setIncompleteConfirmed(false);
-                              setShowContactForm(false);
-                              setContactFormData({ nome: '', cognome: '', telefono: '', email: '' });
-                              setQuestionnaireData({
-                                brandName: '', website: '', instagram: '', tiktok: '', facebook: '', otherSocial: '', sector: '', sectorOther: '', production: '', productionOther: '',
-                                bestSeller: '', margin: '', availability: '', availabilityOther: '', onlineSales: '', monthlyOrders: '', ticketMedio: '', marketingChannels: [], adInvestment: '',
-                                salesChannels: [], shipping: '', shippingOther: '', returns: '', countries: '', objective: '', objectiveOther: '', revenue: '', team: '', obstacles: ''
-                              });
-                            }}
-                            className="gradient-bg-brand gradient-bg-brand-hover text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 text-lg"
-                          >
-                            Chiudi
-                          </button>
-                        </div>
-                      )}
+          {/* CTA */}
+          <div
+            className="flex justify-center items-center"
+            style={{
+              animation: 'fadeIn 1.5s ease-out 3s both'
+            }}
+          >
+            {/* CTA Primario - grande */}
+            <button
+              onClick={scrollToContactForm}
+              className="gradient-bg-brand gradient-bg-brand-hover text-white px-12 py-5 rounded-full font-bold transition-all transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-black text-xl"
+            >
+              Candidati
+            </button>
           </div>
         </div>
-      )}
+
+
+        {/* Contact Form Modal */}
+        {showContactForm && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowContactForm(false)}>
+            <div
+              className="rounded-2xl shadow-2xl max-w-2xl w-full relative overflow-hidden scrollbar-hide"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                animation: 'slideUpFade 0.3s ease-out',
+                maxHeight: '90vh',
+                overflowY: showQuestionnaire ? 'auto' : 'hidden',
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(249,250,251,1) 100%)',
+                position: 'relative'
+              }}
+            >
+              {/* Glow effect gradients - only bottom corners */}
+              <div className="absolute bottom-0 left-0 w-80 h-80 pointer-events-none"
+                style={{
+                  background: 'radial-gradient(circle at bottom left, rgba(54, 163, 227, 0.35) 0%, rgba(54, 163, 227, 0.20) 20%, rgba(79, 16, 232, 0.12) 40%, rgba(139, 92, 246, 0.06) 60%, transparent 75%)',
+                  filter: 'blur(40px)',
+                  transform: 'translate(-30%, 30%)'
+                }}
+              />
+              <div className="absolute bottom-0 left-0 w-60 h-60 pointer-events-none"
+                style={{
+                  background: 'radial-gradient(circle at center, rgba(54, 163, 227, 0.4) 0%, transparent 50%)',
+                  filter: 'blur(60px)',
+                  transform: 'translate(-20%, 20%)',
+                  mixBlendMode: 'screen'
+                }}
+              />
+              <div className="absolute bottom-0 right-0 w-80 h-80 pointer-events-none"
+                style={{
+                  background: 'radial-gradient(circle at bottom right, rgba(247, 18, 197, 0.30) 0%, rgba(247, 18, 197, 0.18) 20%, rgba(168, 85, 247, 0.12) 40%, rgba(139, 92, 246, 0.06) 60%, transparent 75%)',
+                  filter: 'blur(40px)',
+                  transform: 'translate(30%, 30%)'
+                }}
+              />
+              <div className="absolute bottom-0 right-0 w-60 h-60 pointer-events-none"
+                style={{
+                  background: 'radial-gradient(circle at center, rgba(247, 18, 197, 0.35) 0%, transparent 50%)',
+                  filter: 'blur(60px)',
+                  transform: 'translate(20%, 20%)',
+                  mixBlendMode: 'screen'
+                }}
+              />
+
+              {/* Content wrapper */}
+              <div className="relative z-10 p-8">
+              {/* Close button */}
+              <button
+                onClick={() => setShowContactForm(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-all hover:rotate-90 duration-300 z-20"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              {questionnaireSubmitted ? (
+                <>
+                  <div className="text-center py-8">
+                    <div className="mb-6">
+                      <svg className="w-20 h-20 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h2 className="text-3xl font-bold mb-4">
+                      <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                        Candidatura Inviata con Successo!
+                      </span>
+                    </h2>
+                    <p className="text-gray-700 mb-4 text-lg">
+                      Grazie per aver completato il questionario!
+                    </p>
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg mb-6 text-left">
+                      <h3 className="font-semibold text-gray-800 mb-3">Cosa succederà adesso:</h3>
+                      <ul className="space-y-2 text-gray-600">
+                        <li className="flex items-start">
+                          <span className="text-blue-500 mr-2">✓</span>
+                          <span>Il nostro team analizzerà attentamente la tua candidatura</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="text-blue-500 mr-2">✓</span>
+                          <span>Ti contatteremo entro 24-48 ore lavorative</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="text-blue-500 mr-2">✓</span>
+                          <span>Riceverai una proposta personalizzata basata sulle tue esigenze</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="text-blue-500 mr-2">✓</span>
+                          <span>Inizieremo insieme il percorso di crescita del tuo brand</span>
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-6">
+                      <p className="text-sm text-yellow-800">
+                        <strong>Nota:</strong> Non sarà possibile inviare una nuova candidatura con la stessa email per le prossime 24 ore.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowContactForm(false);
+                        setShowQuestionnaire(false);
+                        setQuestionnaireSubmitted(false);
+                      }}
+                      className="gradient-bg-brand text-white px-8 py-3 rounded-xl font-semibold hover:scale-105 transition-transform"
+                    >
+                      Chiudi
+                    </button>
+                  </div>
+                </>
+              ) : !showQuestionnaire ? (
+                <>
+                  <h2 className="text-3xl font-bold mb-2 text-center">
+                    <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">Candidati Ora</span>
+                  </h2>
+                  <p className="text-gray-600 text-center mb-6 text-sm">Compila il form per iniziare il tuo percorso di crescita digitale</p>
+                  <form onSubmit={handleContactSubmit} className="space-y-4">
+                    <div>
+                      <label htmlFor="nome" className="block text-sm font-medium text-gray-700 mb-1">
+                        Nome *
+                      </label>
+                      <input
+                        type="text"
+                        id="nome"
+                        name="nome"
+                        required
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all hover:border-purple-300 hover:shadow-sm"
+                        placeholder="Il tuo nome"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="cognome" className="block text-sm font-medium text-gray-700 mb-1">
+                        Cognome *
+                      </label>
+                      <input
+                        type="text"
+                        id="cognome"
+                        name="cognome"
+                        required
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all hover:border-purple-300 hover:shadow-sm"
+                        placeholder="Il tuo cognome"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                        Email *
+                      </label>
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        required
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all hover:border-purple-300 hover:shadow-sm"
+                        placeholder="tua@email.com"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="telefono" className="block text-sm font-medium text-gray-700 mb-1">
+                        Telefono
+                      </label>
+                      <input
+                        type="tel"
+                        id="telefono"
+                        name="telefono"
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all hover:border-purple-300 hover:shadow-sm"
+                        placeholder="+39 123 456 7890"
+                      />
+                    </div>
+                    <div className="flex items-start bg-gradient-to-r from-sky-50 to-blue-50 p-3 rounded-lg border border-sky-200">
+                      <input
+                        type="checkbox"
+                        id="privacy"
+                        checked={privacyAccepted}
+                        onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                        className="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-purple-300 rounded cursor-pointer"
+                      />
+                      <label htmlFor="privacy" className="ml-2 text-sm text-gray-600">
+                        Ho letto e accetto l'<a href="/privacy-policy" target="_blank" className="text-sky-500 hover:text-sky-400 underline">informativa sulla privacy</a> *
+                      </label>
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={!privacyAccepted}
+                      className={`w-full py-3 rounded-xl font-semibold transition-all transform shadow-md ${
+                        privacyAccepted
+                          ? 'gradient-bg-brand gradient-bg-brand-hover text-white hover:scale-105 cursor-pointer hover:shadow-xl'
+                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      Procedi
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <QuestionnaireForm
+                  _contactData={contactFormData}
+                  _onClose={() => {
+                    setShowContactForm(false);
+                    setShowQuestionnaire(false);
+                  }}
+                  questionnaireData={questionnaireData}
+                  setQuestionnaireData={setQuestionnaireData}
+                  captchaQuestion={captchaQuestion}
+                  captchaAnswer={captchaAnswer}
+                  setCaptchaAnswer={setCaptchaAnswer}
+                  generateCaptcha={generateCaptcha}
+                  handleQuestionnaireSubmit={handleQuestionnaireSubmit}
+                />
+              )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CSS per animazioni premium */}
+        <style jsx>{`
+          @keyframes blurFadeIn {
+            0% {
+              opacity: 0;
+              filter: blur(20px);
+              transform: translateY(30px) scale(0.95);
+            }
+            20% {
+              opacity: 0.2;
+              filter: blur(15px);
+              transform: translateY(20px) scale(0.97);
+            }
+            40% {
+              opacity: 0.4;
+              filter: blur(10px);
+              transform: translateY(15px) scale(0.98);
+            }
+            60% {
+              opacity: 0.7;
+              filter: blur(5px);
+              transform: translateY(10px) scale(0.99);
+            }
+            80% {
+              opacity: 0.9;
+              filter: blur(2px);
+              transform: translateY(5px) scale(0.995);
+            }
+            100% {
+              opacity: 1;
+              filter: blur(0);
+              transform: translateY(0) scale(1);
+            }
+          }
+
+          @keyframes fadeIn {
+            0% {
+              opacity: 0;
+            }
+            100% {
+              opacity: 1;
+            }
+          }
+
+          @keyframes glowPulse {
+            0%, 100% {
+              opacity: 0.3;
+            }
+            50% {
+              opacity: 0.6;
+            }
+          }
+
+          @keyframes trailPulse {
+            0%, 100% {
+              transform: scale(1);
+              opacity: 0.8;
+            }
+            50% {
+              transform: scale(1.1);
+              opacity: 1;
+            }
+          }
+
+          @keyframes slowFloat {
+            0%, 100% {
+              transform: translate(0, 0) scale(1);
+            }
+            33% {
+              transform: translate(30px, -30px) scale(1.05);
+            }
+            66% {
+              transform: translate(-20px, 20px) scale(0.95);
+            }
+          }
+
+          @keyframes scrollBounce {
+            0%, 100% {
+              transform: translateY(0) translateX(-50%);
+              opacity: 1;
+            }
+            50% {
+              transform: translateY(6px) translateX(-50%);
+              opacity: 0.5;
+            }
+          }
+
+          @keyframes slideUpFade {
+            0% {
+              transform: translateY(20px);
+              opacity: 0;
+            }
+            100% {
+              transform: translateY(0);
+              opacity: 1;
+            }
+          }
+        `}</style>
+      </section>
 
       {/* --- Comparison Section --- */}
       <section
@@ -2827,25 +2437,7 @@ export default function HomePage() {
         className="py-16 px-4 sm:px-6 lg:px-8"
         aria-label="Work is broken vs Let's fix it"
       >
-  {(() => {
-    const _apps = [
-      { src: 'images/icons/business.png', alt: 'Word', style: 'top-6 left-10 rotate-3' },
-      { src: 'images/icons/sitoweb.png', alt: 'Slack', style: 'top-20 right-10 -rotate-6' },
-      { src: 'images/icons/social.png', alt: 'Notion', style: 'top-40 left-4 rotate-2' },
-      { src: 'images/icons/ads.png', alt: 'Trello', style: 'bottom-10 left-16 -rotate-3' },
-      { src: 'images/icons/spam.png', alt: 'Airtable', style: 'bottom-20 right-6 rotate-6' },
-      { src: 'images/icons/soldi.png', alt: 'Dropbox', style: 'top-1/2 right-24 -rotate-2' },
-    ];
-const _labels: { [key: number]: string } = {
-  0: '?',
-  1: 'Error 404',
-  2: 'Ban',
-  3: 'Obsoleto',
-  4: 'Spam',
-  5: '-8.000€'
-};
-    return (
-     <div className="mx-auto flex flex-col lg:grid lg:grid-cols-2 max-w-5xl gap-6 items-stretch">
+        <div className="mx-auto flex flex-col lg:grid lg:grid-cols-2 max-w-5xl gap-6 items-stretch">
   {/* LEFT – Work is broken */}
   <div data-section="comparison-left" className={`flex justify-center slide-in-left ${visibleSections.includes('comparison-left') ? 'slide-in-visible' : ''}`}>
     <div className="w-full lg:max-w-lg">
@@ -3229,8 +2821,6 @@ const _labels: { [key: number]: string } = {
           </div>
         </div>
       </div>
-        );
-      })()}
       </section>
 
 
@@ -3400,220 +2990,310 @@ const _labels: { [key: number]: string } = {
      
 
       {/* Google Ads Section */}
-     <section 
-  id="servizi" 
-className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10 relative"
-  data-section="google-ads"
->
-  <div className="absolute inset-0 bg-gradient-to-r from-blue-50/30 via-transparent to-purple-50/30"></div>
-  
-  
-<div className="w-full max-w-7xl mx-auto relative z-10 px-6 lg:px-12">
+      <section
+        id="servizi"
+        className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10 relative"
+        data-section="google-ads"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-50/30 via-transparent to-purple-50/30"></div>
 
-    <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <div className={`space-y-6 lg:space-y-8 slide-up-enter slide-up-delay-1 ${visibleSections.includes('google-ads') ? 'slide-up-visible' : ''}`}>
-              <div className="inline-block px-3 py-2 bg-gradient-to-r from-blue-100 to-indigo-100 border border-blue-200 rounded-full text-xs sm:text-sm">
-                Google Ads
-              </div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{color: '#1c1a31'}}>
-                Strategie Pubblicitarie Su <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Google Ads</span>
-              </h2>
-              
-              {/* Dashboard Box - mobile only, under title */}
-              <div className={`lg:hidden dashboard-window-drop bg-white rounded-2xl border border-gray-200 hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 relative ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                {/* Dashboard Header - Always visible first */}
-                <div className={`dashboard-header p-4 sm:p-6 pb-3 border-b border-gray-100 ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-sm sm:text-base text-gray-800">Google Ads Dashboard</span>
-                    {/* Google Ads Logo */}
-                    <div className="w-10 h-10 hover:scale-110 transition-transform cursor-pointer">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px" height="48px">
-                        <polygon fill="#ffc107" points="30.129,15.75 18.871,9.25 5.871,31.25 17.129,37.75"/>
-                        <path fill="#1e88e5" d="M31.871,37.75c1.795,3.109,5.847,4.144,8.879,2.379c3.103-1.806,4.174-5.77,2.379-8.879l-13-22 c-1.795-3.109-5.835-4.144-8.879-2.379c-3.106,1.801-4.174,5.77-2.379,8.879L31.871,37.75z"/>
-                        <circle cx="11.5" cy="34.5" r="6.5" fill="#43a047"/>
-                      </svg>
-                    </div>
-                  </div>
+        <div className="w-full max-w-7xl mx-auto relative z-10 px-6 lg:px-12">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            <div className={`space-y-3 lg:space-y-8 slide-up-enter slide-up-delay-1 ${visibleSections.includes('google-ads') ? 'slide-up-visible' : ''}`}>
+              {/* Titolo con Logo Google Ads */}
+              <div className="flex items-start gap-4">
+                <div className="flex-1">
+                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{color: '#1c1a31'}}>
+                    Strategie Pubblicitarie Su <span className="font-bold"><span className="bg-gradient-to-r from-[#34A853] from-0% to-[#FBBC04] to-45% bg-clip-text text-transparent">Google</span> <span className="text-[#4285F4]">Ads</span></span>
+                  </h2>
                 </div>
-                
-                {/* Dashboard Content - Animates after header */}
-                <div className={`dashboard-content p-4 sm:p-6 pt-3 ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                
-                {/* Main Metrics - 2 big boxes */}
-                <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-3">
-                  {/* Ricavi - Primary metric in green */}
-                  <div className={`metric-box bg-gradient-to-br from-green-50 to-emerald-50 p-4 sm:p-5 rounded-xl border border-green-200 hover:shadow-lg transition-shadow ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className="text-xs sm:text-sm text-gray-600 uppercase tracking-wider mb-2">Ricavi</p>
-                        <p className="text-2xl sm:text-3xl font-bold text-green-700">€238.554</p>
-                      </div>
-                      <span className="text-green-500 text-xl sm:text-2xl">📈</span>
-                    </div>
-                  </div>
-                  
-                  {/* ROAS - Primary metric in purple gradient */}
-                  <div className={`metric-box bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50 p-4 sm:p-5 rounded-xl border border-purple-200 hover:shadow-lg transition-shadow ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className="text-xs sm:text-sm text-gray-600 uppercase tracking-wider mb-2">ROAS</p>
-                        <p className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">20,8x</p>
-                      </div>
-                      <span className="text-purple-500 text-xl sm:text-2xl">🚀</span>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Secondary Metrics - 2 smaller boxes */}
-                <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
-                  {/* Spesa in blue */}
-                  <div className={`metric-box bg-blue-50/50 p-3 sm:p-4 rounded-lg border border-blue-100 ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                    <span className="text-blue-400 text-sm">💰</span>
-                    <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">Spesa Ads</p>
-                    <p className="text-lg sm:text-xl font-bold text-blue-700">€11.456</p>
-                  </div>
-                  
-                  {/* Conversioni */}
-                  <div className={`metric-box bg-purple-50/50 p-3 sm:p-4 rounded-lg border border-purple-100 ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                    <span className="text-purple-400 text-sm">✓</span>
-                    <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">Conversioni</p>
-                    <p className="text-lg sm:text-xl font-bold text-purple-700">3.951</p>
-                  </div>
-                </div>
-                
-                {/* Simplified Message Box */}
-                <div className={`chart-box bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 p-6 sm:p-8 rounded-lg ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                  <div className="text-center">
-                    <p 
-                      className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-800 leading-relaxed"
-                      style={{
-                        animation: visibleSections.includes('google-ads') ? 'gentle-pulse 2.5s ease-in-out infinite' : 'none',
-                        transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1) 1.2s',
-                        opacity: visibleSections.includes('google-ads') ? '1' : '0'
-                      }}
-                    >
-                      👉 Il <span className="font-bold text-green-700">95% del fatturato</span> resta al <span className="font-bold text-green-700">tuo brand</span>.
-                    </p>
-                    <p 
-                      className="text-sm :text-base text-gray-600 mt-3"
-                      style={{
-                        opacity: visibleSections.includes('google-ads') ? '1' : '0',
-                        transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1) 1.5s'
-                      }}
-                    >
-                      Solo il 5% viene investito in pubblicità per generare il 95% dei tuoi ricavi.
-                    </p>
-                  </div>
-                </div>
+                {/* Google Ads Logo - grande come il titolo */}
+                <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-36 lg:h-36 flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="100%" height="100%">
+                    <polygon fill="#FBBC04" points="30.129,15.75 18.871,9.25 5.871,31.25 17.129,37.75"/>
+                    <path fill="#4285F4" d="M31.871,37.75c1.795,3.109,5.847,4.144,8.879,2.379c3.103-1.806,4.174-5.77,2.379-8.879l-13-22 c-1.795-3.109-5.835-4.144-8.879-2.379c-3.106,1.801-4.174,5.77-2.379,8.879L31.871,37.75z"/>
+                    <circle cx="11.5" cy="34.5" r="6.5" fill="#34A853"/>
+                  </svg>
                 </div>
               </div>
-              
+
+              {/* MacBook mockup - visible only on mobile, between title and box */}
+              <div className="block lg:hidden">
+                <div className={`relative overflow-hidden ${visibleSections.includes('google-ads') ? 'slide-up-visible' : ''}`} style={{ height: '250px' }}>
+                  <Image
+                    src="/images/macbook-ads.png"
+                    alt="Google Ads Dashboard"
+                    width={600}
+                    height={450}
+                    quality={100}
+                    priority
+                    className="w-full h-full object-cover object-center"
+                  />
+                </div>
+              </div>
+
+              {/* Riquadro Premium Google Ads Strategie con animazione a tendina */}
+              <div className="mx-auto max-w-sm sm:max-w-md lg:max-w-none">
+                <div
+                  className="bg-white rounded-2xl shadow-lg hover:shadow-xl overflow-hidden relative"
+                  style={{
+                    background: 'linear-gradient(to right, #4285F4 0%, #34A853 33%, #FBBC04 66%, #4285F4 100%)',
+                    padding: '4px',
+                    maxHeight: visibleSections.includes('google-ads') ? '800px' : '0px',
+                    opacity: visibleSections.includes('google-ads') ? 1 : 0,
+                    transform: `translateY(${visibleSections.includes('google-ads') ? '0' : '20px'})`,
+                    transition: 'all 1.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}
+                >
+                  <div className="bg-white rounded-2xl p-4 sm:p-6 lg:p-10 min-h-[240px] sm:min-h-[260px] lg:min-h-[280px]">
+                      {/* Container principale con griglia a 3 colonne */}
+                      <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4 mb-3 sm:mb-4 lg:mb-6 lg:min-h-[140px]">
+
+                        {!expandedGoogleAd ? (
+                          <>
+                            {/* Stato chiuso: 3 icone nelle loro colonne */}
+                            <button
+                              role="tab"
+                              aria-selected={false}
+                              aria-controls="panel-search"
+                              tabIndex={0}
+                              className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 transition-all duration-[600ms] ease-out hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2"
+                              onClick={() => setExpandedGoogleAd('search')}
+                              style={{ transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
+                            >
+                              <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-110 transition-transform duration-300 relative group">
+                                <Image
+                                  src="/images/icons/search-google.png"
+                                  alt="Google Search"
+                                  width={80}
+                                  height={80}
+                                  className="w-full h-full object-contain"
+                                />
+                                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#4285F4] to-[#34A853] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
+                              </div>
+                              <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-semibold">Ricerca Google</h3>
+                            </button>
+
+                            <button
+                              role="tab"
+                              aria-selected={false}
+                              aria-controls="panel-display"
+                              tabIndex={-1}
+                              className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 transition-all duration-[600ms] ease-out hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#FBBC04] focus:ring-offset-2"
+                              onClick={() => setExpandedGoogleAd('display')}
+                              style={{ transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
+                            >
+                              <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-110 transition-transform duration-300 relative group">
+                                <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                                  <rect x="4" y="8" width="40" height="28" rx="2" fill="#E8EAED" stroke="#5F6368" strokeWidth="1.5"/>
+                                  <rect x="8" y="12" width="32" height="20" rx="1" fill="#FFFFFF"/>
+                                  <rect x="10" y="14" width="12" height="8" rx="0.5" fill="#4285F4"/>
+                                  <rect x="24" y="14" width="14" height="3" rx="0.5" fill="#34A853"/>
+                                  <rect x="24" y="19" width="14" height="3" rx="0.5" fill="#FBBC04"/>
+                                  <rect x="10" y="24" width="28" height="6" rx="0.5" fill="#4285F4"/>
+                                  <circle cx="24" cy="40" r="1.5" fill="#5F6368"/>
+                                </svg>
+                                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#FBBC04] to-[#34A853] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
+                              </div>
+                              <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-semibold">Display Network</h3>
+                            </button>
+
+                            <button
+                              role="tab"
+                              aria-selected={false}
+                              aria-controls="panel-youtube"
+                              tabIndex={-1}
+                              className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 transition-all duration-[600ms] ease-out hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2"
+                              onClick={() => setExpandedGoogleAd('youtube')}
+                              style={{ transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
+                            >
+                              <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-110 transition-transform duration-300 relative group">
+                                <Image
+                                  src="/images/icons/youtubelogo.svg"
+                                  alt="YouTube Ads"
+                                  width={80}
+                                  height={80}
+                                  className="w-full h-full object-contain"
+                                />
+                                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#FBBC04] to-[#4285F4] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
+                              </div>
+                              <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-semibold">YouTube Ads</h3>
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            {/* Stato aperto: icona attiva in col1, pannello in col2-3 */}
+                            <div className="col-span-3 grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
+
+                              {/* Colonna 1: icona attiva */}
+                              <button
+                                role="tab"
+                                aria-selected={true}
+                                aria-controls={`panel-${expandedGoogleAd}`}
+                                tabIndex={0}
+                                className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer bg-gradient-to-r from-blue-50/50 to-green-50/50 border-b-2 border-[#4285F4] shadow-sm transition-all duration-[600ms] ease-out hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2"
+                                onClick={() => setExpandedGoogleAd(null)}
+                                style={{
+                                  gridColumn: '1',
+                                  animation: expandedGoogleAd === 'search' ? 'none' : 'slideToLeft 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                                }}
+                              >
+                                {expandedGoogleAd === 'search' && (
+                                  <>
+                                    <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto transition-transform duration-300 relative group">
+                                      <Image
+                                        src="/images/icons/search-google.png"
+                                        alt="Google Search"
+                                        width={80}
+                                        height={80}
+                                        className="w-full h-full object-contain saturate-125"
+                                      />
+                                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#4285F4] to-[#34A853] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
+                                    </div>
+                                    <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-bold">Ricerca Google</h3>
+                                  </>
+                                )}
+                                {expandedGoogleAd === 'display' && (
+                                  <>
+                                    <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto transition-transform duration-300 relative group">
+                                      <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                                        <rect x="4" y="8" width="40" height="28" rx="2" fill="#E8EAED" stroke="#5F6368" strokeWidth="1.5"/>
+                                        <rect x="8" y="12" width="32" height="20" rx="1" fill="#FFFFFF"/>
+                                        <rect x="10" y="14" width="12" height="8" rx="0.5" fill="#4285F4"/>
+                                        <rect x="24" y="14" width="14" height="3" rx="0.5" fill="#34A853"/>
+                                        <rect x="24" y="19" width="14" height="3" rx="0.5" fill="#FBBC04"/>
+                                        <rect x="10" y="24" width="28" height="6" rx="0.5" fill="#4285F4"/>
+                                        <circle cx="24" cy="40" r="1.5" fill="#5F6368"/>
+                                      </svg>
+                                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#FBBC04] to-[#34A853] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
+                                    </div>
+                                    <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-bold">Display Network</h3>
+                                  </>
+                                )}
+                                {expandedGoogleAd === 'youtube' && (
+                                  <>
+                                    <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto transition-transform duration-300 relative group">
+                                      <Image
+                                        src="/images/icons/youtubelogo.svg"
+                                        alt="YouTube Ads"
+                                        width={80}
+                                        height={80}
+                                        className="w-full h-full object-contain saturate-125"
+                                      />
+                                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#FBBC04] to-[#4285F4] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
+                                    </div>
+                                    <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-bold">YouTube Ads</h3>
+                                  </>
+                                )}
+                              </button>
+
+                              {/* Colonne 2-3: pannello descrizione */}
+                              <div
+                                role="tabpanel"
+                                id={`panel-${expandedGoogleAd}`}
+                                className="col-span-2 flex items-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50/50 rounded-lg p-4 shadow-sm"
+                                style={{
+                                  animation: 'slideInFromLeft 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards',
+                                  minHeight: '100px'
+                                }}
+                              >
+                                <div key={expandedGoogleAd} className="w-full">
+                                  {expandedGoogleAd === 'search' && (
+                                    <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+                                      <span className="font-bold">Appari tra i primi risultati</span> quando i clienti cercano i tuoi <span className="font-bold">prodotti</span>.
+                                    </p>
+                                  )}
+                                  {expandedGoogleAd === 'display' && (
+                                    <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+                                      <span className="font-bold">Banner</span> e <span className="font-bold">annunci grafici</span> mostrati su siti, blog e portali partner di Google.
+                                    </p>
+                                  )}
+                                  {expandedGoogleAd === 'youtube' && (
+                                    <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+                                      <span className="font-bold">Annunci video</span> prima e durante i contenuti YouTube: ideali per creare <span className="font-bold">brand awareness</span> e aumentare le <span className="font-bold">conversioni</span>.
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Copy centrale (sempre visibile, con trasparenza variabile) */}
+                      <div className="text-center pt-3 border-t border-gray-200">
+                        <p className={`text-[15px] sm:text-lg lg:text-xl font-semibold text-gray-800 inline-block px-3 transition-opacity duration-600 ease-out ${expandedGoogleAd ? 'opacity-80' : 'opacity-100'}`} style={{ transition: 'opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}>
+                          👉 Con Google Ads intercetti i clienti giusti, nel posto giusto e al momento giusto.
+                        </p>
+                      </div>
+
+                      <style jsx>{`
+                        @keyframes slideInFromLeft {
+                          from {
+                            opacity: 0;
+                            transform: translateX(-20px);
+                          }
+                          to {
+                            opacity: 1;
+                            transform: translateX(0);
+                          }
+                        }
+
+                        @keyframes slideToLeft {
+                          from {
+                            transform: translateX(100%);
+                            opacity: 0.8;
+                          }
+                          to {
+                            transform: translateX(0);
+                            opacity: 1;
+                          }
+                        }
+
+                        @media (prefers-reduced-motion: reduce) {
+                          * {
+                            animation-duration: 0.01ms !important;
+                            animation-iteration-count: 1 !important;
+                            transition-duration: 0.01ms !important;
+                          }
+                        }
+                      `}</style>
+                    </div>
+                </div>
+              </div>
+
+              {/* Paragrafo */}
               <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
                 Investiamo nelle tue campagne <span className="font-bold">Google Ads</span> con <span className="font-bold">keyword vincenti</span> e <span className="font-bold">creatività ottimizzate</span> per massimizzare le conversioni. <br />
                 Se non funziona, <span className="font-bold">copriamo noi le perdite</span>.
               </p>
-              <button 
+
+              {/* Pulsante Candidati */}
+              <button
                 onClick={scrollToContactForm}
                 className="gradient-bg-brand gradient-bg-brand-hover text-white px-6 sm:px-8 py-3 rounded-full font-semibold transition-all text-sm sm:text-base transform hover:scale-105"
               >
                 <FaEnvelope className="inline mr-2" /> Candidati
               </button>
             </div>
-            
-            {/* Desktop Dashboard - right side */}
-            <div className="hidden lg:block">
-              <div className={`dashboard-window-drop bg-white rounded-2xl border border-gray-200 hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20 relative ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                {/* Dashboard Header - Always visible first */}
-                <div className={`dashboard-header p-6 lg:p-8 pb-4 border-b border-gray-100 ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-lg text-gray-800">Google Ads Dashboard</span>
-                    {/* Google Ads Logo */}
-                    <div className="w-12 h-12 hover:scale-110 transition-transform cursor-pointer">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px" height="48px">
-                        <polygon fill="#ffc107" points="30.129,15.75 18.871,9.25 5.871,31.25 17.129,37.75"/>
-                        <path fill="#1e88e5" d="M31.871,37.75c1.795,3.109,5.847,4.144,8.879,2.379c3.103-1.806,4.174-5.77,2.379-8.879l-13-22 c-1.795-3.109-5.835-4.144-8.879-2.379c-3.106,1.801-4.174,5.77-2.379,8.879L31.871,37.75z"/>
-                        <circle cx="11.5" cy="34.5" r="6.5" fill="#43a047"/>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Dashboard Content - Animates after header */}
-                <div className={`dashboard-content p-6 lg:p-8 pt-4 ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                
-                {/* Main Metrics - 2 big boxes */}
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  {/* Ricavi - Primary metric in green */}
-                  <div className={`metric-box bg-gradient-to-br from-green-50 to-emerald-50 p-5 rounded-xl border border-green-200 hover:shadow-lg transition-shadow ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-600 uppercase tracking-wider mb-2">Ricavi</p>
-                        <p className="text-3xl font-bold text-green-700">€238.554</p>
-                      </div>
-                      <span className="text-green-500 text-2xl">📈</span>
-                    </div>
-                  </div>
-                  
-                  {/* ROAS - Primary metric in purple gradient */}
-                  <div className={`metric-box bg-gradient-to-br from-purple-50 via-blue-50 to-purple-50 p-5 rounded-xl border border-purple-200 hover:shadow-lg transition-shadow ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-600 uppercase tracking-wider mb-2">ROAS</p>
-                        <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">20,8x</p>
-                      </div>
-                      <span className="text-purple-500 text-2xl">🚀</span>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Secondary Metrics - 2 smaller boxes */}
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  {/* Spesa in blue */}
-                  <div className={`metric-box bg-blue-50/50 p-4 rounded-lg border border-blue-100 ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                    <span className="text-blue-400 text-sm">💰</span>
-                    <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">Spesa Ads</p>
-                    <p className="text-xl font-bold text-blue-700">€11.456</p>
-                  </div>
-                  
-                  {/* Conversioni */}
-                  <div className={`metric-box bg-purple-50/50 p-4 rounded-lg border border-purple-100 ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                    <span className="text-purple-400 text-sm">✓</span>
-                    <p className="text-xs text-gray-600 uppercase tracking-wider mt-1">Conversioni</p>
-                    <p className="text-xl font-bold text-purple-700">3.951</p>
-                  </div>
-                </div>
-                
-                {/* Simplified Message Box Desktop */}
-                <div className={`chart-box bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 p-8 rounded-lg ${visibleSections.includes('google-ads') ? 'visible' : ''}`}>
-                  <div className="text-center">
-                    <p 
-                      className="text-2xl lg:text-3xl font-semibold text-gray-800 leading-relaxed"
-                      style={{
-                        animation: visibleSections.includes('google-ads') ? 'gentle-pulse 2.5s ease-in-out infinite' : 'none',
-                        transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1) 1.2s',
-                        opacity: visibleSections.includes('google-ads') ? '1' : '0'
-                      }}
-                    >
-                      👉 Il <span className="font-bold text-green-700">95% del fatturato</span> resta al <span className="font-bold text-green-700">tuo brand</span>.
-                    </p>
-                    <p 
-                      className="text-base lg:text-lg text-gray-600 mt-4"
-                      style={{
-                        opacity: visibleSections.includes('google-ads') ? '1' : '0',
-                        transition: 'opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1) 1.5s'
-                      }}
-                    >
-                      Solo il 5% viene investito in pubblicità per generare il 95% dei tuoi ricavi.
-                    </p>
-                  </div>
-                </div>
-                </div>
+
+            {/* MacBook mockup - colonna destra */}
+            <div className="hidden lg:flex lg:items-center lg:justify-center">
+              <div className={`relative w-full ${visibleSections.includes('google-ads') ? 'slide-up-visible' : ''}`}>
+                <Image
+                  src="/images/macbook-ads.png"
+                  alt="Google Ads Dashboard"
+                  width={600}
+                  height={450}
+                  quality={100}
+                  priority
+                  className="w-full h-auto object-contain"
+                />
               </div>
             </div>
           </div>
         </div>
       </section>
-
       {/* Meta Ads Section */}
       <section
         id="meta-ads"
@@ -3627,24 +3307,211 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
 
             {/* Text content for Meta Ads */}
             <div className={`lg:order-2 space-y-6 lg:space-y-8 slide-up-enter slide-up-delay-1 ${visibleSections.includes('meta-ads') ? 'slide-up-visible' : ''}`}>
-              <div className="inline-block px-3 py-2 bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-200 rounded-full text-xs sm:text-sm">
-                Meta Ads
-              </div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{color: '#1c1a31'}}>
-                Campagne Pubblicitarie su <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Meta Ads</span>
+                Campagne Pubblicitarie su <span className="inline-flex items-center gap-2"><span className="font-bold bg-gradient-to-r from-[#0064e1] to-[#0081fb] bg-clip-text text-transparent">Meta Ads</span>
+                <Image
+                  src="/images/icons/metavett.svg"
+                  alt="Meta"
+                  width={48}
+                  height={48}
+                  className="inline-block w-10 h-10 lg:w-12 lg:h-12"
+                /></span>
               </h2>
               
               {/* Mobile Meta Ads Journey - Under title */}
               <div className={`lg:hidden ${visibleSections.includes('meta-ads') ? 'visible' : ''}`}>
                 <MetaAdsJourney />
               </div>
-              {/* Main KPI Highlight Box */}
-              <div className={`bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-6 text-white shadow-2xl transform hover:scale-105 transition-all duration-300 ${visibleSections.includes('meta-ads') ? 'animate-pulse-slow' : ''}`}>
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl">👉</span>
-                  <p className="text-lg lg:text-xl font-semibold">
-                    💰 Ogni <span className="text-2xl font-bold">€1</span> investito ha generato <span className="text-2xl font-bold">€12,5</span> di ritorno medio.
-                  </p>
+              {/* Main KPI Highlight Box - stesso stile del box Google Ads */}
+              <div className="mx-auto max-w-sm sm:max-w-md lg:max-w-none">
+                <div
+                  className="bg-white rounded-2xl shadow-lg hover:shadow-xl overflow-hidden relative"
+                  style={{
+                    background: 'linear-gradient(to right, #0064e1 0%, #0081fb 50%, #0064e1 100%)',
+                    padding: '4px',
+                  }}
+                >
+                  <div className="bg-white rounded-2xl p-4 sm:p-6 lg:p-10 min-h-[240px] sm:min-h-[260px] lg:min-h-[280px]">
+                    {/* Container principale con griglia a 3 colonne */}
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4 mb-3 sm:mb-4 lg:mb-6 lg:min-h-[140px]">
+
+                      {!expandedMetaAd ? (
+                        <>
+                          {/* Stato chiuso: 3 icone nelle loro colonne - Ordine: Instagram, Facebook, Messenger */}
+                          <button
+                            role="tab"
+                            aria-selected={false}
+                            aria-controls="panel-instagram"
+                            tabIndex={0}
+                            className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 transition-all duration-[600ms] ease-out hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#E4405F] focus:ring-offset-2"
+                            onClick={() => setExpandedMetaAd('instagram')}
+                            style={{ transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
+                          >
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-110 transition-transform duration-300 relative group">
+                              <svg viewBox="0 0 48 48" className="w-full h-full">
+                                <radialGradient id="instagram-gradient" cx="19%" cy="100%" r="100%">
+                                  <stop offset="0%" stopColor="#FED576"/>
+                                  <stop offset="26%" stopColor="#F47133"/>
+                                  <stop offset="61%" stopColor="#BC3081"/>
+                                  <stop offset="100%" stopColor="#4F5BD5"/>
+                                </radialGradient>
+                                <rect width="48" height="48" rx="12" fill="url(#instagram-gradient)"/>
+                                <rect x="12" y="12" width="24" height="24" rx="7" fill="none" stroke="white" strokeWidth="2.5"/>
+                                <circle cx="24" cy="24" r="5.5" fill="none" stroke="white" strokeWidth="2.5"/>
+                                <circle cx="32.5" cy="15.5" r="1.5" fill="white"/>
+                              </svg>
+                              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#F47133] to-[#BC3081] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
+                            </div>
+                            <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-semibold">Instagram Ads</h3>
+                          </button>
+
+                          <button
+                            role="tab"
+                            aria-selected={false}
+                            aria-controls="panel-facebook"
+                            tabIndex={-1}
+                            className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 transition-all duration-[600ms] ease-out hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#1877f2] focus:ring-offset-2"
+                            onClick={() => setExpandedMetaAd('facebook')}
+                            style={{ transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
+                          >
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-110 transition-transform duration-300 relative group">
+                              <svg viewBox="0 0 48 48" className="w-full h-full">
+                                <circle cx="24" cy="24" r="24" fill="#1877F2"/>
+                                <path d="M36 24c0-6.63-5.37-12-12-12s-12 5.37-12 12c0 5.99 4.39 10.95 10.125 11.85V27.56h-3v-3.56h3v-2.71c0-2.96 1.76-4.59 4.45-4.59 1.29 0 2.64.23 2.64.23v2.91h-1.49c-1.46 0-1.92.91-1.92 1.84V24h3.28l-.52 3.56h-2.76v8.29C31.61 34.95 36 29.99 36 24z" fill="white"/>
+                              </svg>
+                              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#1877f2] to-[#0064e1] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
+                            </div>
+                            <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-semibold">Facebook Ads</h3>
+                          </button>
+
+                          <button
+                            role="tab"
+                            aria-selected={false}
+                            aria-controls="panel-messenger"
+                            tabIndex={-1}
+                            className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 transition-all duration-[600ms] ease-out hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#00B2FF] focus:ring-offset-2"
+                            onClick={() => setExpandedMetaAd('messenger')}
+                            style={{ transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
+                          >
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-110 transition-transform duration-300 relative group">
+                              <svg viewBox="0 0 48 48" className="w-full h-full">
+                                <linearGradient id="messenger-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                  <stop offset="0%" stopColor="#00B2FF"/>
+                                  <stop offset="100%" stopColor="#006AFF"/>
+                                </linearGradient>
+                                <rect width="48" height="48" rx="24" fill="url(#messenger-gradient)"/>
+                                <path d="M24 10C16.268 10 10 15.825 10 23c0 4.091 2.042 7.742 5.234 10.119V38l4.771-2.621c1.274.353 2.619.54 3.995.54 7.732 0 14-5.825 14-13S31.732 10 24 10zm1.39 17.52l-3.572-3.808-6.968 3.808L22.582 19l3.66 3.808 6.88-3.808-7.732 8.52z" fill="white"/>
+                              </svg>
+                              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00B2FF] to-[#006AFF] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
+                            </div>
+                            <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-semibold">Messenger Ads</h3>
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          {/* Stato aperto: icona attiva in col1, pannello in col2-3 */}
+                          <div className="col-span-3 grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
+
+                            {/* Colonna 1: icona attiva */}
+                            <button
+                              role="tab"
+                              aria-selected={true}
+                              aria-controls={`panel-${expandedMetaAd}`}
+                              tabIndex={0}
+                              className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer bg-gradient-to-r from-blue-50/50 to-purple-50/50 border-b-2 border-[#0064e1] shadow-sm transition-all duration-[600ms] ease-out hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#0064e1] focus:ring-offset-2"
+                              onClick={() => setExpandedMetaAd(null)}
+                              style={{
+                                gridColumn: '1',
+                                animation: expandedMetaAd === 'instagram' ? 'none' : 'slideToLeft 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                              }}
+                            >
+                              {expandedMetaAd === 'instagram' && (
+                                <>
+                                  <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto transition-transform duration-300 relative group">
+                                    <svg viewBox="0 0 48 48" className="w-full h-full">
+                                      <radialGradient id="instagram-gradient-active" cx="19%" cy="100%" r="100%">
+                                        <stop offset="0%" stopColor="#FED576"/>
+                                        <stop offset="26%" stopColor="#F47133"/>
+                                        <stop offset="61%" stopColor="#BC3081"/>
+                                        <stop offset="100%" stopColor="#4F5BD5"/>
+                                      </radialGradient>
+                                      <rect width="48" height="48" rx="12" fill="url(#instagram-gradient-active)"/>
+                                      <rect x="12" y="12" width="24" height="24" rx="7" fill="none" stroke="white" strokeWidth="2.5"/>
+                                      <circle cx="24" cy="24" r="5.5" fill="none" stroke="white" strokeWidth="2.5"/>
+                                      <circle cx="32.5" cy="15.5" r="1.5" fill="white"/>
+                                    </svg>
+                                  </div>
+                                  <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-bold">Instagram Ads</h3>
+                                </>
+                              )}
+                              {expandedMetaAd === 'facebook' && (
+                                <>
+                                  <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto transition-transform duration-300 relative group">
+                                    <svg viewBox="0 0 48 48" className="w-full h-full">
+                                      <circle cx="24" cy="24" r="24" fill="#1877F2"/>
+                                      <path d="M36 24c0-6.63-5.37-12-12-12s-12 5.37-12 12c0 5.99 4.39 10.95 10.125 11.85V27.56h-3v-3.56h3v-2.71c0-2.96 1.76-4.59 4.45-4.59 1.29 0 2.64.23 2.64.23v2.91h-1.49c-1.46 0-1.92.91-1.92 1.84V24h3.28l-.52 3.56h-2.76v8.29C31.61 34.95 36 29.99 36 24z" fill="white"/>
+                                    </svg>
+                                  </div>
+                                  <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-bold">Facebook Ads</h3>
+                                </>
+                              )}
+                              {expandedMetaAd === 'messenger' && (
+                                <>
+                                  <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto transition-transform duration-300 relative group">
+                                    <svg viewBox="0 0 48 48" className="w-full h-full">
+                                      <linearGradient id="messenger-gradient-active" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stopColor="#00B2FF"/>
+                                        <stop offset="100%" stopColor="#006AFF"/>
+                                      </linearGradient>
+                                      <rect width="48" height="48" rx="24" fill="url(#messenger-gradient-active)"/>
+                                      <path d="M24 10C16.268 10 10 15.825 10 23c0 4.091 2.042 7.742 5.234 10.119V38l4.771-2.621c1.274.353 2.619.54 3.995.54 7.732 0 14-5.825 14-13S31.732 10 24 10zm1.39 17.52l-3.572-3.808-6.968 3.808L22.582 19l3.66 3.808 6.88-3.808-7.732 8.52z" fill="white"/>
+                                    </svg>
+                                  </div>
+                                  <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-bold">Messenger Ads</h3>
+                                </>
+                              )}
+                            </button>
+
+                            {/* Colonne 2-3: pannello descrizione */}
+                            <div
+                              role="tabpanel"
+                              id={`panel-${expandedMetaAd}`}
+                              className="col-span-2 flex items-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50/50 rounded-lg p-4 shadow-sm"
+                              style={{
+                                animation: 'slideInFromLeft 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards',
+                                minHeight: '100px'
+                              }}
+                            >
+                              <div key={expandedMetaAd} className="w-full">
+                                {expandedMetaAd === 'facebook' && (
+                                  <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+                                    <span className="font-bold">2.9 miliardi di utenti</span> attivi. Raggiungi il tuo pubblico con <span className="font-bold">targeting preciso</span> per età, interessi e comportamenti.
+                                  </p>
+                                )}
+                                {expandedMetaAd === 'instagram' && (
+                                  <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+                                    <span className="font-bold">Stories, Reels e Feed</span>: contenuti visivi che generano <span className="font-bold">engagement</span> e vendite immediate.
+                                  </p>
+                                )}
+                                {expandedMetaAd === 'messenger' && (
+                                  <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+                                    <span className="font-bold">Conversazioni dirette</span> con i clienti. Automazione e <span className="font-bold">chatbot</span> per vendite 24/7.
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Copy centrale (sempre visibile, con trasparenza variabile) */}
+                    <div className="text-center pt-3 border-t border-gray-200">
+                      <p className={`text-[15px] sm:text-lg lg:text-xl font-semibold text-gray-800 inline-block px-3 transition-opacity duration-600 ease-out ${expandedMetaAd ? 'opacity-80' : 'opacity-100'}`} style={{ transition: 'opacity 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}>
+                        💰 Ogni €1 investito = €12,5 di ritorno medio
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -3681,11 +3548,8 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
         <div className="w-full max-w-7xl mx-auto relative z-10 px-6 lg:px-12">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             <div className={`space-y-6 lg:space-y-8 slide-up-enter slide-up-delay-1 ${visibleSections.includes('tiktok-ads') ? 'slide-up-visible' : ''}`}>
-              <div className="inline-block px-3 py-2 bg-gradient-to-r from-pink-100 to-purple-100 border border-pink-200 rounded-full text-xs sm:text-sm">
-                TikTok Ads
-              </div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{color: '#1c1a31'}}>
-                Viralità e Vendite con <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">TikTok Ads</span>
+                Viralità e Vendite con <span className="font-bold bg-gradient-to-r from-[#000000] from-5% to-[#EE1D52] to-60% bg-clip-text text-transparent">TikTok Ads</span>
               </h2>
               
               {/* Dashboard Box - mobile only, under title */}
@@ -3831,7 +3695,7 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
 
   
   {/* Interactive Project Solutions Section */}
-  <section className="w-full px-6 py-12 bg-gradient-to-br from-blue-50/8 via-white to-purple-50/5 relative" data-section="accelera-business">
+  <section className="w-full px-6 py-12 bg-gradient-to-br from-blue-50/8 via-white to-purple-50/5 relative first-section" data-section="accelera-business">
     <div className="absolute inset-0 bg-gradient-to-r from-blue-50/12 via-transparent to-purple-50/12"></div>
     <div className="max-w-[1400px] mx-auto relative z-10">
       
@@ -3858,7 +3722,7 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
             className={`px-4 py-3 md:px-6 rounded-xl font-medium transition-all duration-300 text-sm md:text-base w-full md:w-auto ${
               activeProjectTab === key
                 ? 'bg-gradient-bg-brand gradient-text-brand shadow-lg transform scale-105'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50'
             }`}
           >
             {tab.title.split(' ')[0]}
@@ -3879,7 +3743,7 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
               setActiveProjectTab(keys[prevIndex]);
               setContentKey(prev => prev + 1);
             }}
-            className="lg:hidden absolute -left-2 top-1/2 transform -translate-y-1/2 z-10 w-8 h-8 bg-white rounded-full shadow-md border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+            className="lg:hidden absolute -left-2 top-1/2 transform -translate-y-1/2 z-10 w-8 h-8 bg-white rounded-full shadow-md border border-gray-200 flex items-center justify-center hover:bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 transition-colors"
           >
             <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -3894,7 +3758,7 @@ className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10
               setActiveProjectTab(keys[nextIndex]);
               setContentKey(prev => prev + 1);
             }}
-            className="lg:hidden absolute -right-2 top-1/2 transform -translate-y-1/2 z-10 w-8 h-8 bg-white rounded-full shadow-md border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+            className="lg:hidden absolute -right-2 top-1/2 transform -translate-y-1/2 z-10 w-8 h-8 bg-white rounded-full shadow-md border border-gray-200 flex items-center justify-center hover:bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 transition-colors"
           >
             <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

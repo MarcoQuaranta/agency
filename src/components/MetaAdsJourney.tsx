@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { AnimatePresence,motion } from 'framer-motion';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect,useState } from 'react';
 
 export default function MetaAdsJourney() {
   const [currentStep, setCurrentStep] = useState(0);

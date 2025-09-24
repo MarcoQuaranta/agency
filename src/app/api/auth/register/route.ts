@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { registerUser } from '@/lib/auth';
 import { z } from 'zod';
+
+import { registerUser } from '@/lib/auth';
 
 const registerSchema = z.object({
   email: z.string().email('Email non valida'),

@@ -160,7 +160,7 @@ export async function saveSubmission(data: {
 }
 
 // Funzione per rate limiting con database
-export async function checkRateLimit(identifier: string, maxRequests: number = 2, windowMinutes: number = 60): Promise<{allowed: boolean, message?: string}> {
+export async function checkRateLimit(identifier: string, maxRequests = 2, windowMinutes = 60): Promise<{allowed: boolean, message?: string}> {
   try {
     // Pulisci vecchi record
     await query(

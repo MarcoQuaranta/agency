@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import { checkDuplicateSubmission, saveSubmission, checkRateLimit } from '@/lib/db';
+
+import { checkDuplicateSubmission, checkRateLimit,saveSubmission } from '@/lib/db';
 
 // Lista di IP sempre consentiti (per testing)
 const WHITELIST_IPS = ['31.156.225.224', '::1', '127.0.0.1'];
@@ -31,7 +32,7 @@ function getClientIP(req: NextRequest): string {
   }
   
   // Se siamo su Vercel, prova a prendere l'IP dalla connessione
-  const ip = req.ip || req.headers.get('x-vercel-forwarded-for');
+  const ip = req.headers.get('x-vercel-forwarded-for');
   if (ip) {
     return ip.split(',')[0].trim();
   }

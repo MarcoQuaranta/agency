@@ -33,7 +33,7 @@ function getClientIP(req: NextRequest): string {
   }
   
   // Se siamo su Vercel, prova a prendere l'IP dalla connessione
-  const vercelIp = req.ip || req.headers.get('x-vercel-forwarded-for');
+  const vercelIp = req.headers.get('x-vercel-forwarded-for');
   if (vercelIp) {
     allHeaders['vercel_ip'] = vercelIp;
     if (!allHeaders['detected_ip']) {

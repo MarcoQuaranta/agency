@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+
 import { checkDuplicateSubmission } from '@/lib/db';
 
 // Lista di IP sempre consentiti (per testing)
@@ -30,7 +31,7 @@ function getClientIP(req: NextRequest): string {
   }
 
   // Se siamo su Vercel, prova a prendere l'IP dalla connessione
-  const ip = req.ip || req.headers.get('x-vercel-forwarded-for');
+  const ip = req.headers.get('x-vercel-forwarded-for');
   if (ip) {
     return ip.split(',')[0].trim();
   }

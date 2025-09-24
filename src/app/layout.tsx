@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
+
 import "@/styles/globals.css";
+
 import AuthProvider from "@/components/providers/AuthProvider";
 
 // Font sans-serif (al posto di Geist)

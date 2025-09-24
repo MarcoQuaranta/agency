@@ -59,7 +59,7 @@ export const ChaosCardsSection = () => {
       {apps.map((app, i) => {
         const position = cardPositions[i];
         const iconSize = 'clamp(60px, 9vw, 92px)';
-        const config = badgeConfigs[i];
+        const _config = badgeConfigs[i];
         const needsFlip = position.x > 75;
         
         return (
@@ -157,7 +157,7 @@ export const ChaosCardsSection = () => {
 };
 
 // CSS da aggiungere (se necessario)
-const styles = `
+const _styles = `
   .chaos-card {
     will-change: transform;
   }

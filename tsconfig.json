@@ -8,7 +8,9 @@
     ],
     "types": [
       "react",
-      "react-dom"
+      "react-dom",
+      "jest",
+      "@testing-library/jest-dom"
     ],
     "allowJs": true,
     "skipLibCheck": true,
