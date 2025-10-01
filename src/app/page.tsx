@@ -33,42 +33,15 @@ const MetaAdsJourney = dynamic(() => import('@/components/MetaAdsJourney'), {
 const OldAgencyBrokenBox = dynamic(() => import('@/components/OldAgencyBrokenBox'), {
   loading: () => <div className="h-96 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 animate-pulse" />
 });
+const HeroWithMethod = dynamic(() => import('@/components/HeroWithMethod'), {
+  loading: () => <div className="h-screen bg-gradient-to-br from-[#0B0A14] to-[#1B1030] animate-pulse" />
+});
 
 interface FeatureCard {
   icon: JSX.Element;
   title: string;
 }
 
-// Custom hook for countin animation
-const useCountUp = (end: number, duration = 2000, isVisible = false) => {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    if (!isVisible) return;
-
-    let startTime: number | null = null;
-    const startValue = 0;
-
-    const animate = (currentTime: number) => {
-      if (!startTime) startTime = currentTime;
-      const progress = Math.min((currentTime - startTime) / duration, 1);
-
-      // Easing function for smooth animation
-      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-      const currentCount = Math.floor(easeOutQuart * (end - startValue) + startValue);
-
-      setCount(currentCount);
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
-    };
-
-    requestAnimationFrame(animate);
-  }, [end, duration, isVisible]);
-
-  return count;
-};
 
 type Item = {
   id: number;
@@ -834,10 +807,11 @@ export default function HomePage() {
   const [_isTransitioning, _setIsTransitioning] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const [_autoPlay, setAutoPlay] = useState(true);
-  const [stepBoxProgress, setStepBoxProgress] = useState(0);
+  const [_stepBoxProgress, _setStepBoxProgress] = useState(0);
   const [counter95, setCounter95] = useState(0);
   const [expandedGoogleAd, setExpandedGoogleAd] = useState<string | null>(null);
   const [expandedMetaAd, setExpandedMetaAd] = useState<string | null>(null);
+  const [expandedTikTokAd, setExpandedTikTokAd] = useState<string | null>(null);
   const _features: FeatureCard[] = [
   { icon: <Settings className="w-5 h-5 text-gray-700" />, title: "Flexible workflows for every team" },
   { icon: <FileText className="w-5 h-5 text-gray-700" />, title: "Tasks, docs, spreadsheets, and more" },
@@ -941,6 +915,8 @@ export default function HomePage() {
   const [deleteCharIndex, setDeleteCharIndex] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isMouseInHero, setIsMouseInHero] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileGlowPosition, setMobileGlowPosition] = useState({ x: 50, y: 50 });
   const heroSectionRef = useRef<HTMLDivElement>(null);
 
   const fullTexts = useMemo(() => [
@@ -1055,7 +1031,7 @@ export default function HomePage() {
   };
 
   // Dati degli step
-  const steps = [
+  const _steps = [
     {
       id: 1,
       title: "Creazione E-commerce, gestione ordini e spedizioni",
@@ -1203,8 +1179,49 @@ export default function HomePage() {
     };
   }, [showQuestionnaire]);
 
-  // Effect per tracciare il movimento del mouse nella hero section
+  // Detect if mobile device
   useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768 || 'ontouchstart' in window);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Animated glow effect for mobile
+  useEffect(() => {
+    if (!isMobile) return;
+
+    let animationFrameId: number;
+    let time = 0;
+
+    const animateMobileGlow = () => {
+      time += 0.01;
+
+      // Create a figure-8 pattern for interesting movement
+      const x = 50 + 35 * Math.sin(time);
+      const y = 50 + 25 * Math.sin(time * 2);
+
+      setMobileGlowPosition({ x, y });
+      animationFrameId = requestAnimationFrame(animateMobileGlow);
+    };
+
+    animateMobileGlow();
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [isMobile]);
+
+  // Effect per tracciare il movimento del mouse nella hero section (solo desktop)
+  useEffect(() => {
+    if (isMobile) return; // Skip mouse tracking on mobile
+
     const handleMouseMove = (e: MouseEvent) => {
       if (heroSectionRef.current && isMouseInHero) {
         const rect = heroSectionRef.current.getBoundingClientRect();
@@ -1231,7 +1248,7 @@ export default function HomePage() {
         heroElement.removeEventListener('mouseleave', handleMouseLeave);
       }
     };
-  }, [isMouseInHero]);
+  }, [isMouseInHero, isMobile]);
 
   // Handle opening contact form from header or URL parameter
   useEffect(() => {
@@ -1380,12 +1397,12 @@ export default function HomePage() {
         const rawProgress = (startPoint - sectionTop) / (startPoint - endPoint);
         const progress = Math.max(0, Math.min(1, rawProgress));
         
-        setStepBoxProgress(progress);
+        _setStepBoxProgress(progress);
       } else if (sectionTop > windowHeight) {
-        setStepBoxProgress(0);
+        _setStepBoxProgress(0);
       } else {
         // Keep boxes fully visible when scrolled past
-        setStepBoxProgress(1);
+        _setStepBoxProgress(1);
       }
     };
     
@@ -1532,35 +1549,9 @@ export default function HomePage() {
   }, [visibleSections, counter95]);
 
 
-  // Helper function to scroll to contact form and open it
+  // Helper function to open contact form modal
   const scrollToContactForm = () => {
     setShowContactForm(true);
-    
-    // Immediate scroll to hero section
-    const heroSection = document.getElementById('hero-section');
-    if (heroSection) {
-      heroSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      
-      // After scrolling to hero, focus on the contact form
-      setTimeout(() => {
-        const mobileContactCircle = document.getElementById('contact-circle-mobile');
-        const desktopContactCircle = document.getElementById('contact-circle');
-        
-        const contactCircle = mobileContactCircle || desktopContactCircle;
-        
-        if (contactCircle) {
-          // Scroll more precisely to center the form
-          const rect = contactCircle.getBoundingClientRect();
-          const absoluteTop = rect.top + window.pageYOffset;
-          const centerOffset = window.innerHeight / 2 - rect.height / 2;
-          
-          window.scrollTo({
-            top: absoluteTop - centerOffset,
-            behavior: 'smooth'
-          });
-        }
-      }, 800); // Give time for the first scroll to complete
-    }
   };
 
   // Handle contact form submission
@@ -1955,16 +1946,227 @@ export default function HomePage() {
       
       <Header />
 
-      {/* Hero Section Premium - Full Bleed */}
-      <section
+      {/* Hero with Method Section - Combined */}
+      <HeroWithMethod scrollToContactForm={scrollToContactForm} />
+
+      {/* Contact Form Modal - Moved outside of disabled section */}
+      {showContactForm && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowContactForm(false)}>
+          <div
+            className="rounded-2xl shadow-2xl max-w-2xl w-full relative overflow-hidden scrollbar-hide"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              animation: 'slideUpFade 0.3s ease-out',
+              maxHeight: '90vh',
+              overflowY: showQuestionnaire ? 'auto' : 'hidden',
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(249,250,251,1) 100%)',
+              position: 'relative'
+            }}
+          >
+            {/* Glow effect gradients - only bottom corners */}
+            <div className="absolute bottom-0 left-0 w-80 h-80 pointer-events-none"
+              style={{
+                background: 'radial-gradient(circle at bottom left, rgba(54, 163, 227, 0.35) 0%, rgba(54, 163, 227, 0.20) 20%, rgba(79, 16, 232, 0.12) 40%, rgba(139, 92, 246, 0.06) 60%, transparent 75%)',
+                filter: 'blur(40px)',
+                transform: 'translate(-30%, 30%)'
+              }}
+            />
+            <div className="absolute bottom-0 left-0 w-60 h-60 pointer-events-none"
+              style={{
+                background: 'radial-gradient(circle at center, rgba(54, 163, 227, 0.4) 0%, transparent 50%)',
+                filter: 'blur(60px)',
+                transform: 'translate(-20%, 20%)',
+                mixBlendMode: 'screen'
+              }}
+            />
+            <div className="absolute bottom-0 right-0 w-80 h-80 pointer-events-none"
+              style={{
+                background: 'radial-gradient(circle at bottom right, rgba(247, 18, 197, 0.30) 0%, rgba(247, 18, 197, 0.18) 20%, rgba(168, 85, 247, 0.12) 40%, rgba(139, 92, 246, 0.06) 60%, transparent 75%)',
+                filter: 'blur(40px)',
+                transform: 'translate(30%, 30%)'
+              }}
+            />
+            <div className="absolute bottom-0 right-0 w-60 h-60 pointer-events-none"
+              style={{
+                background: 'radial-gradient(circle at center, rgba(247, 18, 197, 0.35) 0%, transparent 50%)',
+                filter: 'blur(60px)',
+                transform: 'translate(20%, 20%)',
+                mixBlendMode: 'screen'
+              }}
+            />
+
+            {/* Content wrapper */}
+            <div className="relative z-10 p-8">
+            {/* Close button */}
+            <button
+              onClick={() => setShowContactForm(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-all hover:rotate-90 duration-300 z-20"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {questionnaireSubmitted ? (
+              <>
+                <div className="text-center py-8">
+                  <div className="mb-6">
+                    <svg className="w-20 h-20 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-3xl font-bold mb-4">
+                    <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                      Candidatura Inviata con Successo!
+                    </span>
+                  </h2>
+                  <p className="text-gray-700 mb-4 text-lg">
+                    Grazie per aver completato il questionario.
+                  </p>
+                  <p className="text-gray-600 mb-8">
+                    Ti contatteremo entro 24 ore lavorative per discutere la tua idoneità al progetto SafeScale.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setShowContactForm(false);
+                      setQuestionnaireSubmitted(false);
+                      setShowQuestionnaire(false);
+                    }}
+                    className="gradient-bg-brand gradient-bg-brand-hover text-white px-8 py-3 rounded-full font-semibold transition-all transform hover:scale-105"
+                  >
+                    Chiudi
+                  </button>
+                </div>
+              </>
+            ) : !showQuestionnaire ? (
+              <>
+                <h2 className="text-3xl font-bold mb-2 text-center">
+                  <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">Candidati Ora</span>
+                </h2>
+                <p className="text-gray-600 text-center mb-6 text-sm">Compila il form per iniziare il tuo percorso di crescita digitale</p>
+                <form onSubmit={handleContactSubmit} className="space-y-4">
+                  <div>
+                    <label htmlFor="nome" className="block text-sm font-medium text-gray-700 mb-1">
+                      Nome *
+                    </label>
+                    <input
+                      type="text"
+                      id="nome"
+                      name="nome"
+                      required
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all hover:border-purple-300 hover:shadow-sm"
+                      placeholder="Il tuo nome"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="cognome" className="block text-sm font-medium text-gray-700 mb-1">
+                      Cognome *
+                    </label>
+                    <input
+                      type="text"
+                      id="cognome"
+                      name="cognome"
+                      required
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all hover:border-purple-300 hover:shadow-sm"
+                      placeholder="Il tuo cognome"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      required
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all hover:border-purple-300 hover:shadow-sm"
+                      placeholder="tua@email.com"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="telefono" className="block text-sm font-medium text-gray-700 mb-1">
+                      Telefono
+                    </label>
+                    <input
+                      type="tel"
+                      id="telefono"
+                      name="telefono"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all hover:border-purple-300 hover:shadow-sm"
+                      placeholder="+39 123 456 7890"
+                    />
+                  </div>
+                  <div className="flex items-start bg-gradient-to-r from-sky-50 to-blue-50 p-3 rounded-lg border border-sky-200">
+                    <input
+                      type="checkbox"
+                      id="privacy"
+                      checked={privacyAccepted}
+                      onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                      className="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-purple-300 rounded cursor-pointer"
+                    />
+                    <label htmlFor="privacy" className="ml-2 text-sm text-gray-600">
+                      Ho letto e accetto l'<a href="/privacy-policy" target="_blank" className="text-sky-500 hover:text-sky-400 underline">informativa sulla privacy</a> *
+                    </label>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={!privacyAccepted}
+                    className={`w-full py-3 rounded-xl font-semibold transition-all transform shadow-md ${
+                      privacyAccepted
+                        ? 'gradient-bg-brand gradient-bg-brand-hover text-white hover:scale-105 cursor-pointer hover:shadow-xl'
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    Procedi
+                  </button>
+                </form>
+              </>
+            ) : (
+              <QuestionnaireForm
+                _contactData={contactFormData}
+                _onClose={() => {
+                  setShowContactForm(false);
+                  setShowQuestionnaire(false);
+                }}
+                questionnaireData={questionnaireData}
+                setQuestionnaireData={setQuestionnaireData}
+                captchaQuestion={captchaQuestion}
+                captchaAnswer={captchaAnswer}
+                setCaptchaAnswer={setCaptchaAnswer}
+                generateCaptcha={generateCaptcha}
+                handleQuestionnaireSubmit={handleQuestionnaireSubmit}
+              />
+            )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* OLD Hero Section Premium - Full Bleed - REMOVED */}
+      {false && <section
         ref={heroSectionRef}
         id="hero-section"
         data-section="hero"
         className="h-screen w-full flex flex-col items-center justify-center relative overflow-hidden bg-black"
-        style={{
-          background: 'linear-gradient(135deg, #000000 0%, #0a0a0a 25%, #1a0033 75%, #2d1b69 100%)'
-        }}
       >
+        {/* Video Background */}
+        <div className="absolute inset-0">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src="/video/provolone.mp4" type="video/mp4" />
+          </video>
+          {/* Dark overlay to ensure text readability */}
+          <div className="absolute inset-0 bg-black/70" />
+          {/* Gradient fade to white at bottom */}
+          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />
+        </div>
+
         {/* Background motion sottile */}
         <div className="absolute inset-0 opacity-20">
           {/* Blob sottile 1 */}
@@ -1984,41 +2186,69 @@ export default function HomePage() {
           />
         </div>
 
-        {/* Mouse trail background effect - Layer 1 */}
+        {/* Primary glow effect - Desktop: mouse-driven, Mobile: animated */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: isMouseInHero
-              ? `radial-gradient(600px circle at ${mousePosition.x}% ${mousePosition.y}%,
-                  rgba(168, 85, 247, 0.4) 0%,
-                  rgba(147, 51, 234, 0.25) 10%,
-                  rgba(139, 92, 246, 0.15) 25%,
-                  rgba(124, 58, 237, 0.08) 40%,
+            background: isMobile
+              ? `radial-gradient(450px circle at ${mobileGlowPosition.x}% ${mobileGlowPosition.y}%,
+                  rgba(168, 85, 247, 0.7) 0%,
+                  rgba(147, 51, 234, 0.5) 10%,
+                  rgba(139, 92, 246, 0.35) 25%,
+                  rgba(124, 58, 237, 0.2) 40%,
+                  transparent 70%)`
+              : isMouseInHero
+                ? `radial-gradient(600px circle at ${mousePosition.x}% ${mousePosition.y}%,
+                    rgba(168, 85, 247, 0.4) 0%,
+                    rgba(147, 51, 234, 0.25) 10%,
+                    rgba(139, 92, 246, 0.15) 25%,
+                    rgba(124, 58, 237, 0.08) 40%,
+                    transparent 60%)`
+                : 'none',
+            transition: isMobile ? 'none' : 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+            opacity: isMobile ? 1 : 0.8
+          }}
+        />
+
+        {/* Secondary glow effect - Desktop: mouse-driven, Mobile: animated */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: isMobile
+              ? `radial-gradient(800px circle at ${100 - mobileGlowPosition.x}% ${100 - mobileGlowPosition.y}%,
+                  rgba(196, 181, 253, 0.45) 0%,
+                  rgba(167, 139, 250, 0.3) 15%,
+                  rgba(147, 51, 234, 0.18) 30%,
                   transparent 60%)`
-              : 'none',
-            transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
-            opacity: 0.8
-          }}
-        />
-
-        {/* Mouse trail background effect - Layer 2 (lighter, larger) */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: isMouseInHero
-              ? `radial-gradient(1000px circle at ${mousePosition.x}% ${mousePosition.y}%,
-                  rgba(196, 181, 253, 0.3) 0%,
-                  rgba(167, 139, 250, 0.2) 15%,
-                  rgba(147, 51, 234, 0.1) 30%,
-                  transparent 50%)`
-              : 'none',
+              : isMouseInHero
+                ? `radial-gradient(1000px circle at ${mousePosition.x}% ${mousePosition.y}%,
+                    rgba(196, 181, 253, 0.3) 0%,
+                    rgba(167, 139, 250, 0.2) 15%,
+                    rgba(147, 51, 234, 0.1) 30%,
+                    transparent 50%)`
+                : 'none',
             mixBlendMode: 'screen',
-            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
+            transition: isMobile ? 'none' : 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
           }}
         />
 
-        {/* Trail glow effect - moving light */}
-        {isMouseInHero && (
+        {/* Extra glow layer for mobile - more visible */}
+        {isMobile && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: `radial-gradient(350px circle at ${mobileGlowPosition.x}% ${mobileGlowPosition.y}%,
+                rgba(247, 18, 197, 0.4) 0%,
+                rgba(168, 85, 247, 0.25) 20%,
+                transparent 50%)`,
+              filter: 'blur(40px)',
+              opacity: 0.8
+            }}
+          />
+        )}
+
+        {/* Trail glow effect - Desktop only */}
+        {(isMouseInHero && !isMobile) && (
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -2115,8 +2345,8 @@ export default function HomePage() {
         </div>
 
 
-        {/* Contact Form Modal */}
-        {showContactForm && (
+        {/* Contact Form Modal - MOVED OUTSIDE - DISABLED */}
+        {false && showContactForm && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowContactForm(false)}>
             <div
               className="rounded-2xl shadow-2xl max-w-2xl w-full relative overflow-hidden scrollbar-hide"
@@ -2331,7 +2561,7 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* CSS per animazioni premium */}
+        {/* CSS per animazioni premium - KEEP */}
         <style jsx>{`
           @keyframes blurFadeIn {
             0% {
@@ -2429,7 +2659,7 @@ export default function HomePage() {
             }
           }
         `}</style>
-      </section>
+      </section>}
 
       {/* --- Comparison Section --- */}
       <section
@@ -2671,7 +2901,7 @@ export default function HomePage() {
                       style={{ 
                         animation: 'orbit1 15s linear infinite'
                       }}>
-                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-110">
+                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-105">
                         <Image
                           src="/images/icons/shipping-logo.png"
                           alt="Shipping"
@@ -2691,7 +2921,7 @@ export default function HomePage() {
                       style={{ 
                         animation: 'orbit2 15s linear infinite'
                       }}>
-                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-110">
+                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-105">
                         <Image
                           src="/images/icons/googleads-logo.png"
                           alt="Google Ads"
@@ -2711,7 +2941,7 @@ export default function HomePage() {
                       style={{ 
                         animation: 'orbit3 15s linear infinite'
                       }}>
-                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-110">
+                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-105">
                         <Image
                           src="/images/icons/shopify-logo.png"
                           alt="Shopify"
@@ -2731,7 +2961,7 @@ export default function HomePage() {
                       style={{ 
                         animation: 'orbit4 15s linear infinite'
                       }}>
-                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-110">
+                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-105">
                         <Image
                           src="/images/icons/seo-logo.png"
                           alt="SEO"
@@ -2751,7 +2981,7 @@ export default function HomePage() {
                       style={{ 
                         animation: 'orbit5 15s linear infinite'
                       }}>
-                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-110">
+                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-105">
                         <Image
                           src="/images/icons/logo-aibrain.png"
                           alt="AI"
@@ -2771,7 +3001,7 @@ export default function HomePage() {
                       style={{ 
                         animation: 'orbit6 15s linear infinite'
                       }}>
-                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-110">
+                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-105">
                         <Image
                           src="/images/icons/tiktok-logo.png"
                           alt="TikTok"
@@ -2791,7 +3021,7 @@ export default function HomePage() {
                       style={{ 
                         animation: 'orbit7 15s linear infinite'
                       }}>
-                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-110">
+                      <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-105">
                         <Image
                           src="/images/icons/logo-meta.png"
                           alt="Meta"
@@ -2831,163 +3061,9 @@ export default function HomePage() {
 
 
 
-      {/* 3 Step, 0 Rischi Section */}
-      <section 
-        className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10 relative"
-        data-section="three-steps"
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-50/30 via-transparent to-purple-50/30"></div>
-<div className="w-full max-w-7xl lg:max-w-[1600px] mx-auto relative z-10 px-6 lg:px-12">
+      {/* Metodo SafeScale Section - NOW INTEGRATED IN HERO - REMOVED */}
 
-          <div className={`text-center mb-16 slide-up-enter ${visibleSections.includes('three-steps') ? 'slide-up-visible' : ''}`}>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4" style={{color: '#1c1a31'}}>
-              <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">3 Step</span>, <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">0 Rischi</span>
-            </h2>
-            <p className="text-lg text-custom-dark max-w-3xl mx-auto">
-              Il nostro processo trasparente che <span className="font-bold">elimina ogni rischio</span> per il tuo business
-            </p>
-          </div>
-          
-          {/* Mobile Tabs + Desktop Grid */}
-          <div className="max-w-7xl mx-auto mb-12">
-            {/* Mobile Vertical Stack - All 3 boxes stacked */}
-            <div className="md:hidden space-y-6 mb-6">
-              {steps.map((step, index) => {
-                // Define gradient styles for mobile - same as desktop
-                const gradientStyles = {
-                  1: {
-                    background: 'linear-gradient(135deg, #36a3e3 0%, #36a3e3 70%, #4f10e8 100%)',
-                    boxShadow: '0 10px 30px rgba(54, 163, 227, 0.3)'
-                  },
-                  2: {
-                    background: 'linear-gradient(135deg, #4f10e8 0%, #4f10e8 50%, #f712c5 100%)',
-                    boxShadow: '0 10px 30px rgba(79, 16, 232, 0.3)'
-                  },
-                  3: {
-                    background: 'linear-gradient(135deg, #f712c5 0%, #d810b0 30%, #b50d9a 60%, #920a84 100%)',
-                    boxShadow: '0 10px 30px rgba(247, 18, 197, 0.2)'
-                  }
-                };
-                const style = gradientStyles[step.id as keyof typeof gradientStyles];
-                
-                return (
-                  <div 
-                    key={step.id}
-                    className="rounded-tl-3xl rounded-br-3xl p-6 border border-white/20 transform transition-all duration-300"
-                    style={{
-                      background: style.background,
-                      boxShadow: style.boxShadow,
-                      // Mobile: each box appears when you scroll to its position
-                      opacity: (() => {
-                        // Each box appears at different scroll progress through the section
-                        const boxThreshold = index * 0.3; // Box 1: 0%, Box 2: 30%, Box 3: 60%
-                        return stepBoxProgress >= boxThreshold ? 1 : 0;
-                      })(),
-                      // Scale effect: normal size when visible
-                      scale: (() => {
-                        const boxThreshold = index * 0.3;
-                        return stepBoxProgress >= boxThreshold ? 1 : 0.95;
-                      })(),
-                      // Smooth transitions
-                      transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), scale 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
-                    } as React.CSSProperties}
-                  >
-                    <div className="text-center">
-                      <div className="text-3xl mb-4 w-14 h-14 bg-white/90 backdrop-blur rounded-full flex items-center justify-center mx-auto font-bold"
-                           style={{ color: step.id === 1 ? '#36a3e3' : step.id === 2 ? '#4f10e8' : '#f712c5' }}>
-                        {step.id}
-                      </div>
-                      <h3 className="text-lg font-bold text-white mb-4">
-                        {step.title}
-                      </h3>
-                      <p className="text-white/90 leading-relaxed text-sm">
-                        {step.description}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            
-            {/* Desktop Grid (hidden on mobile) */}
-            <div className="hidden md:grid md:grid-cols-3 gap-8 lg:gap-16">
-              {steps.map((step, index) => {
-                // Define gradient styles for each step - gradient flows from first to third box
-                const gradientStyles = {
-                  1: {
-                    background: 'linear-gradient(135deg, #36a3e3 0%, #36a3e3 70%, #4f10e8 100%)',
-                    boxShadow: '0 10px 30px rgba(54, 163, 227, 0.3)'
-                  },
-                  2: {
-                    background: 'linear-gradient(135deg, #4f10e8 0%, #4f10e8 50%, #f712c5 100%)',
-                    boxShadow: '0 10px 30px rgba(79, 16, 232, 0.3)'
-                  },
-                  3: {
-                    background: 'linear-gradient(135deg, #f712c5 0%, #d810b0 30%, #b50d9a 60%, #920a84 100%)',
-                    boxShadow: '0 10px 30px rgba(247, 18, 197, 0.2)'
-                  }
-                };
-                const style = gradientStyles[step.id as keyof typeof gradientStyles];
-                
-                return (
-                  <div 
-                    key={step.id} 
-                    className="rounded-tl-3xl rounded-br-3xl p-8 border border-white/20 transform hover:scale-105 cursor-pointer transition-transform duration-300"
-                    style={{
-                      background: style.background,
-                      boxShadow: style.boxShadow,
-                      // Progressive staggered animation based on scroll
-                      // Box 1: 0-40%, Box 2: 25-65%, Box 3: 50-90% (overlapping for smoother effect)
-                      opacity: (() => {
-                        const boxStart = index * 0.25; // Start points: 0%, 25%, 50%
-                        const boxDuration = 0.4; // Each box takes 40% of progress to appear
-                        const boxProgress = (stepBoxProgress - boxStart) / boxDuration;
-                        const clampedProgress = Math.min(1, Math.max(0, boxProgress));
-                        // Apply smooth easing for gradual fade-in
-                        return clampedProgress * clampedProgress * (3 - 2 * clampedProgress);
-                      })(),
-                      // Subtle scale effect during animation
-                      scale: (() => {
-                        const boxStart = index * 0.25;
-                        const boxProgress = (stepBoxProgress - boxStart) / 0.4;
-                        const clampedProgress = Math.min(1, Math.max(0, boxProgress));
-                        return 0.95 + clampedProgress * 0.05; // Scale from 0.95 to 1.0
-                      })(),
-                      // Smooth transitions
-                      transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), scale 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease'
-                    } as React.CSSProperties}
-                  >
-                    <div className="text-center mb-6">
-                      <div className="text-4xl mb-4 w-16 h-16 bg-white/90 backdrop-blur rounded-full flex items-center justify-center mx-auto font-bold"
-                           style={{ color: step.id === 1 ? '#36a3e3' : step.id === 2 ? '#4f10e8' : '#f712c5' }}>
-                        {step.id}
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-4">
-                        {step.title}
-                      </h3>
-                      <p className="text-white/90 leading-relaxed">
-                        {step.description}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          
-          {/* CTA Button */}
-          <div className={`text-center mt-12 slide-up-enter slide-up-delay-4 ${visibleSections.includes('three-steps') ? 'slide-up-visible' : ''}`}>
-            <button 
-              onClick={scrollToContactForm}
-              className="gradient-bg-brand gradient-bg-brand-hover text-white px-6 sm:px-8 py-3 rounded-full font-semibold transition-all text-sm sm:text-base transform hover:scale-105"
-            >
-              <FaRocket className="inline mr-2" /> Proponi il tuo Brand
-            </button>
-          </div>
-        </div>
-      </section>
 
-     
 
       {/* Google Ads Section */}
       <section
@@ -3057,11 +3133,11 @@ export default function HomePage() {
                               aria-selected={false}
                               aria-controls="panel-search"
                               tabIndex={0}
-                              className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 transition-all duration-[600ms] ease-out hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2"
+                              className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-blue-50/80 hover:via-purple-50/80 hover:to-pink-50/80 transition-all duration-300 ease-in-out  hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2"
                               onClick={() => setExpandedGoogleAd('search')}
                               style={{ transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
                             >
-                              <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-110 transition-transform duration-300 relative group">
+                              <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-105 transition-transform duration-300 relative group">
                                 <Image
                                   src="/images/icons/search-google.png"
                                   alt="Google Search"
@@ -3079,11 +3155,11 @@ export default function HomePage() {
                               aria-selected={false}
                               aria-controls="panel-display"
                               tabIndex={-1}
-                              className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 transition-all duration-[600ms] ease-out hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#FBBC04] focus:ring-offset-2"
+                              className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-blue-50/80 hover:via-purple-50/80 hover:to-pink-50/80 transition-all duration-300 ease-in-out  hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#FBBC04] focus:ring-offset-2"
                               onClick={() => setExpandedGoogleAd('display')}
                               style={{ transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
                             >
-                              <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-110 transition-transform duration-300 relative group">
+                              <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-105 transition-transform duration-300 relative group">
                                 <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
                                   <rect x="4" y="8" width="40" height="28" rx="2" fill="#E8EAED" stroke="#5F6368" strokeWidth="1.5"/>
                                   <rect x="8" y="12" width="32" height="20" rx="1" fill="#FFFFFF"/>
@@ -3103,11 +3179,11 @@ export default function HomePage() {
                               aria-selected={false}
                               aria-controls="panel-youtube"
                               tabIndex={-1}
-                              className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 transition-all duration-[600ms] ease-out hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2"
+                              className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-blue-50/80 hover:via-purple-50/80 hover:to-pink-50/80 transition-all duration-300 ease-in-out  hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2"
                               onClick={() => setExpandedGoogleAd('youtube')}
                               style={{ transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
                             >
-                              <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-110 transition-transform duration-300 relative group">
+                              <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-105 transition-transform duration-300 relative group">
                                 <Image
                                   src="/images/icons/youtubelogo.svg"
                                   alt="YouTube Ads"
@@ -3131,7 +3207,7 @@ export default function HomePage() {
                                 aria-selected={true}
                                 aria-controls={`panel-${expandedGoogleAd}`}
                                 tabIndex={0}
-                                className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer bg-gradient-to-r from-blue-50/50 to-green-50/50 border-b-2 border-[#4285F4] shadow-sm transition-all duration-[600ms] ease-out hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2"
+                                className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer bg-gradient-to-r from-blue-50/50 to-green-50/50 border-b-2 border-[#4285F4] shadow-sm transition-all duration-300 ease-in-out  hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2"
                                 onClick={() => setExpandedGoogleAd(null)}
                                 style={{
                                   gridColumn: '1',
@@ -3297,26 +3373,34 @@ export default function HomePage() {
       {/* Meta Ads Section */}
       <section
         id="meta-ads"
-        className="py-16 px-0 bg-gradient-to-br from-purple-50/15 via-white to-pink-50/10 relative overflow-hidden"
+        className="py-10 lg:py-16 px-0 bg-gradient-to-br from-purple-50/15 via-white to-pink-50/10 relative overflow-hidden"
         data-section="meta-ads"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-purple-50/30 via-transparent to-pink-50/30"></div>
 
         <div className="w-full max-w-7xl mx-auto relative z-10 px-6 lg:px-12">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          <div className="grid lg:grid-cols-2 gap-2 lg:gap-12 items-center">
 
             {/* Text content for Meta Ads */}
-            <div className={`lg:order-2 space-y-6 lg:space-y-8 slide-up-enter slide-up-delay-1 ${visibleSections.includes('meta-ads') ? 'slide-up-visible' : ''}`}>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{color: '#1c1a31'}}>
-                Campagne Pubblicitarie su <span className="inline-flex items-center gap-2"><span className="font-bold bg-gradient-to-r from-[#0064e1] to-[#0081fb] bg-clip-text text-transparent">Meta Ads</span>
-                <Image
-                  src="/images/icons/metavett.svg"
-                  alt="Meta"
-                  width={48}
-                  height={48}
-                  className="inline-block w-10 h-10 lg:w-12 lg:h-12"
-                /></span>
-              </h2>
+            <div className={`lg:order-2 space-y-3 lg:space-y-8 slide-up-enter slide-up-delay-1 ${visibleSections.includes('meta-ads') ? 'slide-up-visible' : ''}`}>
+              {/* Titolo con Logo Meta Ads - formattato come Google Ads */}
+              <div className="flex items-start gap-4">
+                <div className="flex-1">
+                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{color: '#1c1a31'}}>
+                    Campagne Pubblicitarie su <span className="font-bold bg-gradient-to-r from-[#0064e1] to-[#0081fb] bg-clip-text text-transparent">Meta Ads</span>
+                  </h2>
+                </div>
+                {/* Meta Logo - grande come il titolo (come Google Ads) */}
+                <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-36 lg:h-36 flex-shrink-0">
+                  <Image
+                    src="/images/icons/metavett.svg"
+                    alt="Meta"
+                    width={144}
+                    height={144}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              </div>
               
               {/* Mobile Meta Ads Journey - Under title */}
               <div className={`lg:hidden ${visibleSections.includes('meta-ads') ? 'visible' : ''}`}>
@@ -3343,26 +3427,23 @@ export default function HomePage() {
                             aria-selected={false}
                             aria-controls="panel-instagram"
                             tabIndex={0}
-                            className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 transition-all duration-[600ms] ease-out hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#E4405F] focus:ring-offset-2"
+                            className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-blue-50/80 hover:via-purple-50/80 hover:to-pink-50/80 transition-all duration-300 ease-in-out  hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#E4405F] focus:ring-offset-2"
                             onClick={() => setExpandedMetaAd('instagram')}
                             style={{ transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
                           >
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-110 transition-transform duration-300 relative group">
-                              <svg viewBox="0 0 48 48" className="w-full h-full">
-                                <radialGradient id="instagram-gradient" cx="19%" cy="100%" r="100%">
-                                  <stop offset="0%" stopColor="#FED576"/>
-                                  <stop offset="26%" stopColor="#F47133"/>
-                                  <stop offset="61%" stopColor="#BC3081"/>
-                                  <stop offset="100%" stopColor="#4F5BD5"/>
-                                </radialGradient>
-                                <rect width="48" height="48" rx="12" fill="url(#instagram-gradient)"/>
-                                <rect x="12" y="12" width="24" height="24" rx="7" fill="none" stroke="white" strokeWidth="2.5"/>
-                                <circle cx="24" cy="24" r="5.5" fill="none" stroke="white" strokeWidth="2.5"/>
-                                <circle cx="32.5" cy="15.5" r="1.5" fill="white"/>
-                              </svg>
-                              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#F47133] to-[#BC3081] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-105 transition-transform duration-300 relative group flex items-center justify-center">
+                              <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
+                                <Image
+                                  src="/images/icons/logoinsta.svg"
+                                  alt="Instagram"
+                                  width={48}
+                                  height={48}
+                                  className="w-full h-full object-cover scale-150"
+                                />
+                              </div>
+                              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#F50000] to-[#B900B4] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
                             </div>
-                            <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-semibold">Instagram Ads</h3>
+                            <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-semibold">Instagram<br/>Ads</h3>
                           </button>
 
                           <button
@@ -3370,18 +3451,23 @@ export default function HomePage() {
                             aria-selected={false}
                             aria-controls="panel-facebook"
                             tabIndex={-1}
-                            className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 transition-all duration-[600ms] ease-out hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#1877f2] focus:ring-offset-2"
+                            className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-blue-50/80 hover:via-purple-50/80 hover:to-pink-50/80 transition-all duration-300 ease-in-out  hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#1877f2] focus:ring-offset-2"
                             onClick={() => setExpandedMetaAd('facebook')}
                             style={{ transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
                           >
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-110 transition-transform duration-300 relative group">
-                              <svg viewBox="0 0 48 48" className="w-full h-full">
-                                <circle cx="24" cy="24" r="24" fill="#1877F2"/>
-                                <path d="M36 24c0-6.63-5.37-12-12-12s-12 5.37-12 12c0 5.99 4.39 10.95 10.125 11.85V27.56h-3v-3.56h3v-2.71c0-2.96 1.76-4.59 4.45-4.59 1.29 0 2.64.23 2.64.23v2.91h-1.49c-1.46 0-1.92.91-1.92 1.84V24h3.28l-.52 3.56h-2.76v8.29C31.61 34.95 36 29.99 36 24z" fill="white"/>
-                              </svg>
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-105 transition-transform duration-300 relative group flex items-center justify-center">
+                              <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-white">
+                                <Image
+                                  src="/images/icons/facebookicon.svg"
+                                  alt="Facebook"
+                                  width={48}
+                                  height={48}
+                                  className="w-full h-full object-cover scale-110"
+                                />
+                              </div>
                               <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#1877f2] to-[#0064e1] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
                             </div>
-                            <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-semibold">Facebook Ads</h3>
+                            <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-semibold">Facebook<br/>Ads</h3>
                           </button>
 
                           <button
@@ -3389,22 +3475,26 @@ export default function HomePage() {
                             aria-selected={false}
                             aria-controls="panel-messenger"
                             tabIndex={-1}
-                            className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 transition-all duration-[600ms] ease-out hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#00B2FF] focus:ring-offset-2"
+                            className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-blue-50/80 hover:via-purple-50/80 hover:to-pink-50/80 transition-all duration-300 ease-in-out  hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#00B2FF] focus:ring-offset-2"
                             onClick={() => setExpandedMetaAd('messenger')}
                             style={{ transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
                           >
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-110 transition-transform duration-300 relative group">
-                              <svg viewBox="0 0 48 48" className="w-full h-full">
-                                <linearGradient id="messenger-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                                  <stop offset="0%" stopColor="#00B2FF"/>
-                                  <stop offset="100%" stopColor="#006AFF"/>
-                                </linearGradient>
-                                <rect width="48" height="48" rx="24" fill="url(#messenger-gradient)"/>
-                                <path d="M24 10C16.268 10 10 15.825 10 23c0 4.091 2.042 7.742 5.234 10.119V38l4.771-2.621c1.274.353 2.619.54 3.995.54 7.732 0 14-5.825 14-13S31.732 10 24 10zm1.39 17.52l-3.572-3.808-6.968 3.808L22.582 19l3.66 3.808 6.88-3.808-7.732 8.52z" fill="white"/>
-                              </svg>
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-105 transition-transform duration-300 relative group flex items-center justify-center">
+                              <div className="w-full h-full flex items-center justify-center">
+                                <svg viewBox="0 0 48 48" className="w-full h-full">
+                                  <defs>
+                                    <linearGradient id="messenger-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                      <stop offset="0%" stopColor="#00B2FF"/>
+                                      <stop offset="100%" stopColor="#006AFF"/>
+                                    </linearGradient>
+                                  </defs>
+                                  <circle cx="24" cy="24" r="24" fill="url(#messenger-gradient)"/>
+                                  <path d="M24 10C16.268 10 10 15.825 10 23c0 4.091 2.042 7.742 5.234 10.119V38l4.771-2.621c1.274.353 2.619.54 3.995.54 7.732 0 14-5.825 14-13S31.732 10 24 10zm1.39 17.52l-3.572-3.808-6.968 3.808L22.582 19l3.66 3.808 6.88-3.808-7.732 8.52z" fill="white"/>
+                                </svg>
+                              </div>
                               <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00B2FF] to-[#006AFF] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
                             </div>
-                            <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-semibold">Messenger Ads</h3>
+                            <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-semibold">Messenger<br/>Ads</h3>
                           </button>
                         </>
                       ) : (
@@ -3418,7 +3508,7 @@ export default function HomePage() {
                               aria-selected={true}
                               aria-controls={`panel-${expandedMetaAd}`}
                               tabIndex={0}
-                              className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer bg-gradient-to-r from-blue-50/50 to-purple-50/50 border-b-2 border-[#0064e1] shadow-sm transition-all duration-[600ms] ease-out hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#0064e1] focus:ring-offset-2"
+                              className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer bg-gradient-to-r from-blue-50/50 to-purple-50/50 border-b-2 border-[#0064e1] shadow-sm transition-all duration-300 ease-in-out  hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#0064e1] focus:ring-offset-2"
                               onClick={() => setExpandedMetaAd(null)}
                               style={{
                                 gridColumn: '1',
@@ -3427,47 +3517,53 @@ export default function HomePage() {
                             >
                               {expandedMetaAd === 'instagram' && (
                                 <>
-                                  <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto transition-transform duration-300 relative group">
-                                    <svg viewBox="0 0 48 48" className="w-full h-full">
-                                      <radialGradient id="instagram-gradient-active" cx="19%" cy="100%" r="100%">
-                                        <stop offset="0%" stopColor="#FED576"/>
-                                        <stop offset="26%" stopColor="#F47133"/>
-                                        <stop offset="61%" stopColor="#BC3081"/>
-                                        <stop offset="100%" stopColor="#4F5BD5"/>
-                                      </radialGradient>
-                                      <rect width="48" height="48" rx="12" fill="url(#instagram-gradient-active)"/>
-                                      <rect x="12" y="12" width="24" height="24" rx="7" fill="none" stroke="white" strokeWidth="2.5"/>
-                                      <circle cx="24" cy="24" r="5.5" fill="none" stroke="white" strokeWidth="2.5"/>
-                                      <circle cx="32.5" cy="15.5" r="1.5" fill="white"/>
-                                    </svg>
+                                  <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto transition-transform duration-300 relative group flex items-center justify-center">
+                                    <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
+                                      <Image
+                                        src="/images/icons/logoinsta.svg"
+                                        alt="Instagram"
+                                        width={48}
+                                        height={48}
+                                        className="w-full h-full object-cover scale-150"
+                                      />
+                                    </div>
                                   </div>
-                                  <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-bold">Instagram Ads</h3>
+                                  <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-bold">Instagram<br/>Ads</h3>
                                 </>
                               )}
                               {expandedMetaAd === 'facebook' && (
                                 <>
-                                  <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto transition-transform duration-300 relative group">
-                                    <svg viewBox="0 0 48 48" className="w-full h-full">
-                                      <circle cx="24" cy="24" r="24" fill="#1877F2"/>
-                                      <path d="M36 24c0-6.63-5.37-12-12-12s-12 5.37-12 12c0 5.99 4.39 10.95 10.125 11.85V27.56h-3v-3.56h3v-2.71c0-2.96 1.76-4.59 4.45-4.59 1.29 0 2.64.23 2.64.23v2.91h-1.49c-1.46 0-1.92.91-1.92 1.84V24h3.28l-.52 3.56h-2.76v8.29C31.61 34.95 36 29.99 36 24z" fill="white"/>
-                                    </svg>
+                                  <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto transition-transform duration-300 relative group flex items-center justify-center">
+                                    <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-white">
+                                      <Image
+                                        src="/images/icons/facebookicon.svg"
+                                        alt="Facebook"
+                                        width={48}
+                                        height={48}
+                                        className="w-full h-full object-cover scale-110"
+                                      />
+                                    </div>
                                   </div>
-                                  <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-bold">Facebook Ads</h3>
+                                  <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-bold">Facebook<br/>Ads</h3>
                                 </>
                               )}
                               {expandedMetaAd === 'messenger' && (
                                 <>
-                                  <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto transition-transform duration-300 relative group">
-                                    <svg viewBox="0 0 48 48" className="w-full h-full">
-                                      <linearGradient id="messenger-gradient-active" x1="0%" y1="0%" x2="0%" y2="100%">
-                                        <stop offset="0%" stopColor="#00B2FF"/>
-                                        <stop offset="100%" stopColor="#006AFF"/>
-                                      </linearGradient>
-                                      <rect width="48" height="48" rx="24" fill="url(#messenger-gradient-active)"/>
-                                      <path d="M24 10C16.268 10 10 15.825 10 23c0 4.091 2.042 7.742 5.234 10.119V38l4.771-2.621c1.274.353 2.619.54 3.995.54 7.732 0 14-5.825 14-13S31.732 10 24 10zm1.39 17.52l-3.572-3.808-6.968 3.808L22.582 19l3.66 3.808 6.88-3.808-7.732 8.52z" fill="white"/>
-                                    </svg>
+                                  <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto transition-transform duration-300 relative group flex items-center justify-center">
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <svg viewBox="0 0 48 48" className="w-full h-full">
+                                        <defs>
+                                          <linearGradient id="messenger-gradient-active" x1="0%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" stopColor="#00B2FF"/>
+                                            <stop offset="100%" stopColor="#006AFF"/>
+                                          </linearGradient>
+                                        </defs>
+                                        <circle cx="24" cy="24" r="24" fill="url(#messenger-gradient-active)"/>
+                                        <path d="M24 10C16.268 10 10 15.825 10 23c0 4.091 2.042 7.742 5.234 10.119V38l4.771-2.621c1.274.353 2.619.54 3.995.54 7.732 0 14-5.825 14-13S31.732 10 24 10zm1.39 17.52l-3.572-3.808-6.968 3.808L22.582 19l3.66 3.808 6.88-3.808-7.732 8.52z" fill="white"/>
+                                      </svg>
+                                    </div>
                                   </div>
-                                  <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-bold">Messenger Ads</h3>
+                                  <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-bold">Messenger<br/>Ads</h3>
                                 </>
                               )}
                             </button>
@@ -3548,18 +3644,17 @@ export default function HomePage() {
         <div className="w-full max-w-7xl mx-auto relative z-10 px-6 lg:px-12">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             <div className={`space-y-6 lg:space-y-8 slide-up-enter slide-up-delay-1 ${visibleSections.includes('tiktok-ads') ? 'slide-up-visible' : ''}`}>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{color: '#1c1a31'}}>
-                Viralità e Vendite con <span className="font-bold bg-gradient-to-r from-[#000000] from-5% to-[#EE1D52] to-60% bg-clip-text text-transparent">TikTok Ads</span>
-              </h2>
-              
-              {/* Dashboard Box - mobile only, under title */}
-              <div className={`lg:hidden dashboard-window-drop ${visibleSections.includes('tiktok-ads') ? 'visible' : ''}`}>
-                {/* Dashboard Header */}
-                <div className="dashboard-header bg-white rounded-t-2xl border border-gray-200 hover:border-pink-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/20 p-4 relative">
-                  {/* TikTok Logo in Corners */}
-                  <div className="absolute top-3 right-3 w-12 h-12 opacity-100 hover:scale-110 transition-transform cursor-pointer">
-                  <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0,0,256,256" width="48px" height="48px" fillRule="nonzero">
-                    <g fill="none" fillRule="nonzero" stroke="none" strokeWidth="1" strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit="10" strokeDasharray="" strokeDashoffset="0" fontFamily="none" fontWeight="none" fontSize="none" textAnchor="middle">
+              {/* Titolo con Logo TikTok - formattato come Google e Meta Ads */}
+              <div className="flex items-start gap-4">
+                <div className="flex-1">
+                  <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{color: '#1c1a31'}}>
+                    Viralità e Vendite con <span className="font-bold bg-gradient-to-r from-[#000000] from-5% to-[#EE1D52] to-60% bg-clip-text text-transparent">TikTok Ads</span>
+                  </h2>
+                </div>
+                {/* TikTok Logo - grande come il titolo */}
+                <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-36 lg:h-36 flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0,0,256,256" width="100%" height="100%" fillRule="nonzero">
+                    <g fill="none" fillRule="nonzero" stroke="none" strokeWidth="1" strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit="10" strokeDasharray="" strokeDashoffset="0" fontFamily="none" fontWeight="none" fontSize="none" style={{mixBlendMode: 'normal'}}>
                       <g transform="scale(5.33333,5.33333)">
                         <path d="M20,37c2.761,0 5,-2.239 5,-5v-1v-1v-23.93h5.208c-0.031,-0.14 -0.072,-0.276 -0.097,-0.419h-0.001c-0.044,-0.248 -0.076,-0.495 -0.099,-0.746v-0.835h-7.011v23.93v1v1c0,2.761 -2.239,5 -5,5c-0.864,0 -1.665,-0.239 -2.375,-0.625c0.848,1.556 2.478,2.625 4.375,2.625z" fill="#3dd9eb"></path>
                         <path d="M33.718,11.407c-0.797,-1.094 -1.364,-2.367 -1.607,-3.756h-0.001c-0.044,-0.248 -0.076,-0.495 -0.099,-0.746v-0.835h-1.803c0.491,2.182 1.761,4.062 3.51,5.337z" fill="#f55376"></path>
@@ -3570,44 +3665,205 @@ export default function HomePage() {
                         <path d="M30,30c0,-0.006 -0.001,-0.012 -0.001,-0.018l0.014,0.018l-0.002,-13.248c2.551,1.823 5.677,2.894 9.052,2.894v-4.733c-0.987,-0.223 -1.939,-0.59 -2.806,-1.131c-0.994,-0.62 -1.851,-1.432 -2.538,-2.376c-1.75,-1.275 -3.019,-3.155 -3.51,-5.337h-5.209v23.931v1v1c0,2.761 -2.239,5 -5,5c-1.897,0 -3.527,-1.069 -4.375,-2.625c-1.556,-0.848 -2.625,-2.478 -2.625,-4.375c0,-2.761 2.239,-5 5,-5c0.343,0 0.677,0.035 1,0.101v-5.05c-6.158,0.509 -11,5.659 -11,11.949c0,2.804 0.969,5.377 2.581,7.419c2.042,1.612 4.615,2.581 7.419,2.581c6.627,0 12,-5.373 12,-12z" fill="#000000"></path>
                       </g>
                     </g>
-                    </svg>
-                  </div>
-                  
-                  {/* Mock TikTok Ads Interface */}
-                  <div className="flex items-center space-x-3">
-                    <span className="font-semibold text-sm sm:text-base text-gray-800">TikTok Ads Manager</span>
-                  </div>
+                  </svg>
                 </div>
-                
-                {/* Dashboard Content */}
-                <div className="dashboard-content bg-white rounded-b-2xl border border-t-0 border-gray-200 p-4">
-                  <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
-                    <div className="metric-box text-center bg-gradient-to-br from-pink-50 to-purple-50 p-3 rounded-lg">
-                      <div className="text-lg sm:text-2xl font-bold text-gray-800">
-                        {useCountUp(1456789, 2000, visibleSections.includes('tiktok-ads')).toLocaleString('it-IT')}
+              </div>
+              
+              {/* TikTok Box - mobile only, under title */}
+              <div className={`lg:hidden ${visibleSections.includes('tiktok-ads') ? 'visible' : ''}`}>
+                <div className="mx-auto max-w-sm sm:max-w-md">
+                  <div
+                    className="bg-white rounded-2xl shadow-lg hover:shadow-xl overflow-hidden relative"
+                    style={{
+                      background: 'linear-gradient(to right, #69C9D0 0%, #000000 33%, #EE1D52 66%, #000000 100%)',
+                      padding: '4px',
+                      maxHeight: visibleSections.includes('tiktok-ads') ? '800px' : '0px',
+                      opacity: visibleSections.includes('tiktok-ads') ? 1 : 0,
+                      transform: `translateY(${visibleSections.includes('tiktok-ads') ? '0' : '20px'})`,
+                      transition: 'all 1.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                    }}
+                  >
+                    <div className="bg-white rounded-2xl p-4 sm:p-6 min-h-[240px] sm:min-h-[260px]">
+                      {/* Container principale con griglia a 3 colonne */}
+                      <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-3 sm:mb-4">
+
+                        {!expandedTikTokAd ? (
+                          <>
+                            {/* Stato chiuso: 3 icone nelle loro colonne */}
+                            <button
+                              className="text-center space-y-2 p-2 sm:p-3 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-cyan-50/80 hover:via-pink-50/80 hover:to-red-50/80 transition-all duration-[600ms]  hover:shadow-lg"
+                              onClick={() => setExpandedTikTokAd('shop')}
+                            >
+                              <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto hover:scale-105 transition-transform duration-300 relative group flex items-center justify-center">
+                                <Image
+                                  src="/images/icons/tikshop.png"
+                                  alt="TikTok Shop"
+                                  width={120}
+                                  height={120}
+                                  className="w-full h-full object-contain"
+                                />
+                              </div>
+                              <h3 className="text-[15px] sm:text-base text-gray-800 font-semibold">TikTok<br/>Shop</h3>
+                            </button>
+
+                            <button
+                              className="text-center space-y-2 p-2 sm:p-3 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-cyan-50/80 hover:via-pink-50/80 hover:to-red-50/80 transition-all duration-[600ms]  hover:shadow-lg"
+                              onClick={() => setExpandedTikTokAd('live')}
+                            >
+                              <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto hover:scale-105 transition-transform duration-300 relative group flex items-center justify-center">
+                                <Image
+                                  src="/images/icons/tiklive.png"
+                                  alt="TikTok Live"
+                                  width={120}
+                                  height={120}
+                                  className="w-full h-full object-contain"
+                                />
+                              </div>
+                              <h3 className="text-[15px] sm:text-base text-gray-800 font-semibold">TikTok<br/>Live</h3>
+                            </button>
+
+                            <button
+                              className="text-center space-y-2 p-2 sm:p-3 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-cyan-50/80 hover:via-pink-50/80 hover:to-red-50/80 transition-all duration-[600ms]  hover:shadow-lg"
+                              onClick={() => setExpandedTikTokAd('likes')}
+                            >
+                              <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto hover:scale-105 transition-transform duration-300 relative group flex items-center justify-center">
+                                <Image
+                                  src="/images/icons/tiklike.png"
+                                  alt="TikTok Likes"
+                                  width={120}
+                                  height={120}
+                                  className="w-full h-full object-contain"
+                                />
+                              </div>
+                              <h3 className="text-[15px] sm:text-base text-gray-800 font-semibold">Viral<br/>Engagement</h3>
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            {/* Stato aperto: icona attiva in col1, pannello in col2-3 */}
+                            <div className="col-span-3 grid grid-cols-3 gap-2 sm:gap-3">
+                              {/* Colonna 1: icona attiva */}
+                              <button
+                                className="text-center space-y-2 p-2 sm:p-3 rounded-lg cursor-pointer bg-gradient-to-r from-cyan-50 via-pink-50 to-red-50 border-b-2 border-[#69C9D0] shadow-sm transition-all duration-300 ease-in-out  hover:shadow-lg"
+                                onClick={() => setExpandedTikTokAd(null)}
+                                style={{
+                                  gridColumn: '1',
+                                  animation: expandedTikTokAd === 'shop' ? 'none' : expandedTikTokAd === 'live' ? 'slideToLeft 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'slideToLeft 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                                }}
+                              >
+                                {expandedTikTokAd === 'shop' && (
+                                  <>
+                                    <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto flex items-center justify-center">
+                                      <Image
+                                        src="/images/icons/tikshop.png"
+                                        alt="TikTok Shop"
+                                        width={120}
+                                        height={120}
+                                        className="w-full h-full object-contain"
+                                      />
+                                    </div>
+                                    <h3 className="text-[15px] sm:text-base text-gray-800 font-bold">TikTok<br/>Shop</h3>
+                                  </>
+                                )}
+                                {expandedTikTokAd === 'live' && (
+                                  <>
+                                    <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto flex items-center justify-center">
+                                      <Image
+                                        src="/images/icons/tiklive.png"
+                                        alt="TikTok Live"
+                                        width={120}
+                                        height={120}
+                                        className="w-full h-full object-contain"
+                                      />
+                                    </div>
+                                    <h3 className="text-[15px] sm:text-base text-gray-800 font-bold">TikTok<br/>Live</h3>
+                                  </>
+                                )}
+                                {expandedTikTokAd === 'likes' && (
+                                  <>
+                                    <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto flex items-center justify-center">
+                                      <Image
+                                        src="/images/icons/tiklike.png"
+                                        alt="TikTok Likes"
+                                        width={120}
+                                        height={120}
+                                        className="w-full h-full object-contain"
+                                      />
+                                    </div>
+                                    <h3 className="text-[15px] sm:text-base text-gray-800 font-bold">Viral<br/>Engagement</h3>
+                                  </>
+                                )}
+                              </button>
+
+                              {/* Colonne 2-3: pannello descrizione */}
+                              <div
+                                className="col-span-2 flex items-center bg-gradient-to-br from-cyan-50 via-pink-50 to-red-50/50 rounded-lg p-4 shadow-sm"
+                                style={{
+                                  animation: 'slideInFromLeft 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards',
+                                  minHeight: '100px'
+                                }}
+                              >
+                                <div key={expandedTikTokAd} className="w-full">
+                                  {expandedTikTokAd === 'shop' && (
+                                    <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+                                      <span className="font-bold">E-commerce integrato</span>: vendi direttamente nell'app con <span className="font-bold">checkout immediato</span>.
+                                    </p>
+                                  )}
+                                  {expandedTikTokAd === 'live' && (
+                                    <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+                                      <span className="font-bold">Live shopping</span>: vendite in tempo reale con <span className="font-bold">influencer</span> e creator.
+                                    </p>
+                                  )}
+                                  {expandedTikTokAd === 'likes' && (
+                                    <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
+                                      <span className="font-bold">Contenuti virali</span>: milioni di views e <span className="font-bold">engagement organico</span>.
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </div>
-                      <div className="text-xs sm:text-sm text-gray-600">Views</div>
-                    </div>
-                    <div className="metric-box text-center bg-gradient-to-br from-pink-50 to-purple-50 p-3 rounded-lg">
-                      <div className="text-lg sm:text-2xl font-bold text-gray-800">
-                        €{useCountUp(8345, 2000, visibleSections.includes('tiktok-ads')).toLocaleString('it-IT')}
+
+                      {/* Copy centrale */}
+                      <div className="text-center pt-3 border-t border-gray-200">
+                        <p className={`text-[15px] sm:text-lg font-semibold text-gray-800 inline-block px-3 transition-opacity duration-600 ${expandedTikTokAd ? 'opacity-80' : 'opacity-100'}`}>
+                          🚀 Gen Z e Millennials: il tuo target è qui
+                        </p>
                       </div>
-                      <div className="text-xs sm:text-sm text-gray-600">Spesa</div>
-                    </div>
-                    <div className="metric-box text-center bg-gradient-to-br from-pink-50 to-purple-50 p-3 rounded-lg">
-                      <div className="text-lg sm:text-2xl font-bold text-gray-800">
-                        €{useCountUp(187432, 2000, visibleSections.includes('tiktok-ads')).toLocaleString('it-IT')}
-                      </div>
-                      <div className="text-xs sm:text-sm text-gray-600">Ricavi</div>
-                    </div>
-                  </div>
-                  
-                  {/* Mock Chart */}
-                  <div className="chart-box bg-gradient-to-r from-pink-100 to-black/10 border border-pink-200 p-3 sm:p-4 rounded-lg">
-                    <div className="h-24 sm:h-32 flex items-end space-x-1">
-                      {[60, 80, 70, 95, 85, 100, 90, 85, 75, 90, 95, 85].map((height, i) => (
-                        <div key={i} className="flex-1 bg-gradient-to-t from-pink-600 to-black rounded-t transform hover:scale-110 transition-transform duration-300" style={{height: `${height}%`, animationDelay: `${i * 0.1}s`}}></div>
-                      ))}
+
+                      <style jsx>{`
+                        @keyframes slideInFromLeft {
+                          from {
+                            opacity: 0;
+                            transform: translateX(-20px);
+                          }
+                          to {
+                            opacity: 1;
+                            transform: translateX(0);
+                          }
+                        }
+
+                        @keyframes slideToLeft {
+                          from {
+                            transform: translateX(100%);
+                            opacity: 0.8;
+                          }
+                          to {
+                            transform: translateX(0);
+                            opacity: 1;
+                          }
+                        }
+
+                        @media (prefers-reduced-motion: reduce) {
+                          * {
+                            animation-duration: 0.01ms !important;
+                            animation-iteration-count: 1 !important;
+                            transition-duration: 0.01ms !important;
+                          }
+                        }
+                      `}</style>
                     </div>
                   </div>
                 </div>
@@ -3626,63 +3882,200 @@ export default function HomePage() {
               </button>
             </div>
             
-            {/* Desktop Dashboard - right side */}
-            <div className={`hidden lg:block dashboard-window-drop ${visibleSections.includes('tiktok-ads') ? 'visible' : ''}`}>
-              {/* Dashboard Header */}
-              <div className="dashboard-header bg-white rounded-t-2xl border border-gray-200 hover:border-pink-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/20 p-6 relative">
-                {/* TikTok Logo in Corner */}
-                <div className="absolute top-4 right-4 w-14 h-14 opacity-100 hover:scale-110 transition-transform cursor-pointer">
-                  <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0,0,256,256" width="48px" height="48px" fillRule="nonzero">
-                    <g fill="none" fillRule="nonzero" stroke="none" strokeWidth="1" strokeLinecap="butt" strokeLinejoin="miter" strokeMiterlimit="10" strokeDasharray="" strokeDashoffset="0" fontFamily="none" fontWeight="none" fontSize="none" textAnchor="middle">
-                      <g transform="scale(5.33333,5.33333)">
-                        <path d="M20,37c2.761,0 5,-2.239 5,-5v-1v-1v-23.93h5.208c-0.031,-0.14 -0.072,-0.276 -0.097,-0.419h-0.001c-0.044,-0.248 -0.076,-0.495 -0.099,-0.746v-0.835h-7.011v23.93v1v1c0,2.761 -2.239,5 -5,5c-0.864,0 -1.665,-0.239 -2.375,-0.625c0.848,1.556 2.478,2.625 4.375,2.625z" fill="#3dd9eb"></path>
-                        <path d="M33.718,11.407c-0.797,-1.094 -1.364,-2.367 -1.607,-3.756h-0.001c-0.044,-0.248 -0.076,-0.495 -0.099,-0.746v-0.835h-1.803c0.491,2.182 1.761,4.062 3.51,5.337z" fill="#f55376"></path>
-                        <path d="M18,25c-2.761,0 -5,2.239 -5,5c0,1.897 1.069,3.527 2.625,4.375c-0.386,-0.71 -0.625,-1.511 -0.625,-2.375c0,-2.761 2.239,-5 5,-5c0.343,0 0.677,0.035 1,0.101v-7.05c-0.331,-0.028 -0.662,-0.051 -1,-0.051c-0.338,0 -0.669,0.023 -1,0.05v5.05c-0.323,-0.065 -0.657,-0.1 -1,-0.1z" fill="#f55376"></path>
-                        <path d="M36.257,13.783c0.867,0.541 1.819,0.908 2.806,1.131v-0.376v-0.002v-1.381c-1.7,0.003 -3.364,-0.473 -4.806,-1.373c-0.186,-0.116 -0.361,-0.247 -0.538,-0.376c0.687,0.945 1.544,1.757 2.538,2.377z" fill="#3dd9eb"></path>
-                        <path d="M19,20.05v-2c-0.331,-0.027 -0.662,-0.05 -1,-0.05c-6.627,0 -12,5.373 -12,12c0,3.824 1.795,7.222 4.581,9.419c-1.612,-2.042 -2.581,-4.615 -2.581,-7.419c0,-6.29 4.842,-11.44 11,-11.95z" fill="#3dd9eb"></path>
-                        <path d="M39.062,14.914v4.733c-3.375,0 -6.501,-1.071 -9.052,-2.894l0.003,13.247l-0.014,-0.018c0,0.006 0.001,0.012 0.001,0.018c0,6.627 -5.373,12 -12,12c-2.804,0 -5.377,-0.969 -7.419,-2.581c2.197,2.786 5.595,4.581 9.419,4.581c6.627,0 12,-5.373 12,-12c0,-0.006 -0.001,-0.012 -0.001,-0.018l0.014,0.018l-0.002,-13.248c2.551,1.823 5.677,2.894 9.052,2.894v-5.108v-0.002v-1.381c-0.678,0.002 -1.346,-0.094 -2.001,-0.241z" fill="#f55376"></path>
-                        <path d="M30,30c0,-0.006 -0.001,-0.012 -0.001,-0.018l0.014,0.018l-0.002,-13.248c2.551,1.823 5.677,2.894 9.052,2.894v-4.733c-0.987,-0.223 -1.939,-0.59 -2.806,-1.131c-0.994,-0.62 -1.851,-1.432 -2.538,-2.376c-1.75,-1.275 -3.019,-3.155 -3.51,-5.337h-5.209v23.931v1v1c0,2.761 -2.239,5 -5,5c-1.897,0 -3.527,-1.069 -4.375,-2.625c-1.556,-0.848 -2.625,-2.478 -2.625,-4.375c0,-2.761 2.239,-5 5,-5c0.343,0 0.677,0.035 1,0.101v-5.05c-6.158,0.509 -11,5.659 -11,11.949c0,2.804 0.969,5.377 2.581,7.419c2.042,1.612 4.615,2.581 7.419,2.581c6.627,0 12,-5.373 12,-12z" fill="#000000"></path>
-                      </g>
-                    </g>
-                  </svg>
-                </div>
-                
-                {/* Mock TikTok Ads Interface */}
-                <div className="flex items-center space-x-3">
-                  <span className="font-semibold text-base text-gray-800">TikTok Ads Manager</span>
-                </div>
-              </div>
-              
-              {/* Dashboard Content */}
-              <div className="dashboard-content bg-white rounded-b-2xl border border-t-0 border-gray-200 p-6">
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="metric-box text-center bg-gradient-to-br from-pink-50 to-purple-50 p-3 rounded-lg">
-                    <div className="text-2xl font-bold text-gray-800">
-                      {useCountUp(1456789, 2000, visibleSections.includes('tiktok-ads')).toLocaleString('it-IT')}
-                    </div>
-                    <div className="text-sm text-gray-600">Views</div>
+            {/* Desktop TikTok Box - right side */}
+            <div className="hidden lg:block">
+              <div
+                className="bg-white rounded-2xl shadow-lg hover:shadow-xl overflow-hidden relative"
+                style={{
+                  background: 'linear-gradient(to right, #69C9D0 0%, #000000 33%, #EE1D52 66%, #000000 100%)',
+                  padding: '4px',
+                  maxHeight: visibleSections.includes('tiktok-ads') ? '800px' : '0px',
+                  opacity: visibleSections.includes('tiktok-ads') ? 1 : 0,
+                  transform: `translateY(${visibleSections.includes('tiktok-ads') ? '0' : '20px'})`,
+                  transition: 'all 1.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}
+              >
+                <div className="bg-white rounded-2xl p-6 lg:p-10 min-h-[280px]">
+                  {/* Container principale con griglia a 3 colonne */}
+                  <div className="grid grid-cols-3 gap-3 lg:gap-4 mb-4 lg:mb-6 lg:min-h-[140px]">
+
+                    {!expandedTikTokAd ? (
+                      <>
+                        {/* Stato chiuso: 3 icone nelle loro colonne */}
+                        <button
+                          className="text-center space-y-2 p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-cyan-50/80 hover:via-pink-50/80 hover:to-red-50/80 transition-all duration-[600ms]  hover:shadow-lg"
+                          onClick={() => setExpandedTikTokAd('shop')}
+                        >
+                          <div className="w-24 h-24 mx-auto hover:scale-105 transition-transform duration-300 relative group flex items-center justify-center">
+                            <Image
+                              src="/images/icons/tikshop.png"
+                              alt="TikTok Shop"
+                              width={120}
+                              height={120}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <h3 className="text-base lg:text-lg text-gray-800 font-semibold">TikTok<br/>Shop</h3>
+                        </button>
+
+                        <button
+                          className="text-center space-y-2 p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-cyan-50/80 hover:via-pink-50/80 hover:to-red-50/80 transition-all duration-[600ms]  hover:shadow-lg"
+                          onClick={() => setExpandedTikTokAd('live')}
+                        >
+                          <div className="w-24 h-24 mx-auto hover:scale-105 transition-transform duration-300 relative group flex items-center justify-center">
+                            <Image
+                              src="/images/icons/tiklive.png"
+                              alt="TikTok Live"
+                              width={120}
+                              height={120}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <h3 className="text-base lg:text-lg text-gray-800 font-semibold">TikTok<br/>Live</h3>
+                        </button>
+
+                        <button
+                          className="text-center space-y-2 p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-cyan-50/80 hover:via-pink-50/80 hover:to-red-50/80 transition-all duration-[600ms]  hover:shadow-lg"
+                          onClick={() => setExpandedTikTokAd('likes')}
+                        >
+                          <div className="w-24 h-24 mx-auto hover:scale-105 transition-transform duration-300 relative group flex items-center justify-center">
+                            <Image
+                              src="/images/icons/tiklike.png"
+                              alt="TikTok Likes"
+                              width={120}
+                              height={120}
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <h3 className="text-base lg:text-lg text-gray-800 font-semibold">Viral<br/>Engagement</h3>
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        {/* Stato aperto: icona attiva in col1, pannello in col2-3 */}
+                        <div className="col-span-3 grid grid-cols-3 gap-3 lg:gap-4">
+                          {/* Colonna 1: icona attiva */}
+                          <button
+                            className="text-center space-y-2 p-3 lg:p-4 rounded-lg cursor-pointer bg-gradient-to-r from-cyan-50 via-pink-50 to-red-50 border-b-2 border-[#69C9D0] shadow-sm transition-all duration-300 ease-in-out  hover:shadow-lg"
+                            onClick={() => setExpandedTikTokAd(null)}
+                            style={{
+                              gridColumn: '1',
+                              animation: expandedTikTokAd === 'shop' ? 'none' : expandedTikTokAd === 'live' ? 'slideToLeftDesktop 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'slideToLeftDesktop 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                            }}
+                          >
+                            {expandedTikTokAd === 'shop' && (
+                              <>
+                                <div className="w-24 h-24 mx-auto flex items-center justify-center">
+                                  <Image
+                                    src="/images/icons/tikshop.png"
+                                    alt="TikTok Shop"
+                                    width={120}
+                                    height={120}
+                                    className="w-full h-full object-contain"
+                                  />
+                                </div>
+                                <h3 className="text-base lg:text-lg text-gray-800 font-bold">TikTok<br/>Shop</h3>
+                              </>
+                            )}
+                            {expandedTikTokAd === 'live' && (
+                              <>
+                                <div className="w-24 h-24 mx-auto flex items-center justify-center">
+                                  <Image
+                                    src="/images/icons/tiklive.png"
+                                    alt="TikTok Live"
+                                    width={120}
+                                    height={120}
+                                    className="w-full h-full object-contain"
+                                  />
+                                </div>
+                                <h3 className="text-base lg:text-lg text-gray-800 font-bold">TikTok<br/>Live</h3>
+                              </>
+                            )}
+                            {expandedTikTokAd === 'likes' && (
+                              <>
+                                <div className="w-24 h-24 mx-auto flex items-center justify-center">
+                                  <Image
+                                    src="/images/icons/tiklike.png"
+                                    alt="TikTok Likes"
+                                    width={120}
+                                    height={120}
+                                    className="w-full h-full object-contain"
+                                  />
+                                </div>
+                                <h3 className="text-base lg:text-lg text-gray-800 font-bold">Viral<br/>Engagement</h3>
+                              </>
+                            )}
+                          </button>
+
+                          {/* Colonne 2-3: pannello descrizione */}
+                          <div
+                            className="col-span-2 flex items-center bg-gradient-to-br from-cyan-50 via-pink-50 to-red-50/50 rounded-lg p-4 shadow-sm"
+                            style={{
+                              animation: 'slideInFromLeftDesktop 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards',
+                              minHeight: '100px'
+                            }}
+                          >
+                            <div key={expandedTikTokAd} className="w-full">
+                              {expandedTikTokAd === 'shop' && (
+                                <p className="text-base text-gray-700 leading-relaxed">
+                                  <span className="font-bold">E-commerce integrato</span>: vendi direttamente nell'app con <span className="font-bold">checkout immediato</span> e tracciamento completo.
+                                </p>
+                              )}
+                              {expandedTikTokAd === 'live' && (
+                                <p className="text-base text-gray-700 leading-relaxed">
+                                  <span className="font-bold">Live shopping events</span>: vendite in tempo reale con <span className="font-bold">influencer</span> e creator verificati.
+                                </p>
+                              )}
+                              {expandedTikTokAd === 'likes' && (
+                                <p className="text-base text-gray-700 leading-relaxed">
+                                  <span className="font-bold">Contenuti virali garantiti</span>: milioni di views e <span className="font-bold">engagement organico</span> con algoritmo ottimizzato.
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
-                  <div className="metric-box text-center bg-gradient-to-br from-pink-50 to-purple-50 p-3 rounded-lg">
-                    <div className="text-2xl font-bold text-gray-800">
-                      €{useCountUp(8345, 2000, visibleSections.includes('tiktok-ads')).toLocaleString('it-IT')}
-                    </div>
-                    <div className="text-sm text-gray-600">Spesa</div>
+
+                  {/* Copy centrale */}
+                  <div className="text-center pt-3 border-t border-gray-200">
+                    <p className={`text-lg lg:text-xl font-semibold text-gray-800 inline-block px-3 transition-opacity duration-600 ${expandedTikTokAd ? 'opacity-80' : 'opacity-100'}`}>
+                      🚀 Gen Z e Millennials: il tuo target è qui
+                    </p>
                   </div>
-                  <div className="metric-box text-center bg-gradient-to-br from-pink-50 to-purple-50 p-3 rounded-lg">
-                    <div className="text-2xl font-bold text-gray-800">
-                      €{useCountUp(187432, 2000, visibleSections.includes('tiktok-ads')).toLocaleString('it-IT')}
-                    </div>
-                    <div className="text-sm text-gray-600">Ricavi</div>
-                  </div>
-                </div>
-                
-                {/* Mock Chart */}
-                <div className="chart-box bg-gradient-to-r from-pink-100 to-black/10 border border-pink-200 p-4 rounded-lg">
-                  <div className="h-32 flex items-end space-x-1">
-                    {[60, 80, 70, 95, 85, 100, 90, 85, 75, 90, 95, 85].map((height, i) => (
-                      <div key={i} className="flex-1 bg-gradient-to-t from-pink-600 to-black rounded-t transform hover:scale-110 transition-transform duration-300" style={{height: `${height}%`, animationDelay: `${i * 0.1}s`}}></div>
-                    ))}
-                  </div>
+
+                  <style jsx>{`
+                    @keyframes slideInFromLeftDesktop {
+                      from {
+                        opacity: 0;
+                        transform: translateX(-20px);
+                      }
+                      to {
+                        opacity: 1;
+                        transform: translateX(0);
+                      }
+                    }
+
+                    @keyframes slideToLeftDesktop {
+                      from {
+                        transform: translateX(100%);
+                        opacity: 0.8;
+                      }
+                      to {
+                        transform: translateX(0);
+                        opacity: 1;
+                      }
+                    }
+
+                    @media (prefers-reduced-motion: reduce) {
+                      * {
+                        animation-duration: 0.01ms !important;
+                        animation-iteration-count: 1 !important;
+                        transition-duration: 0.01ms !important;
+                      }
+                    }
+                  `}</style>
                 </div>
               </div>
             </div>
@@ -3722,7 +4115,7 @@ export default function HomePage() {
             className={`px-4 py-3 md:px-6 rounded-xl font-medium transition-all duration-300 text-sm md:text-base w-full md:w-auto ${
               activeProjectTab === key
                 ? 'bg-gradient-bg-brand gradient-text-brand shadow-lg transform scale-105'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gradient-to-br hover:from-blue-50/80 hover:via-purple-50/80 hover:to-pink-50/80'
             }`}
           >
             {tab.title.split(' ')[0]}
@@ -3743,7 +4136,7 @@ export default function HomePage() {
               setActiveProjectTab(keys[prevIndex]);
               setContentKey(prev => prev + 1);
             }}
-            className="lg:hidden absolute -left-2 top-1/2 transform -translate-y-1/2 z-10 w-8 h-8 bg-white rounded-full shadow-md border border-gray-200 flex items-center justify-center hover:bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 transition-colors"
+            className="lg:hidden absolute -left-2 top-1/2 transform -translate-y-1/2 z-10 w-8 h-8 bg-white rounded-full shadow-md border border-gray-200 flex items-center justify-center hover:bg-gradient-to-br hover:from-blue-50/80 hover:via-purple-50/80 hover:to-pink-50/80 transition-colors"
           >
             <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -3758,7 +4151,7 @@ export default function HomePage() {
               setActiveProjectTab(keys[nextIndex]);
               setContentKey(prev => prev + 1);
             }}
-            className="lg:hidden absolute -right-2 top-1/2 transform -translate-y-1/2 z-10 w-8 h-8 bg-white rounded-full shadow-md border border-gray-200 flex items-center justify-center hover:bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 transition-colors"
+            className="lg:hidden absolute -right-2 top-1/2 transform -translate-y-1/2 z-10 w-8 h-8 bg-white rounded-full shadow-md border border-gray-200 flex items-center justify-center hover:bg-gradient-to-br hover:from-blue-50/80 hover:via-purple-50/80 hover:to-pink-50/80 transition-colors"
           >
             <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -3839,28 +4232,28 @@ export default function HomePage() {
             
             {/* Icon Grid */}
             <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-md text-center">
+              <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg text-center">
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                   <FaRocket className="w-6 h-6 text-white" />
                 </div>
                 <p className="text-sm font-medium text-gray-700">Crescita Rapida</p>
               </div>
               
-              <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-md text-center">
+              <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg text-center">
                 <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                   <FaChartBar className="w-6 h-6 text-white" />
                 </div>
                 <p className="text-sm font-medium text-gray-700">ROI Garantito</p>
               </div>
               
-              <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-md text-center">
+              <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg text-center">
                 <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                   <FaBolt className="w-6 h-6 text-white" />
                 </div>
                 <p className="text-sm font-medium text-gray-700">Automazione</p>
               </div>
               
-              <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-md text-center">
+              <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg text-center">
                 <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                   <FaBullseye className="w-6 h-6 text-white" />
                 </div>
@@ -3942,7 +4335,7 @@ export default function HomePage() {
             <div className="flex justify-center mt-8 space-x-4">
               <button
                 onClick={prevReview}
-                className="bg-gradient-to-r from-blue-600 to-green-500 p-3 rounded-full hover:from-blue-700 hover:to-green-600 transition-all transform hover:scale-110"
+                className="bg-gradient-to-r from-blue-600 to-green-500 p-3 rounded-full hover:from-blue-700 hover:to-green-600 transition-all transform hover:scale-105"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -3973,7 +4366,7 @@ export default function HomePage() {
               
               <button
                 onClick={nextReview}
-                className="bg-gradient-to-r from-blue-600 to-green-500 p-3 rounded-full hover:from-blue-700 hover:to-green-600 transition-all transform hover:scale-110"
+                className="bg-gradient-to-r from-blue-600 to-green-500 p-3 rounded-full hover:from-blue-700 hover:to-green-600 transition-all transform hover:scale-105"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

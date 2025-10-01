@@ -8,7 +8,7 @@ import { FaChevronDown,FaEnvelope } from 'react-icons/fa';
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
-  const [isHeaderSolid, setIsHeaderSolid] = useState(false);
+  const [isHeaderSolid, setIsHeaderSolid] = useState(true); // Sempre solid/liquid
   const dropdownRef = useRef<HTMLDivElement>(null);
   const rafIdRef = useRef<number>(0);
   const debounceTimerRef = useRef<NodeJS.Timeout>();
@@ -33,40 +33,8 @@ export default function Header() {
 
 
 
-  // Simple scroll detection for header state
-  useEffect(() => {
-    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    if (isReducedMotion) {
-      setIsHeaderSolid(true);
-      return;
-    }
-
-    let ticking = false;
-
-    const handleScroll = () => {
-      if (!ticking) {
-        rafIdRef.current = requestAnimationFrame(() => {
-          const scrollTop = window.scrollY;
-          const heroHeight = document.getElementById('hero-section')?.offsetHeight || 800;
-          // Attiva quando si scorre oltre il 90% della hero
-          setIsHeaderSolid(scrollTop > heroHeight * 0.9);
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Check initial state
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (rafIdRef.current) {
-        cancelAnimationFrame(rafIdRef.current);
-      }
-    };
-  }, []);
+  // Header sempre solid/liquid - no scroll detection needed
+  // Manteniamo isHeaderSolid = true sempre
 
 
   // Close dropdown when clicking outside
@@ -106,19 +74,13 @@ export default function Header() {
           will-change: contents;
         }
 
-        /* Dark overlay che appare con lo scroll */
+        /* Dark overlay sempre attivo */
         .hdr-dark {
           position: absolute;
           inset: 0;
           background: rgba(10,8,24,.65);
-          opacity: 0;
-          transition: opacity 400ms cubic-bezier(0.22,1,0.36,1);
-          will-change: opacity;
+          opacity: 1; /* Sempre visibile */
           pointer-events: none;
-        }
-
-        .header--scrolled .hdr-dark {
-          opacity: 1;
         }
 
         /* Rimuovo height animation per evitare stretching */
@@ -127,19 +89,8 @@ export default function Header() {
           z-index: 10;
         }
 
-        /* Performance optimizations */
-        @media (prefers-reduced-motion: reduce) {
-          .hdr-dark {
-            transition: none !important;
-          }
-          .header--scrolled .hdr-dark {
-            opacity: 1 !important;
-          }
-        }
-
-        /* Border sottile quando scrollato */
-        .header--scrolled::after {
-          content: '';
+        /* Border sottile sempre visibile */
+        .header-border {
           position: absolute;
           bottom: 0;
           left: 0;
@@ -149,25 +100,21 @@ export default function Header() {
           pointer-events: none;
         }
 
-        /* Ombra leggera quando scrollato */
+        /* Ombra leggera sempre visibile */
         .header-shadow {
           position: absolute;
           inset: 0;
           box-shadow: 0 4px 12px rgba(0,0,0,.15);
-          opacity: 0;
-          transition: opacity 400ms cubic-bezier(0.22,1,0.36,1);
-          pointer-events: none;
-        }
-
-        .header--scrolled .header-shadow {
           opacity: 1;
+          pointer-events: none;
         }
       `}</style>
 
-      <header className={`fixed top-0 w-full z-50 ${isHeaderSolid ? 'header--scrolled' : ''}`}>
+      <header className="fixed top-0 w-full z-50">
         <div className="hdr-glass" />
         <div className="hdr-dark" />
         <div className="header-shadow" />
+        <div className="header-border" />
         <div className="header-wrapper">
         <div className="w-full max-w-7xl lg:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-12 py-4">
         <div className="flex justify-between items-center">

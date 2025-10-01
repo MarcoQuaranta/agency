@@ -23,6 +23,7 @@ const nextConfig = {
         hostname: '**', // Consente tutte le immagini remote
       },
     ],
+    qualities: [75, 85, 90, 95, 100],
   },
 
   webpack(config) {

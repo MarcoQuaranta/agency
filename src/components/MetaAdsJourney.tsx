@@ -13,33 +13,33 @@ export default function MetaAdsJourney() {
   const steps = [
     {
       image: '/images/customerj (1).png',
-      duration: 2000,
-      fingerDelay: 400,
-      fingerPos: { x: '32%', y: '27%' }, // Più a destra e leggermente in basso sull'icona della storia Apple
+      duration: 2200,
+      fingerDelay: 500,
+      fingerPos: { x: '32%', y: '22%' }, // Più in alto per la storia
       action: 'tap' as const,
       description: 'Instagram Home - Touch storia Apple'
     },
     {
       image: '/images/customerj (2).png',
-      duration: 2000,
-      fingerDelay: 400,
-      fingerPos: { x: '65%', y: '50%' }, // Leggermente più a sinistra per lo swipe
+      duration: 2200,
+      fingerDelay: 500,
+      fingerPos: { x: '65%', y: '50%' }, // OK come era
       action: 'swipe' as const,
       description: 'Storia Apple - Swipe avanti'
     },
     {
       image: '/images/customerj (3).png',
-      duration: 2000,
-      fingerDelay: 400,
-      fingerPos: { x: '46%', y: '74%' }, // Leggermente a sinistra e più in alto per "Acquista ora"
+      duration: 2200,
+      fingerDelay: 500,
+      fingerPos: { x: '46%', y: '78%' }, // Più in basso per il pulsante
       action: 'tap' as const,
       description: 'Annuncio - Touch Acquista Ora'
     },
     {
       image: '/images/customerj (4).png',
-      duration: 2000,
-      fingerDelay: 400,
-      fingerPos: { x: '50%', y: '68%' }, // Più in alto e al centro per "Aggiungi al carrello"
+      duration: 2200,
+      fingerDelay: 500,
+      fingerPos: { x: '50%', y: '68%' }, // OK come era
       action: 'tap' as const,
       description: 'Shopify - Touch Aggiungi Carrello'
     }
@@ -72,7 +72,7 @@ export default function MetaAdsJourney() {
             setCurrentStep(0);
           }, 1500);
         }
-      }, 200);
+      }, 300);
     }, currentStepData.duration);
 
     return () => {
@@ -83,7 +83,7 @@ export default function MetaAdsJourney() {
 
   return (
     <div className="relative w-full max-w-md mx-auto">
-      <div className="relative aspect-[9/19.5] w-full">
+      <div className="relative aspect-[9/16] lg:aspect-[9/19.5] w-full overflow-hidden">
         {/* Images Animation */}
         <AnimatePresence mode="wait">
           {currentStep < 4 ? (
@@ -92,14 +92,14 @@ export default function MetaAdsJourney() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
               className="absolute inset-0"
             >
               <Image
                 src={steps[currentStep].image}
                 alt={steps[currentStep].description}
                 fill
-                className="object-contain"
+                className="object-contain scale-110 lg:scale-100"
                 priority
                 quality={85}
               />
@@ -135,10 +135,10 @@ export default function MetaAdsJourney() {
         <AnimatePresence>
           {showFinger && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.5 }}
+              initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.5 }}
-              transition={{ duration: 0.3 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
               className="absolute pointer-events-none z-50"
               style={{
                 left: fingerPosition.x,
@@ -149,11 +149,11 @@ export default function MetaAdsJourney() {
               {fingerAction === 'tap' && (
                 <motion.div
                   animate={{
-                    scale: [1, 0.8, 1],
-                    y: [0, 8, 0]
+                    scale: [1, 0.85, 1],
+                    y: [0, 6, 0]
                   }}
                   transition={{
-                    duration: 0.8,
+                    duration: 0.9,
                     repeat: 1,
                     ease: 'easeInOut'
                   }}

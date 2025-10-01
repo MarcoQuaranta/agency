@@ -3,7 +3,7 @@ import { Inter, Roboto_Mono } from "next/font/google";
 
 import "@/styles/globals.css";
 
-import AuthProvider from "@/components/providers/AuthProvider";
+// import AuthProvider from "@/components/providers/AuthProvider";
 
 // Font sans-serif (al posto di Geist)
 const geistSans = Inter({
@@ -32,9 +32,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
+        {/* <AuthProvider> */}
           {children}
-        </AuthProvider>
+        {/* </AuthProvider> */}
       </body>
     </html>
   );
