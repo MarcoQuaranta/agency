@@ -1,10 +1,11 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { signOut,useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { useEffect } from 'react';
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -84,3 +85,9 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+const DashboardPage = dynamic(() => Promise.resolve(DashboardContent), {
+  ssr: false,
+});
+
+export default DashboardPage;
