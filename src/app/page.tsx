@@ -1,6 +1,6 @@
 'use client';
 
-import { BarChart2, CheckCircle, FileText, Gauge, Settings } from "lucide-react";
+import { BarChart2, FileText, Gauge, Settings } from "lucide-react";
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -844,8 +844,8 @@ export default function HomePage() {
   };
 
   const [_autoPlayDelay, _setAutoPlayDelay] = useState(3500); // ms
-  const [activeProjectTab, setActiveProjectTab] = useState('marketing');
-  const [contentKey, setContentKey] = useState(0);
+  const [_activeProjectTab, _setActiveProjectTab] = useState('marketing');
+  const [_contentKey, _setContentKey] = useState(0);
   const _carouselContainerRef = useRef<HTMLDivElement | null>(null);
   const [contactFormData, setContactFormData] = useState({
     nome: '',
@@ -855,6 +855,7 @@ export default function HomePage() {
   });
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [incompleteConfirmed, setIncompleteConfirmed] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number[]>([]);
   const [modalData, setModalData] = useState<{
     isOpen: boolean;
     title: string;
@@ -955,7 +956,7 @@ export default function HomePage() {
   ];
 
   // Project tabs data for interactive section
-  const projectTabs = {
+  const _projectTabs = {
     marketing: {
       title: "Marketing Teams",
       subtitle: "Strategia e campagne su misura per il tuo brand",
@@ -2664,7 +2665,7 @@ export default function HomePage() {
       {/* --- Comparison Section --- */}
       <section
         id="comparison"
-        className="py-16 px-4 sm:px-6 lg:px-8"
+        className="py-20 px-4 sm:px-6 lg:px-8"
         aria-label="Work is broken vs Let's fix it"
       >
         <div className="mx-auto flex flex-col lg:grid lg:grid-cols-2 max-w-5xl gap-6 items-stretch">
@@ -2896,9 +2897,9 @@ export default function HomePage() {
                     
                     
                     {/* Shipping Icon - Position 1 */}
-                    <div 
-                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]" 
-                      style={{ 
+                    <div
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]"
+                      style={{
                         animation: 'orbit1 15s linear infinite'
                       }}>
                       <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-105">
@@ -2916,9 +2917,9 @@ export default function HomePage() {
                     </div>
                     
                     {/* Google Ads Icon - Position 2 */}
-                    <div 
-                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]" 
-                      style={{ 
+                    <div
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]"
+                      style={{
                         animation: 'orbit2 15s linear infinite'
                       }}>
                       <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-105">
@@ -2936,9 +2937,9 @@ export default function HomePage() {
                     </div>
                     
                     {/* Shopify Icon - Position 3 */}
-                    <div 
-                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]" 
-                      style={{ 
+                    <div
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]"
+                      style={{
                         animation: 'orbit3 15s linear infinite'
                       }}>
                       <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-105">
@@ -2956,9 +2957,9 @@ export default function HomePage() {
                     </div>
                     
                     {/* SEO Icon - Position 4 */}
-                    <div 
-                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]" 
-                      style={{ 
+                    <div
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]"
+                      style={{
                         animation: 'orbit4 15s linear infinite'
                       }}>
                       <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-105">
@@ -2976,9 +2977,9 @@ export default function HomePage() {
                     </div>
                     
                     {/* AI Icon - Position 5 */}
-                    <div 
-                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]" 
-                      style={{ 
+                    <div
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]"
+                      style={{
                         animation: 'orbit5 15s linear infinite'
                       }}>
                       <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-105">
@@ -2996,9 +2997,9 @@ export default function HomePage() {
                     </div>
                     
                     {/* TikTok Icon - Position 6 */}
-                    <div 
-                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]" 
-                      style={{ 
+                    <div
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]"
+                      style={{
                         animation: 'orbit6 15s linear infinite'
                       }}>
                       <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-105">
@@ -3016,9 +3017,9 @@ export default function HomePage() {
                     </div>
                     
                     {/* Meta Icon - Position 7 */}
-                    <div 
-                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]" 
-                      style={{ 
+                    <div
+                      className="absolute top-1/2 left-1/2 orbit-icon w-[85px] h-[85px] sm:w-[90px] sm:h-[90px] md:w-[95px] md:h-[95px] -ml-[42.5px] -mt-[42.5px] sm:-ml-[45px] sm:-mt-[45px] md:-ml-[47.5px] md:-mt-[47.5px]"
+                      style={{
                         animation: 'orbit7 15s linear infinite'
                       }}>
                       <div className="group relative w-full h-full flex items-center justify-center transition-all cursor-pointer hover:scale-105">
@@ -3039,13 +3040,6 @@ export default function HomePage() {
                   {/* Glow effect */}
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(217,70,239,0.15),transparent_65%)] pointer-events-none"></div>
                 </div>
-              </div>
-
-              {/* decorazioni */}
-              <div className="pointer-events-none absolute bottom-4 right-4 hidden gap-2 md:flex">
-                <div className="h-8 w-8 rounded-lg bg-slate-800" />
-                <div className="h-8 w-8 rounded-lg bg-slate-800" />
-                <div className="h-8 w-8 rounded-lg bg-slate-800" />
               </div>
             </div>
           </div>
@@ -3133,11 +3127,11 @@ export default function HomePage() {
                               aria-selected={false}
                               aria-controls="panel-search"
                               tabIndex={0}
-                              className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-blue-50/80 hover:via-purple-50/80 hover:to-pink-50/80 transition-all duration-300 ease-in-out  hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2"
+                              className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer border-2 border-transparent hover:border-[#4285F4] hover:shadow-[0_0_15px_rgba(66,133,244,0.5)] transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2 backdrop-blur-sm"
                               onClick={() => setExpandedGoogleAd('search')}
                               style={{ transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
                             >
-                              <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-105 transition-transform duration-300 relative group">
+                              <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto relative group">
                                 <Image
                                   src="/images/icons/search-google.png"
                                   alt="Google Search"
@@ -3145,7 +3139,6 @@ export default function HomePage() {
                                   height={80}
                                   className="w-full h-full object-contain"
                                 />
-                                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#4285F4] to-[#34A853] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
                               </div>
                               <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-semibold">Ricerca Google</h3>
                             </button>
@@ -3155,11 +3148,11 @@ export default function HomePage() {
                               aria-selected={false}
                               aria-controls="panel-display"
                               tabIndex={-1}
-                              className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-blue-50/80 hover:via-purple-50/80 hover:to-pink-50/80 transition-all duration-300 ease-in-out  hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#FBBC04] focus:ring-offset-2"
+                              className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer border-2 border-transparent hover:border-[#4285F4] hover:shadow-[0_0_15px_rgba(66,133,244,0.5)] transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#FBBC04] focus:ring-offset-2 backdrop-blur-sm"
                               onClick={() => setExpandedGoogleAd('display')}
                               style={{ transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
                             >
-                              <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-105 transition-transform duration-300 relative group">
+                              <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto relative group">
                                 <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
                                   <rect x="4" y="8" width="40" height="28" rx="2" fill="#E8EAED" stroke="#5F6368" strokeWidth="1.5"/>
                                   <rect x="8" y="12" width="32" height="20" rx="1" fill="#FFFFFF"/>
@@ -3169,7 +3162,6 @@ export default function HomePage() {
                                   <rect x="10" y="24" width="28" height="6" rx="0.5" fill="#4285F4"/>
                                   <circle cx="24" cy="40" r="1.5" fill="#5F6368"/>
                                 </svg>
-                                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#FBBC04] to-[#34A853] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
                               </div>
                               <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-semibold">Display Network</h3>
                             </button>
@@ -3179,11 +3171,11 @@ export default function HomePage() {
                               aria-selected={false}
                               aria-controls="panel-youtube"
                               tabIndex={-1}
-                              className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-blue-50/80 hover:via-purple-50/80 hover:to-pink-50/80 transition-all duration-300 ease-in-out  hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2"
+                              className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer border-2 border-transparent hover:border-[#4285F4] hover:shadow-[0_0_15px_rgba(66,133,244,0.5)] transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2 backdrop-blur-sm"
                               onClick={() => setExpandedGoogleAd('youtube')}
                               style={{ transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
                             >
-                              <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-105 transition-transform duration-300 relative group">
+                              <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto relative group">
                                 <Image
                                   src="/images/icons/youtubelogo.svg"
                                   alt="YouTube Ads"
@@ -3191,7 +3183,6 @@ export default function HomePage() {
                                   height={80}
                                   className="w-full h-full object-contain"
                                 />
-                                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#FBBC04] to-[#4285F4] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
                               </div>
                               <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-semibold">YouTube Ads</h3>
                             </button>
@@ -3427,11 +3418,11 @@ export default function HomePage() {
                             aria-selected={false}
                             aria-controls="panel-instagram"
                             tabIndex={0}
-                            className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-blue-50/80 hover:via-purple-50/80 hover:to-pink-50/80 transition-all duration-300 ease-in-out  hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#E4405F] focus:ring-offset-2"
+                            className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer border-2 border-transparent hover:border-[#1877f2] hover:shadow-[0_0_15px_rgba(24,119,242,0.5)] transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#E4405F] focus:ring-offset-2 backdrop-blur-sm"
                             onClick={() => setExpandedMetaAd('instagram')}
                             style={{ transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
                           >
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-105 transition-transform duration-300 relative group flex items-center justify-center">
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto relative group flex items-center justify-center">
                               <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
                                 <Image
                                   src="/images/icons/logoinsta.svg"
@@ -3441,7 +3432,6 @@ export default function HomePage() {
                                   className="w-full h-full object-cover scale-150"
                                 />
                               </div>
-                              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#F50000] to-[#B900B4] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
                             </div>
                             <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-semibold">Instagram<br/>Ads</h3>
                           </button>
@@ -3451,11 +3441,11 @@ export default function HomePage() {
                             aria-selected={false}
                             aria-controls="panel-facebook"
                             tabIndex={-1}
-                            className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-blue-50/80 hover:via-purple-50/80 hover:to-pink-50/80 transition-all duration-300 ease-in-out  hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#1877f2] focus:ring-offset-2"
+                            className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer border-2 border-transparent hover:border-[#1877f2] hover:shadow-[0_0_15px_rgba(24,119,242,0.5)] transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#1877f2] focus:ring-offset-2 backdrop-blur-sm"
                             onClick={() => setExpandedMetaAd('facebook')}
                             style={{ transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
                           >
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-105 transition-transform duration-300 relative group flex items-center justify-center">
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto relative group flex items-center justify-center">
                               <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-white">
                                 <Image
                                   src="/images/icons/facebookicon.svg"
@@ -3465,7 +3455,6 @@ export default function HomePage() {
                                   className="w-full h-full object-cover scale-110"
                                 />
                               </div>
-                              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#1877f2] to-[#0064e1] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
                             </div>
                             <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-semibold">Facebook<br/>Ads</h3>
                           </button>
@@ -3475,11 +3464,11 @@ export default function HomePage() {
                             aria-selected={false}
                             aria-controls="panel-messenger"
                             tabIndex={-1}
-                            className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-blue-50/80 hover:via-purple-50/80 hover:to-pink-50/80 transition-all duration-300 ease-in-out  hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#00B2FF] focus:ring-offset-2"
+                            className="text-center space-y-2 p-2 sm:p-3 lg:p-4 rounded-lg cursor-pointer border-2 border-transparent hover:border-[#1877f2] hover:shadow-[0_0_15px_rgba(24,119,242,0.5)] transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#00B2FF] focus:ring-offset-2 backdrop-blur-sm"
                             onClick={() => setExpandedMetaAd('messenger')}
                             style={{ transition: 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' }}
                           >
-                            <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto hover:scale-105 transition-transform duration-300 relative group flex items-center justify-center">
+                            <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto relative group flex items-center justify-center">
                               <div className="w-full h-full flex items-center justify-center">
                                 <svg viewBox="0 0 48 48" className="w-full h-full">
                                   <defs>
@@ -3492,7 +3481,6 @@ export default function HomePage() {
                                   <path d="M24 10C16.268 10 10 15.825 10 23c0 4.091 2.042 7.742 5.234 10.119V38l4.771-2.621c1.274.353 2.619.54 3.995.54 7.732 0 14-5.825 14-13S31.732 10 24 10zm1.39 17.52l-3.572-3.808-6.968 3.808L22.582 19l3.66 3.808 6.88-3.808-7.732 8.52z" fill="white"/>
                                 </svg>
                               </div>
-                              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00B2FF] to-[#006AFF] opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
                             </div>
                             <h3 className="text-[15px] sm:text-base lg:text-lg text-gray-800 font-semibold">Messenger<br/>Ads</h3>
                           </button>
@@ -3691,10 +3679,10 @@ export default function HomePage() {
                           <>
                             {/* Stato chiuso: 3 icone nelle loro colonne */}
                             <button
-                              className="text-center space-y-2 p-2 sm:p-3 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-cyan-50/80 hover:via-pink-50/80 hover:to-red-50/80 transition-all duration-[600ms]  hover:shadow-lg"
+                              className="text-center space-y-2 p-2 sm:p-3 rounded-lg cursor-pointer border-2 border-transparent hover:border-[#69C9D0] hover:shadow-[0_0_15px_rgba(105,201,208,0.5)] transition-all duration-300 ease-in-out backdrop-blur-sm"
                               onClick={() => setExpandedTikTokAd('shop')}
                             >
-                              <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto hover:scale-105 transition-transform duration-300 relative group flex items-center justify-center">
+                              <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto relative group flex items-center justify-center">
                                 <Image
                                   src="/images/icons/tikshop.png"
                                   alt="TikTok Shop"
@@ -3707,10 +3695,10 @@ export default function HomePage() {
                             </button>
 
                             <button
-                              className="text-center space-y-2 p-2 sm:p-3 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-cyan-50/80 hover:via-pink-50/80 hover:to-red-50/80 transition-all duration-[600ms]  hover:shadow-lg"
+                              className="text-center space-y-2 p-2 sm:p-3 rounded-lg cursor-pointer border-2 border-transparent hover:border-[#69C9D0] hover:shadow-[0_0_15px_rgba(105,201,208,0.5)] transition-all duration-300 ease-in-out backdrop-blur-sm"
                               onClick={() => setExpandedTikTokAd('live')}
                             >
-                              <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto hover:scale-105 transition-transform duration-300 relative group flex items-center justify-center">
+                              <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto relative group flex items-center justify-center">
                                 <Image
                                   src="/images/icons/tiklive.png"
                                   alt="TikTok Live"
@@ -3723,10 +3711,10 @@ export default function HomePage() {
                             </button>
 
                             <button
-                              className="text-center space-y-2 p-2 sm:p-3 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-cyan-50/80 hover:via-pink-50/80 hover:to-red-50/80 transition-all duration-[600ms]  hover:shadow-lg"
+                              className="text-center space-y-2 p-2 sm:p-3 rounded-lg cursor-pointer border-2 border-transparent hover:border-[#69C9D0] hover:shadow-[0_0_15px_rgba(105,201,208,0.5)] transition-all duration-300 ease-in-out backdrop-blur-sm"
                               onClick={() => setExpandedTikTokAd('likes')}
                             >
-                              <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto hover:scale-105 transition-transform duration-300 relative group flex items-center justify-center">
+                              <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto relative group flex items-center justify-center">
                                 <Image
                                   src="/images/icons/tiklike.png"
                                   alt="TikTok Likes"
@@ -3903,10 +3891,10 @@ export default function HomePage() {
                       <>
                         {/* Stato chiuso: 3 icone nelle loro colonne */}
                         <button
-                          className="text-center space-y-2 p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-cyan-50/80 hover:via-pink-50/80 hover:to-red-50/80 transition-all duration-[600ms]  hover:shadow-lg"
+                          className="text-center space-y-2 p-3 lg:p-4 rounded-lg cursor-pointer border-2 border-transparent hover:border-[#69C9D0] hover:shadow-[0_0_15px_rgba(105,201,208,0.5)] transition-all duration-300 ease-in-out backdrop-blur-sm"
                           onClick={() => setExpandedTikTokAd('shop')}
                         >
-                          <div className="w-24 h-24 mx-auto hover:scale-105 transition-transform duration-300 relative group flex items-center justify-center">
+                          <div className="w-24 h-24 mx-auto relative group flex items-center justify-center">
                             <Image
                               src="/images/icons/tikshop.png"
                               alt="TikTok Shop"
@@ -3919,10 +3907,10 @@ export default function HomePage() {
                         </button>
 
                         <button
-                          className="text-center space-y-2 p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-cyan-50/80 hover:via-pink-50/80 hover:to-red-50/80 transition-all duration-[600ms]  hover:shadow-lg"
+                          className="text-center space-y-2 p-3 lg:p-4 rounded-lg cursor-pointer border-2 border-transparent hover:border-[#69C9D0] hover:shadow-[0_0_15px_rgba(105,201,208,0.5)] transition-all duration-300 ease-in-out backdrop-blur-sm"
                           onClick={() => setExpandedTikTokAd('live')}
                         >
-                          <div className="w-24 h-24 mx-auto hover:scale-105 transition-transform duration-300 relative group flex items-center justify-center">
+                          <div className="w-24 h-24 mx-auto relative group flex items-center justify-center">
                             <Image
                               src="/images/icons/tiklive.png"
                               alt="TikTok Live"
@@ -3935,10 +3923,10 @@ export default function HomePage() {
                         </button>
 
                         <button
-                          className="text-center space-y-2 p-3 lg:p-4 rounded-lg cursor-pointer hover:bg-gradient-to-br hover:from-cyan-50/80 hover:via-pink-50/80 hover:to-red-50/80 transition-all duration-[600ms]  hover:shadow-lg"
+                          className="text-center space-y-2 p-3 lg:p-4 rounded-lg cursor-pointer border-2 border-transparent hover:border-[#69C9D0] hover:shadow-[0_0_15px_rgba(105,201,208,0.5)] transition-all duration-300 ease-in-out backdrop-blur-sm"
                           onClick={() => setExpandedTikTokAd('likes')}
                         >
-                          <div className="w-24 h-24 mx-auto hover:scale-105 transition-transform duration-300 relative group flex items-center justify-center">
+                          <div className="w-24 h-24 mx-auto relative group flex items-center justify-center">
                             <Image
                               src="/images/icons/tiklike.png"
                               alt="TikTok Likes"
@@ -4083,198 +4071,133 @@ export default function HomePage() {
         </div>
       </section>
 
+  {/* SafeScale Package Section - Pricing Card Style */}
+  <section className="w-full px-6 py-16 bg-gradient-to-br from-gray-50 via-white to-gray-50 relative" data-section="accelera-business">
+    <div className="max-w-4xl mx-auto relative z-10">
 
+      {/* Pricing Card Box */}
+      <div className="relative overflow-hidden rounded-[28px] border border-slate-800/50 p-8 sm:p-10 shadow-[0_12px_40px_rgba(0,0,0,0.35)]" style={{ background: '#0B0B0F' }}>
 
+        {/* Radial gradient overlay - top right */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: 'radial-gradient(circle at 86% 12%, rgba(236, 72, 153, 0.25) 0%, rgba(120, 60, 255, 0.30) 18%, rgba(60, 140, 255, 0.20) 35%, rgba(0, 0, 0, 0) 60%)'
+        }}></div>
 
-  
-  {/* Interactive Project Solutions Section */}
-  <section className="w-full px-6 py-12 bg-gradient-to-br from-blue-50/8 via-white to-purple-50/5 relative first-section" data-section="accelera-business">
-    <div className="absolute inset-0 bg-gradient-to-r from-blue-50/12 via-transparent to-purple-50/12"></div>
-    <div className="max-w-[1400px] mx-auto relative z-10">
-      
-      {/* Section Header */}
-      <div className={`text-center mb-12 slide-up-enter ${visibleSections.includes('accelera-business') ? 'slide-up-visible' : ''}`}>
-        <p className="text-sm font-semibold text-violet-600">Soluzioni Su Misura</p>
-        <h2 className="mt-2 text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4 text-slate-900">
-          <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">Accelera</span> il tuo <span className="font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">business</span>, ogni volta
+        {/* Title */}
+        <h2 className="relative text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white mb-8 z-10">
+          Sai cosa offriamo?<br />Una gestione 360°
         </h2>
-        <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-          Soluzioni complete e personalizzate per far crescere la tua azienda con strumenti professionali.
-        </p>
-      </div>
 
-      {/* Interactive Tabs */}
-      <div className="grid grid-cols-2 gap-3 md:flex md:flex-wrap md:justify-center mb-8 bg-white p-3 rounded-2xl shadow-sm border border-gray-200 max-w-2xl mx-auto">
-        {Object.entries(projectTabs).map(([key, tab]) => (
-          <button
-            key={key}
-            onClick={() => {
-              setActiveProjectTab(key);
-              setContentKey(prev => prev + 1);
-            }}
-            className={`px-4 py-3 md:px-6 rounded-xl font-medium transition-all duration-300 text-sm md:text-base w-full md:w-auto ${
-              activeProjectTab === key
-                ? 'bg-gradient-bg-brand gradient-text-brand shadow-lg transform scale-105'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gradient-to-br hover:from-blue-50/80 hover:via-purple-50/80 hover:to-pink-50/80'
-            }`}
-          >
-            {tab.title.split(' ')[0]}
-          </button>
-        ))}
-      </div>
+        {/* Feature List */}
+        <div className="relative grid md:grid-cols-2 gap-x-8 gap-y-5 my-12 z-10">
 
-      {/* Content Area */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-visible relative">
-        <div className="flex flex-col lg:flex-row">
-
-          {/* Mobile Navigation Arrows */}
-          <button
-            onClick={() => {
-              const keys = Object.keys(projectTabs);
-              const currentIndex = keys.indexOf(activeProjectTab);
-              const prevIndex = currentIndex === 0 ? keys.length - 1 : currentIndex - 1;
-              setActiveProjectTab(keys[prevIndex]);
-              setContentKey(prev => prev + 1);
-            }}
-            className="lg:hidden absolute -left-2 top-1/2 transform -translate-y-1/2 z-10 w-8 h-8 bg-white rounded-full shadow-md border border-gray-200 flex items-center justify-center hover:bg-gradient-to-br hover:from-blue-50/80 hover:via-purple-50/80 hover:to-pink-50/80 transition-colors"
-          >
-            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-
-          <button
-            onClick={() => {
-              const keys = Object.keys(projectTabs);
-              const currentIndex = keys.indexOf(activeProjectTab);
-              const nextIndex = currentIndex === keys.length - 1 ? 0 : currentIndex + 1;
-              setActiveProjectTab(keys[nextIndex]);
-              setContentKey(prev => prev + 1);
-            }}
-            className="lg:hidden absolute -right-2 top-1/2 transform -translate-y-1/2 z-10 w-8 h-8 bg-white rounded-full shadow-md border border-gray-200 flex items-center justify-center hover:bg-gradient-to-br hover:from-blue-50/80 hover:via-purple-50/80 hover:to-pink-50/80 transition-colors"
-          >
-            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-          
-          {/* Left Content */}
-          <div key={contentKey} className="flex-1 p-6 lg:p-12">
-            <div className="mb-4 lg:mb-6 transition-all duration-500 ease-in-out transform">
-              <h3 className="text-xl lg:text-3xl font-bold mb-2 text-gray-900 animate-fade-in">
-                {projectTabs[activeProjectTab as keyof typeof projectTabs].title}
-              </h3>
-              <h4 className="text-base lg:text-lg text-blue-600 font-medium mb-3 lg:mb-4 animate-fade-in" style={{animationDelay: '0.1s'}}>
-                {projectTabs[activeProjectTab as keyof typeof projectTabs].subtitle}
-              </h4>
-              <p className="text-gray-600 text-base lg:text-lg animate-fade-in" style={{animationDelay: '0.2s'}}>
-                {projectTabs[activeProjectTab as keyof typeof projectTabs].description}
-              </p>
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-1 shadow-[0_0_10px_rgba(34,197,94,0.3)]">
+              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
             </div>
-
-            {/* Features List */}
-            <ul className="space-y-3 lg:space-y-4 mb-6 lg:mb-8">
-              {projectTabs[activeProjectTab as keyof typeof projectTabs].features.map((feature, idx) => (
-                <li 
-                  key={idx} 
-                  className="flex items-start gap-3 animate-fade-in"
-                  style={{animationDelay: `${0.3 + idx * 0.1}s`}}
-                >
-                  <CheckCircle className="w-5 h-5 lg:w-6 lg:h-6 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 text-sm lg:text-base">{feature}</span>
-                </li>
-              ))}
-            </ul>
-
-            {/* Testimonial */}
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 lg:p-6 rounded-xl border border-blue-100 animate-fade-in mb-6 lg:mb-0" style={{animationDelay: '0.7s'}}>
-              <div className="flex items-center gap-3 lg:gap-4 mb-3 lg:mb-4">
-                <Image
-                  src={projectTabs[activeProjectTab as keyof typeof projectTabs].testimonial.avatar}
-                  alt="Testimonial"
-                  width={48}
-                  height={48}
-                  className="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-white shadow-sm"
-                />
-                <div>
-                  <div className="text-yellow-500 text-xs lg:text-sm mb-1">★★★★★</div>
-                  <p className="font-semibold text-gray-900 text-sm lg:text-base">
-                    {projectTabs[activeProjectTab as keyof typeof projectTabs].testimonial.name}
-                  </p>
-                  <p className="text-xs lg:text-sm text-gray-600">
-                    {projectTabs[activeProjectTab as keyof typeof projectTabs].testimonial.company}
-                  </p>
-                </div>
-              </div>
-              <p className="text-gray-700 italic text-sm lg:text-base">
-                "{projectTabs[activeProjectTab as keyof typeof projectTabs].testimonial.quote}"
-              </p>
-            </div>
-
-            {/* Mobile CTA Button */}
-            <div className="lg:hidden">
-              <button 
-                onClick={scrollToContactForm}
-                className="w-full py-3 px-6 rounded-xl text-white font-semibold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 hover:from-blue-700 hover:via-purple-700 hover:to-blue-900 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
-              >
-                <FaRocket className="w-4 h-4" />
-                {projectTabs[activeProjectTab as keyof typeof projectTabs].ctaText}
-              </button>
-              
-              <p className="text-center text-xs text-gray-500 mt-3">
-                Consulenza gratuita • Setup incluso • Supporto 24/7
-              </p>
-            </div>
+            <p className="text-white/85 text-lg">Gestione <span className="font-semibold text-white">e-commerce</span> completa</p>
           </div>
 
-          {/* Right Side - Visual/CTA */}
-          <div className="hidden lg:flex flex-1 p-8 lg:p-12 bg-gradient-to-br from-gray-50 to-white border-l border-gray-200 flex-col justify-center">
-            
-            {/* Icon Grid */}
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg text-center">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <FaRocket className="w-6 h-6 text-white" />
-                </div>
-                <p className="text-sm font-medium text-gray-700">Crescita Rapida</p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg text-center">
-                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <FaChartBar className="w-6 h-6 text-white" />
-                </div>
-                <p className="text-sm font-medium text-gray-700">ROI Garantito</p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg text-center">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <FaBolt className="w-6 h-6 text-white" />
-                </div>
-                <p className="text-sm font-medium text-gray-700">Automazione</p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-300 hover:shadow-lg text-center">
-                <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <FaBullseye className="w-6 h-6 text-white" />
-                </div>
-                <p className="text-sm font-medium text-gray-700">Precisione</p>
-              </div>
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-1 shadow-[0_0_10px_rgba(34,197,94,0.3)]">
+              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
             </div>
+            <p className="text-white/85 text-lg">Creatività e contenuti premium ottimizzati</p>
+          </div>
 
-            {/* CTA Button */}
-            <button 
-              onClick={scrollToContactForm}
-              className="w-full py-4 px-6 rounded-xl text-white font-semibold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 hover:from-blue-700 hover:via-purple-700 hover:to-blue-900 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
-            >
-              <FaRocket className="w-5 h-5" />
-              {projectTabs[activeProjectTab as keyof typeof projectTabs].ctaText}
-            </button>
-            
-            <p className="text-center text-sm text-gray-500 mt-4">
-              Consulenza gratuita • Setup incluso • Supporto 24/7
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-1 shadow-[0_0_10px_rgba(34,197,94,0.3)]">
+              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="text-white/85 text-lg"><span className="font-semibold text-white">Consulenza</span> strategica dedicata</p>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-1 shadow-[0_0_10px_rgba(34,197,94,0.3)]">
+              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="text-white/85 text-lg"><span className="font-semibold text-white">Assistenza</span> 24/7 dedicata</p>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-1 shadow-[0_0_10px_rgba(34,197,94,0.3)]">
+              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="text-white/85 text-lg"><span className="font-semibold text-white">Ads</span> su Google, Meta e TikTok</p>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-1 shadow-[0_0_10px_rgba(34,197,94,0.3)]">
+              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="text-white/85 text-lg"><span className="font-semibold text-white">Logistica</span> Integrata</p>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-1 shadow-[0_0_10px_rgba(34,197,94,0.3)]">
+              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="text-white/85 text-lg"><span className="font-semibold text-white">Dashboard</span> Trasparenza</p>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-1 shadow-[0_0_10px_rgba(34,197,94,0.3)]">
+              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="text-white/85 text-lg"><span className="font-semibold text-white">Automazione</span> e Ottimizzazione AI</p>
+          </div>
+
+        </div>
+
+        {/* Divider line */}
+        <div className="relative border-t border-gray-700/50 mb-8 z-10"></div>
+
+        {/* "Tutto incluso" section - pricing style */}
+        <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 z-10">
+          <div>
+            <p className="text-3xl sm:text-4xl font-bold text-white mb-2" style={{
+              letterSpacing: '-0.02em'
+            }}>
+              Tutto incluso
             </p>
+            <p className="text-sm text-gray-400">Un'unica soluzione completa per la tua crescita</p>
+          </div>
+          <div className="sm:ml-auto">
+            <button
+              onClick={scrollToContactForm}
+              className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-slate-900 font-semibold shadow hover:shadow-lg active:scale-[0.99] transition"
+            >
+              <span>Inizia ora</span>
+              <svg
+                viewBox="0 0 24 24"
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M5 12h14" />
+                <path d="M12 5l7 7-7 7" />
+              </svg>
+            </button>
           </div>
         </div>
+
       </div>
     </div>
   </section>
@@ -4378,6 +4301,156 @@ export default function HomePage() {
       </section>
       */}
 
+      {/* FAQ Section */}
+      <section className="w-full py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-white via-gray-50 to-white"></div>
+
+        <div className="max-w-4xl mx-auto px-6 lg:px-8 relative z-10">
+          {/* Section Title */}
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Domande frequenti
+              </span>
+            </h2>
+            <p className="text-lg text-gray-600">
+              Scopri tutto prima di candidarti con SafeScale.
+            </p>
+          </div>
+
+          {/* Single Container Box */}
+          <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-gray-100 overflow-hidden mb-12">
+
+            {/* FAQ 1 */}
+            <div className="border-b border-gray-100 last:border-0 py-4">
+              <button
+                onClick={() => setOpenFaq(prev => prev.includes(1) ? prev.filter(f => f !== 1) : [...prev, 1])}
+                className="w-full text-left px-8 py-4 flex items-center gap-4 hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-inset"
+                aria-expanded={openFaq.includes(1)}
+                aria-controls="faq-1-content"
+              >
+                <span className="text-2xl flex-shrink-0">💡</span>
+                <h3 className="flex-1 text-xl font-semibold text-slate-900">
+                  Cosa succede se la campagna non funziona?
+                </h3>
+                <svg className={`w-5 h-5 flex-shrink-0 text-gray-400 transition-transform duration-200 ${openFaq.includes(1) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {openFaq.includes(1) && (
+                <div id="faq-1-content" className="px-8 pb-4 pt-2 animate-in fade-in duration-200" style={{ paddingLeft: 'calc(2rem + 2.5rem + 1rem)' }}>
+                  <p className="text-gray-600 leading-relaxed text-base">
+                    <strong className="text-purple-600 font-semibold">Nessun rischio.</strong> Se non generiamo profitti, non ti addebitiamo nulla.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* FAQ 2 */}
+            <div className="border-b border-gray-100 last:border-0 py-4">
+              <button
+                onClick={() => setOpenFaq(prev => prev.includes(2) ? prev.filter(f => f !== 2) : [...prev, 2])}
+                className="w-full text-left px-8 py-4 flex items-center gap-4 hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-inset"
+                aria-expanded={openFaq.includes(2)}
+                aria-controls="faq-2-content"
+              >
+                <span className="text-2xl flex-shrink-0">💰</span>
+                <h3 className="flex-1 text-xl font-semibold text-slate-900">
+                  Quanto devo investire per iniziare?
+                </h3>
+                <svg className={`w-5 h-5 flex-shrink-0 text-gray-400 transition-transform duration-200 ${openFaq.includes(2) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {openFaq.includes(2) && (
+                <div id="faq-2-content" className="px-8 pb-4 pt-2 animate-in fade-in duration-200" style={{ paddingLeft: 'calc(2rem + 2.5rem + 1rem)' }}>
+                  <p className="text-gray-600 leading-relaxed text-base">
+                    <strong className="text-purple-600 font-semibold">Zero budget anticipato.</strong> Valutiamo il brand e finanziamo noi i test.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* FAQ 3 */}
+            <div className="border-b border-gray-100 last:border-0 py-4">
+              <button
+                onClick={() => setOpenFaq(prev => prev.includes(3) ? prev.filter(f => f !== 3) : [...prev, 3])}
+                className="w-full text-left px-8 py-4 flex items-center gap-4 hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-inset"
+                aria-expanded={openFaq.includes(3)}
+                aria-controls="faq-3-content"
+              >
+                <span className="text-2xl flex-shrink-0">🤝</span>
+                <h3 className="flex-1 text-xl font-semibold text-slate-900">
+                  Come funziona la divisione dei guadagni?
+                </h3>
+                <svg className={`w-5 h-5 flex-shrink-0 text-gray-400 transition-transform duration-200 ${openFaq.includes(3) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {openFaq.includes(3) && (
+                <div id="faq-3-content" className="px-8 pb-4 pt-2 animate-in fade-in duration-200" style={{ paddingLeft: 'calc(2rem + 2.5rem + 1rem)' }}>
+                  <p className="text-gray-600 leading-relaxed text-base">
+                    <strong className="text-purple-600 font-semibold">Revenue share trasparente.</strong> Percentuale chiara su utili netti, concordata prima di partire.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* FAQ 4 */}
+            <div className="border-b border-gray-100 last:border-0 py-4">
+              <button
+                onClick={() => setOpenFaq(prev => prev.includes(4) ? prev.filter(f => f !== 4) : [...prev, 4])}
+                className="w-full text-left px-8 py-4 flex items-center gap-4 hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-inset"
+                aria-expanded={openFaq.includes(4)}
+                aria-controls="faq-4-content"
+              >
+                <span className="text-2xl flex-shrink-0">📦</span>
+                <h3 className="flex-1 text-xl font-semibold text-slate-900">
+                  Chi gestisce logistica e spedizioni?
+                </h3>
+                <svg className={`w-5 h-5 flex-shrink-0 text-gray-400 transition-transform duration-200 ${openFaq.includes(4) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {openFaq.includes(4) && (
+                <div id="faq-4-content" className="px-8 pb-4 pt-2 animate-in fade-in duration-200" style={{ paddingLeft: 'calc(2rem + 2.5rem + 1rem)' }}>
+                  <p className="text-gray-600 leading-relaxed text-base">
+                    <strong className="text-purple-600 font-semibold">Pensiamo a tutto noi.</strong> Ci occupiamo al 100% di logistica, magazzino e spedizioni, garantendo consegne rapide e clienti soddisfatti.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* FAQ 5 */}
+            <div className="border-b border-gray-100 last:border-0 py-4">
+              <button
+                onClick={() => setOpenFaq(prev => prev.includes(5) ? prev.filter(f => f !== 5) : [...prev, 5])}
+                className="w-full text-left px-8 py-4 flex items-center gap-4 hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-inset"
+                aria-expanded={openFaq.includes(5)}
+                aria-controls="faq-5-content"
+              >
+                <span className="text-2xl flex-shrink-0">✨</span>
+                <h3 className="flex-1 text-xl font-semibold text-slate-900">
+                  Perché dovrei fidarmi di voi?
+                </h3>
+                <svg className={`w-5 h-5 flex-shrink-0 text-gray-400 transition-transform duration-200 ${openFaq.includes(5) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {openFaq.includes(5) && (
+                <div id="faq-5-content" className="px-8 pb-4 pt-2 animate-in fade-in duration-200" style={{ paddingLeft: 'calc(2rem + 2.5rem + 1rem)' }}>
+                  <p className="text-gray-600 leading-relaxed text-base">
+                    <strong className="text-purple-600 font-semibold">Allineati ai risultati.</strong> Investiamo di tasca nostra: guadagni solo se guadagniamo anche noi.
+                  </p>
+                </div>
+              )}
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
       <Footer />
 
       {/* Custom Alert/Confirm Modal */}
@@ -4422,7 +4495,6 @@ export default function HomePage() {
             <p className="text-gray-600 text-center mb-6 leading-relaxed">
               {modalData.message}
             </p>
-
             {/* Ciaone */}
             <div className="flex gap-3 justify-center">
               {modalData.type === 'confirm' && modalData.onCancel && (
