@@ -199,8 +199,18 @@
   transition-delay: 0.6s; 
 }
 
-.slide-up-delay-7 { 
-  transition-delay: 0.7s; 
+.slide-up-delay-7 {
+  transition-delay: 0.7s;
+}
+
+/* Scroll hint dot animation */
+@keyframes scrollDot {
+  0%, 100% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, 24px);
+  }
 }
 
 /* Fade-in animation */

@@ -4308,10 +4308,8 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto px-6 lg:px-8 relative z-10">
           {/* Section Title */}
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Domande frequenti
-              </span>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-black">
+              Domande frequenti
             </h2>
             <p className="text-lg text-gray-600">
               Scopri tutto prima di candidarti con SafeScale.
@@ -4339,7 +4337,7 @@ export default function HomePage() {
               </button>
               {openFaq.includes(1) && (
                 <div id="faq-1-content" className="px-8 pb-4 pt-2 animate-in fade-in duration-200" style={{ paddingLeft: 'calc(2rem + 2.5rem + 1rem)' }}>
-                  <p className="text-gray-600 leading-relaxed text-base">
+                  <p className="text-gray-600 leading-relaxed text-lg">
                     <strong className="text-purple-600 font-semibold">Nessun rischio.</strong> Se non generiamo profitti, non ti addebitiamo nulla.
                   </p>
                 </div>
@@ -4364,7 +4362,7 @@ export default function HomePage() {
               </button>
               {openFaq.includes(2) && (
                 <div id="faq-2-content" className="px-8 pb-4 pt-2 animate-in fade-in duration-200" style={{ paddingLeft: 'calc(2rem + 2.5rem + 1rem)' }}>
-                  <p className="text-gray-600 leading-relaxed text-base">
+                  <p className="text-gray-600 leading-relaxed text-lg">
                     <strong className="text-purple-600 font-semibold">Zero budget anticipato.</strong> Valutiamo il brand e finanziamo noi i test.
                   </p>
                 </div>
@@ -4389,7 +4387,7 @@ export default function HomePage() {
               </button>
               {openFaq.includes(3) && (
                 <div id="faq-3-content" className="px-8 pb-4 pt-2 animate-in fade-in duration-200" style={{ paddingLeft: 'calc(2rem + 2.5rem + 1rem)' }}>
-                  <p className="text-gray-600 leading-relaxed text-base">
+                  <p className="text-gray-600 leading-relaxed text-lg">
                     <strong className="text-purple-600 font-semibold">Revenue share trasparente.</strong> Percentuale chiara su utili netti, concordata prima di partire.
                   </p>
                 </div>
@@ -4414,7 +4412,7 @@ export default function HomePage() {
               </button>
               {openFaq.includes(4) && (
                 <div id="faq-4-content" className="px-8 pb-4 pt-2 animate-in fade-in duration-200" style={{ paddingLeft: 'calc(2rem + 2.5rem + 1rem)' }}>
-                  <p className="text-gray-600 leading-relaxed text-base">
+                  <p className="text-gray-600 leading-relaxed text-lg">
                     <strong className="text-purple-600 font-semibold">Pensiamo a tutto noi.</strong> Ci occupiamo al 100% di logistica, magazzino e spedizioni, garantendo consegne rapide e clienti soddisfatti.
                   </p>
                 </div>
@@ -4439,7 +4437,7 @@ export default function HomePage() {
               </button>
               {openFaq.includes(5) && (
                 <div id="faq-5-content" className="px-8 pb-4 pt-2 animate-in fade-in duration-200" style={{ paddingLeft: 'calc(2rem + 2.5rem + 1rem)' }}>
-                  <p className="text-gray-600 leading-relaxed text-base">
+                  <p className="text-gray-600 leading-relaxed text-lg">
                     <strong className="text-purple-600 font-semibold">Allineati ai risultati.</strong> Investiamo di tasca nostra: guadagni solo se guadagniamo anche noi.
                   </p>
                 </div>

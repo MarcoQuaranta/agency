@@ -135,10 +135,10 @@ export default function OldAgencyBrokenBox() {
   }, []);
 
   return (
-    <div 
+    <div
       ref={containerRef}
       data-section="old-agency-broken"
-      className="relative h-full min-h-[500px] sm:min-h-[600px] lg:min-h-[700px] overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-4 sm:p-6 lg:p-8 shadow-sm"
+      className="relative h-full min-h-[400px] sm:min-h-[500px] lg:min-h-[550px] overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-4 sm:p-6 lg:p-8 shadow-sm"
     >
       <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-900 max-w-full">
         Il vecchio modello di Web Agency non è più sostenibile.
