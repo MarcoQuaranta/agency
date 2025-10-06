@@ -1,5 +1,6 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import { BarChart2, FileText, Gauge, Settings } from "lucide-react";
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -32,9 +33,6 @@ const MetaAdsJourney = dynamic(() => import('@/components/MetaAdsJourney'), {
 });
 const OldAgencyBrokenBox = dynamic(() => import('@/components/OldAgencyBrokenBox'), {
   loading: () => <div className="h-96 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 animate-pulse" />
-});
-const HeroWithMethod = dynamic(() => import('@/components/HeroWithMethod'), {
-  loading: () => <div className="h-screen bg-gradient-to-br from-[#0B0A14] to-[#1B1030] animate-pulse" />
 });
 
 interface FeatureCard {
@@ -1947,8 +1945,84 @@ export default function HomePage() {
       
       <Header />
 
-      {/* Hero with Method Section - Combined */}
-      <HeroWithMethod scrollToContactForm={scrollToContactForm} />
+      {/* Hero Section - Simple */}
+      <section className="relative min-h-screen flex items-center justify-center bg-black overflow-hidden">
+        {/* Video Background */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          className="absolute inset-0 w-full h-full object-cover opacity-80"
+          style={{ willChange: 'auto' }}
+        >
+          <source src="/video/provolone.mp4" type="video/mp4" />
+        </video>
+
+        {/* Dark Overlay */}
+        <div className="absolute inset-0 bg-black opacity-50" />
+
+        {/* Hero Content */}
+        <div className="relative z-10 text-center max-w-6xl mx-auto px-6 mt-24">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
+          >
+            <h1 className="mb-8 sm:mb-12 px-6 md:tracking-tighter hero-title-container" style={{ fontFamily: 'InterVariable, Inter, sans-serif' }}>
+              <span className="block text-white font-normal italic hero-title-line-1">Noi investiamo</span>
+              <span className="block text-white font-bold italic hero-title-line-2">tu guadagni</span>
+              <span className="block text-white font-bold uppercase tracking-wide hero-title-line-3" style={{ fontFamily: '"Bebas Neue", sans-serif' }}>zero rischi</span>
+            </h1>
+            <style jsx>{`
+              .hero-title-line-1 {
+                font-size: clamp(28px, 8.5vw, 120px);
+                margin-bottom: 6px;
+              }
+              .hero-title-line-2 {
+                font-size: clamp(28px, 8.5vw, 120px);
+                margin-bottom: clamp(24px, 6vw, 120px);
+              }
+              .hero-title-line-3 {
+                font-size: clamp(48px, 14vw, 206px);
+              }
+              @media (min-width: 768px) {
+                .hero-title-line-1 {
+                  font-size: 120px;
+                  margin-bottom: 56px;
+                }
+                .hero-title-line-2 {
+                  font-size: 120px;
+                  margin-bottom: 120px;
+                }
+                .hero-title-line-3 {
+                  font-size: 206px;
+                }
+              }
+            `}</style>
+
+            <p className="text-2xl sm:text-3xl md:text-4xl text-gray-300 mb-8 sm:mb-10 max-w-3xl mx-auto px-6" style={{ lineHeight: '1.8' }}>
+              Pronto a scalare senza rischi?
+            </p>
+
+            <button
+              onClick={scrollToContactForm}
+              className="gradient-bg-brand gradient-bg-brand-hover text-white px-10 sm:px-14 py-5 sm:py-6 rounded-full font-bold transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-black text-xl sm:text-2xl inline-flex items-center gap-3"
+            >
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+              </svg>
+              <span>Candidati</span>
+            </button>
+
+            <p className="text-lg sm:text-xl text-gray-400 mt-4">
+              Valutazione entro 24h
+            </p>
+          </motion.div>
+        </div>
+      </section>
 
       {/* Contact Form Modal - Moved outside of disabled section */}
       {showContactForm && (
@@ -3055,14 +3129,669 @@ export default function HomePage() {
 
 
 
-      {/* Metodo SafeScale Section - NOW INTEGRATED IN HERO - REMOVED */}
+  {/* Il Metodo SafeScale - 4 Steps Section */}
+  <motion.section
+    className="w-full py-32 bg-gradient-to-b from-gray-900 via-black to-gray-900 relative overflow-hidden"
+    style={{
+      transform: 'translateZ(0)',
+      backfaceVisibility: 'hidden',
+      perspective: '1000px'
+    }}
+    initial={{ opacity: 0 }}
+    whileInView={{ opacity: 1 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.6 }}
+  >
+    {/* Animated gradient background - Mobile and Desktop */}
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {/* Gradient orbs with pulse animation - multiple positions */}
+      <div
+        className="absolute top-[15%] left-[10%] w-96 h-96 bg-purple-600/20 rounded-full blur-3xl"
+        style={{
+          animation: 'gradientPulse 5s ease-in-out infinite',
+          willChange: 'opacity',
+          transform: 'translateZ(0)'
+        }}
+      ></div>
+      <div
+        className="absolute top-[40%] right-[15%] w-80 h-80 bg-blue-600/20 rounded-full blur-3xl"
+        style={{
+          animation: 'gradientPulse 6s ease-in-out infinite 1.5s',
+          willChange: 'opacity',
+          transform: 'translateZ(0)'
+        }}
+      ></div>
+      <div
+        className="absolute bottom-[20%] left-[20%] w-96 h-96 bg-pink-600/20 rounded-full blur-3xl"
+        style={{
+          animation: 'gradientPulse 5.5s ease-in-out infinite 3s',
+          willChange: 'opacity',
+          transform: 'translateZ(0)'
+        }}
+      ></div>
+      <div
+        className="absolute top-[60%] left-[50%] w-72 h-72 bg-purple-600/15 rounded-full blur-3xl"
+        style={{
+          animation: 'gradientPulse 7s ease-in-out infinite 2s',
+          willChange: 'opacity',
+          transform: 'translateZ(0)'
+        }}
+      ></div>
+      <div
+        className="absolute top-[25%] left-[70%] w-80 h-80 bg-blue-600/18 rounded-full blur-3xl"
+        style={{
+          animation: 'gradientPulse 6.5s ease-in-out infinite 4s',
+          willChange: 'opacity',
+          transform: 'translateZ(0)'
+        }}
+      ></div>
+    </div>
+
+    {/* Space particles - traveling effect - Mobile and Desktop */}
+    <div className="absolute inset-0 pointer-events-none" style={{ willChange: 'transform', transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}>
+      {/* Extra particles at the top for more light */}
+      <div
+        className="absolute w-2.5 h-2.5 bg-purple-400 rounded-full"
+        style={{
+          top: '5%',
+          left: '20%',
+          animation: 'spaceTravel1 8s linear infinite',
+          boxShadow: '0 0 15px rgba(147, 51, 234, 1), 0 0 25px rgba(147, 51, 234, 0.5)',
+          willChange: 'transform, opacity'
+        }}
+      ></div>
+      <div
+        className="absolute w-2 h-2 bg-blue-400 rounded-full"
+        style={{
+          top: '8%',
+          left: '60%',
+          animation: 'spaceTravel4 9s linear infinite 1s',
+          boxShadow: '0 0 15px rgba(59, 130, 246, 1), 0 0 25px rgba(59, 130, 246, 0.5)',
+          willChange: 'transform, opacity'
+        }}
+      ></div>
+      <div
+        className="absolute w-2.5 h-2.5 bg-pink-400 rounded-full"
+        style={{
+          top: '3%',
+          left: '80%',
+          animation: 'spaceTravel7 10s linear infinite 2s',
+          boxShadow: '0 0 15px rgba(236, 72, 153, 1), 0 0 25px rgba(236, 72, 153, 0.5)',
+          willChange: 'transform, opacity'
+        }}
+      ></div>
+      <div
+        className="absolute w-2 h-2 bg-purple-300 rounded-full"
+        style={{
+          top: '10%',
+          left: '40%',
+          animation: 'spaceTravel2 12s linear infinite 3s',
+          boxShadow: '0 0 12px rgba(147, 51, 234, 0.9), 0 0 20px rgba(147, 51, 234, 0.4)',
+          willChange: 'transform, opacity'
+        }}
+      ></div>
+      <div
+        className="absolute w-2 h-2 bg-blue-300 rounded-full"
+        style={{
+          top: '7%',
+          left: '90%',
+          animation: 'spaceTravel5 11s linear infinite 4s',
+          boxShadow: '0 0 12px rgba(59, 130, 246, 0.9), 0 0 20px rgba(59, 130, 246, 0.4)',
+          willChange: 'transform, opacity'
+        }}
+      ></div>
+
+      {/* Purple particles */}
+      <div
+        className="absolute w-2 h-2 bg-purple-400 rounded-full"
+        style={{
+          top: '15%',
+          left: '10%',
+          animation: 'spaceTravel1 8s linear infinite',
+          boxShadow: '0 0 10px rgba(147, 51, 234, 0.8)',
+          willChange: 'transform, opacity'
+        }}
+      ></div>
+      <div
+        className="absolute w-1.5 h-1.5 bg-purple-300 rounded-full"
+        style={{
+          top: '45%',
+          left: '5%',
+          animation: 'spaceTravel2 12s linear infinite 2s',
+          boxShadow: '0 0 8px rgba(147, 51, 234, 0.7)',
+          willChange: 'transform, opacity'
+        }}
+      ></div>
+      <div
+        className="absolute w-2.5 h-2.5 bg-purple-500 rounded-full"
+        style={{
+          top: '75%',
+          left: '15%',
+          animation: 'spaceTravel3 10s linear infinite 4s',
+          boxShadow: '0 0 12px rgba(147, 51, 234, 0.9)',
+          willChange: 'transform, opacity'
+        }}
+      ></div>
+
+      {/* Blue particles */}
+      <div
+        className="absolute w-2 h-2 bg-blue-400 rounded-full"
+        style={{
+          top: '25%',
+          left: '85%',
+          animation: 'spaceTravel4 9s linear infinite 1s',
+          boxShadow: '0 0 10px rgba(59, 130, 246, 0.8)',
+          willChange: 'transform, opacity'
+        }}
+      ></div>
+      <div
+        className="absolute w-1.5 h-1.5 bg-blue-300 rounded-full"
+        style={{
+          top: '55%',
+          left: '90%',
+          animation: 'spaceTravel5 11s linear infinite 3s',
+          boxShadow: '0 0 8px rgba(59, 130, 246, 0.7)',
+          willChange: 'transform, opacity'
+        }}
+      ></div>
+      <div
+        className="absolute w-2.5 h-2.5 bg-blue-500 rounded-full"
+        style={{
+          top: '85%',
+          left: '80%',
+          animation: 'spaceTravel6 13s linear infinite 5s',
+          boxShadow: '0 0 12px rgba(59, 130, 246, 0.9)',
+          willChange: 'transform, opacity'
+        }}
+      ></div>
+
+      {/* Pink particles */}
+      <div
+        className="absolute w-2 h-2 bg-pink-400 rounded-full"
+        style={{
+          top: '35%',
+          left: '50%',
+          animation: 'spaceTravel7 10s linear infinite 2s',
+          boxShadow: '0 0 10px rgba(236, 72, 153, 0.8)',
+          willChange: 'transform, opacity'
+        }}
+      ></div>
+      <div
+        className="absolute w-1.5 h-1.5 bg-pink-300 rounded-full"
+        style={{
+          top: '65%',
+          left: '55%',
+          animation: 'spaceTravel8 12s linear infinite 4s',
+          boxShadow: '0 0 8px rgba(236, 72, 153, 0.7)',
+          willChange: 'transform, opacity'
+        }}
+      ></div>
+      <div
+        className="absolute w-2.5 h-2.5 bg-pink-500 rounded-full"
+        style={{
+          top: '10%',
+          left: '45%',
+          animation: 'spaceTravel9 14s linear infinite 6s',
+          boxShadow: '0 0 12px rgba(236, 72, 153, 0.9)',
+          willChange: 'transform, opacity'
+        }}
+      ></div>
+
+      {/* Additional smaller particles */}
+      <div
+        className="absolute w-1 h-1 bg-purple-200 rounded-full"
+        style={{
+          top: '20%',
+          left: '70%',
+          animation: 'spaceTravel10 15s linear infinite',
+          boxShadow: '0 0 6px rgba(147, 51, 234, 0.6)',
+          willChange: 'transform, opacity'
+        }}
+      ></div>
+      <div
+        className="absolute w-1 h-1 bg-blue-200 rounded-full"
+        style={{
+          top: '50%',
+          left: '25%',
+          animation: 'spaceTravel11 16s linear infinite 3s',
+          boxShadow: '0 0 6px rgba(59, 130, 246, 0.6)',
+          willChange: 'transform, opacity'
+        }}
+      ></div>
+      <div
+        className="absolute w-1 h-1 bg-pink-200 rounded-full"
+        style={{
+          top: '80%',
+          left: '65%',
+          animation: 'spaceTravel12 17s linear infinite 5s',
+          boxShadow: '0 0 6px rgba(236, 72, 153, 0.6)',
+          willChange: 'transform, opacity'
+        }}
+      ></div>
+    </div>
+
+    {/* Animated grid background */}
+    <div className="absolute inset-0 opacity-20">
+      <div className="absolute inset-0" style={{
+        backgroundImage: `
+          linear-gradient(rgba(139, 92, 246, 0.1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(139, 92, 246, 0.1) 1px, transparent 1px)
+        `,
+        backgroundSize: '60px 60px',
+        animation: 'gridMove 20s linear infinite'
+      }}></div>
+    </div>
+
+    {/* Glow effects */}
+    <div className="absolute top-1/4 left-0 w-96 h-96 bg-purple-600/15 rounded-full blur-3xl" style={{ transform: 'translateZ(0)' }}></div>
+    <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl" style={{ transform: 'translateZ(0)' }}></div>
+
+    <div className="max-w-6xl mx-auto relative z-10 px-6">
+      {/* Section Title */}
+      <motion.div
+        className="text-center mb-24"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+      >
+        <h2 className="text-6xl md:text-7xl lg:text-8xl font-bold text-white mb-6">
+          Il Metodo SafeScale
+        </h2>
+        <div className="w-24 h-1 bg-gradient-to-r from-purple-600 to-blue-600 mx-auto"></div>
+      </motion.div>
+
+      {/* Timeline Steps */}
+      <div className="relative" data-section="metodo-timeline">
+        {/* Vertical line with progressive animation - Desktop only */}
+        <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-1 transform -translate-x-1/2 overflow-hidden z-0">
+          <div className="absolute inset-0 bg-gradient-to-b from-purple-600 via-blue-600 to-pink-600 timeline-line"></div>
+        </div>
+
+        {/* Step 01 - LEFT on desktop, full width on mobile */}
+        <motion.div
+          className="relative mb-24 md:mb-32"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6 }}
+        >
+          {/* Number bubble - positioned above on mobile, center on desktop */}
+          <div className="absolute left-0 right-0 md:top-1/2 -top-16 transform md:-translate-y-1/2 flex justify-center pointer-events-none z-30">
+            <motion.div
+              className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-purple-600/50 relative z-30"
+              style={{ willChange: 'transform' }}
+              initial={{ scale: 0, rotate: -180 }}
+              whileInView={{ scale: 1, rotate: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.7, ease: [0.34, 1.56, 0.64, 1] }}
+            >
+              <span className="text-2xl md:text-3xl font-bold">01</span>
+            </motion.div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            {/* Content - LEFT on desktop, full width on mobile */}
+            <div className="w-full md:pr-20 pt-8 relative">
+              {/* Glow behind card - Desktop only */}
+              <div className="hidden md:block absolute inset-0 bg-purple-600/20 rounded-2xl blur-2xl -z-10"></div>
+
+              <motion.div
+                className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border rounded-2xl p-8 overflow-hidden relative step-card-left"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              >
+                {/* Animated shine effect */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-400/10 to-transparent transform -skew-x-12"
+                  initial={{ x: "-100%" }}
+                  whileInView={{ x: "100%" }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ duration: 0.8, ease: "easeInOut" }}
+                />
+
+                <div className="relative z-10">
+                  <div className="inline-block px-3 py-1 bg-purple-600/20 text-purple-300 text-xs font-semibold rounded-full mb-4">
+                    ZERO RISCHIO
+                  </div>
+                  <h3 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                    Investiamo noi
+                  </h3>
+                  <p className="text-lg text-gray-300 leading-relaxed">
+                    Zero budget anticipato, zero rischio. Inizia a scalare il tuo business senza spendere un euro del tuo capitale.
+                  </p>
+                </div>
+              </motion.div>
+            </div>
+            {/* Empty space on right - Desktop only */}
+            <div className="hidden md:block"></div>
+          </div>
+        </motion.div>
+
+        {/* Step 02 - RIGHT on desktop, full width on mobile */}
+        <motion.div
+          className="relative mb-24 md:mb-32"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6 }}
+        >
+          {/* Number bubble - positioned above on mobile, center on desktop */}
+          <div className="absolute left-0 right-0 md:top-1/2 -top-16 transform md:-translate-y-1/2 flex justify-center pointer-events-none z-30">
+            <motion.div
+              className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-blue-600/50 relative z-30"
+              style={{ willChange: 'transform' }}
+              initial={{ scale: 0, rotate: -180 }}
+              whileInView={{ scale: 1, rotate: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.7, ease: [0.34, 1.56, 0.64, 1] }}
+            >
+              <span className="text-2xl md:text-3xl font-bold">02</span>
+            </motion.div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            {/* Empty space on left - Desktop only */}
+            <div className="hidden md:block"></div>
+            {/* Content - RIGHT on desktop, full width on mobile */}
+            <div className="w-full md:pl-20 pt-8 relative">
+              {/* Glow behind card - Desktop only */}
+              <div className="hidden md:block absolute inset-0 bg-blue-600/20 rounded-2xl blur-2xl -z-10"></div>
+
+              <motion.div
+                className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border rounded-2xl p-8 overflow-hidden relative step-card-right"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              >
+                {/* Animated shine effect */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-400/10 to-transparent transform -skew-x-12"
+                  initial={{ x: "-100%" }}
+                  whileInView={{ x: "100%" }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ duration: 0.8, ease: "easeInOut" }}
+                />
+
+                <div className="relative z-10">
+                  <div className="inline-block px-3 py-1 bg-blue-600/20 text-blue-300 text-xs font-semibold rounded-full mb-4">
+                    ALL-IN-ONE
+                  </div>
+                  <h3 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                    Ecosistema completo
+                  </h3>
+                  <p className="text-lg text-gray-300 leading-relaxed">
+                    E-commerce, logistica, funnel: tutto incluso in un'unica soluzione integrata. Non ti serve altro.
+                  </p>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Step 03 - LEFT on desktop, full width on mobile */}
+        <motion.div
+          className="relative mb-24 md:mb-32"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6 }}
+        >
+          {/* Number bubble - positioned above on mobile, center on desktop */}
+          <div className="absolute left-0 right-0 md:top-1/2 -top-16 transform md:-translate-y-1/2 flex justify-center pointer-events-none z-30">
+            <motion.div
+              className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-pink-600 to-purple-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-pink-600/50 relative z-30"
+              style={{ willChange: 'transform' }}
+              initial={{ scale: 0, rotate: -180 }}
+              whileInView={{ scale: 1, rotate: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.7, ease: [0.34, 1.56, 0.64, 1] }}
+            >
+              <span className="text-2xl md:text-3xl font-bold">03</span>
+            </motion.div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            {/* Content - LEFT on desktop, full width on mobile */}
+            <div className="w-full md:pr-20 pt-8 relative">
+              {/* Glow behind card - Desktop only */}
+              <div className="hidden md:block absolute inset-0 bg-pink-600/20 rounded-2xl blur-2xl -z-10"></div>
+
+              <motion.div
+                className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border rounded-2xl p-8 overflow-hidden relative step-card-left"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              >
+                {/* Animated shine effect */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-pink-400/10 to-transparent transform -skew-x-12"
+                  initial={{ x: "-100%" }}
+                  whileInView={{ x: "100%" }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ duration: 0.8, ease: "easeInOut" }}
+                />
+
+                <div className="relative z-10">
+                  <div className="inline-block px-3 py-1 bg-pink-600/20 text-pink-300 text-xs font-semibold rounded-full mb-4">
+                    AI-POWERED
+                  </div>
+                  <h3 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                    Ottimizzazione AI
+                  </h3>
+                  <p className="text-lg text-gray-300 leading-relaxed">
+                    Creatività data-driven e targeting intelligente che convertono davvero. L'AI al servizio del tuo ROI.
+                  </p>
+                </div>
+              </motion.div>
+            </div>
+            {/* Empty space on right - Desktop only */}
+            <div className="hidden md:block"></div>
+          </div>
+        </motion.div>
+
+        {/* Step 04 - RIGHT on desktop, full width on mobile */}
+        <motion.div
+          className="relative"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6 }}
+        >
+          {/* Number bubble - positioned above on mobile, center on desktop */}
+          <div className="absolute left-0 right-0 md:top-1/2 -top-16 transform md:-translate-y-1/2 flex justify-center pointer-events-none z-30">
+            <motion.div
+              className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-purple-600/50 relative z-30"
+              style={{ willChange: 'transform' }}
+              initial={{ scale: 0, rotate: -180 }}
+              whileInView={{ scale: 1, rotate: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.7, ease: [0.34, 1.56, 0.64, 1] }}
+            >
+              <span className="text-2xl md:text-3xl font-bold">04</span>
+            </motion.div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            {/* Empty space on left - Desktop only */}
+            <div className="hidden md:block"></div>
+            {/* Content - RIGHT on desktop, full width on mobile */}
+            <div className="w-full md:pl-20 pt-8 relative">
+              {/* Glow behind card - Desktop only */}
+              <div className="hidden md:block absolute inset-0 bg-purple-600/20 rounded-2xl blur-2xl -z-10"></div>
+
+              <motion.div
+                className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border rounded-2xl p-8 overflow-hidden relative step-card-right"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+              >
+                {/* Animated shine effect */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-400/10 to-transparent transform -skew-x-12"
+                  initial={{ x: "-100%" }}
+                  whileInView={{ x: "100%" }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ duration: 0.8, ease: "easeInOut" }}
+                />
+
+                <div className="relative z-10">
+                  <div className="inline-block px-3 py-1 bg-purple-600/20 text-purple-300 text-xs font-semibold rounded-full mb-4">
+                    WIN-WIN
+                  </div>
+                  <h3 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                    Revenue share
+                  </h3>
+                  <p className="text-lg text-gray-300 leading-relaxed">
+                    Guadagniamo solo se guadagni tu. Il successo è condiviso, il rischio è solo nostro.
+                  </p>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </motion.div>
+
+      </div>
+    </div>
+
+    <style jsx>{`
+      @keyframes gridMove {
+        from { transform: translateY(0); }
+        to { transform: translateY(60px); }
+      }
+
+      @keyframes gradientShift {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      @keyframes gradientPulse {
+        0%, 100% {
+          opacity: 0.8;
+        }
+        33% {
+          opacity: 1;
+        }
+        66% {
+          opacity: 0.6;
+        }
+      }
+
+      @keyframes pathDraw {
+        0% { stroke-dashoffset: 0; }
+        50% { stroke-dashoffset: 600; }
+        100% { stroke-dashoffset: 0; }
+      }
+
+      @keyframes spaceTravel1 {
+        0% { transform: translate(0, 0); opacity: 1; }
+        100% { transform: translate(calc(100vw - 20%), calc(100vh - 15%)); opacity: 1; }
+      }
+
+      @keyframes spaceTravel2 {
+        0% { transform: translate(0, 0); opacity: 0.8; }
+        100% { transform: translate(calc(100vw - 5%), calc(100vh - 45%)); opacity: 0.8; }
+      }
+
+      @keyframes spaceTravel3 {
+        0% { transform: translate(0, 0); opacity: 1; }
+        100% { transform: translate(calc(100vw - 15%), calc(-20%)); opacity: 1; }
+      }
+
+      @keyframes spaceTravel4 {
+        0% { transform: translate(0, 0); opacity: 1; }
+        100% { transform: translate(calc(-80%), calc(100vh - 25%)); opacity: 1; }
+      }
+
+      @keyframes spaceTravel5 {
+        0% { transform: translate(0, 0); opacity: 0.8; }
+        100% { transform: translate(calc(-85%), calc(100vh - 55%)); opacity: 0.8; }
+      }
+
+      @keyframes spaceTravel6 {
+        0% { transform: translate(0, 0); opacity: 1; }
+        100% { transform: translate(calc(-75%), calc(-30%)); opacity: 1; }
+      }
+
+      @keyframes spaceTravel7 {
+        0% { transform: translate(0, 0); opacity: 1; }
+        100% { transform: translate(calc(50vw - 50%), calc(100vh - 35%)); opacity: 1; }
+      }
+
+      @keyframes spaceTravel8 {
+        0% { transform: translate(0, 0); opacity: 0.8; }
+        100% { transform: translate(calc(-50vw + 55%), calc(-35%)); opacity: 0.8; }
+      }
+
+      @keyframes spaceTravel9 {
+        0% { transform: translate(0, 0); opacity: 1; }
+        100% { transform: translate(calc(40vw - 45%), calc(100vh - 10%)); opacity: 1; }
+      }
+
+      @keyframes spaceTravel10 {
+        0% { transform: translate(0, 0); opacity: 0.6; }
+        100% { transform: translate(calc(-60%), calc(100vh - 20%)); opacity: 0.6; }
+      }
+
+      @keyframes spaceTravel11 {
+        0% { transform: translate(0, 0); opacity: 0.6; }
+        100% { transform: translate(calc(70vw - 25%), calc(-40%)); opacity: 0.6; }
+      }
+
+      @keyframes spaceTravel12 {
+        0% { transform: translate(0, 0); opacity: 0.6; }
+        100% { transform: translate(calc(-30%), calc(-70%)); opacity: 0.6; }
+      }
+
+      .step-card-left {
+        border-color: rgba(168, 85, 247, 0.2);
+        transition: border-color 0.7s ease, box-shadow 0.7s ease;
+      }
+
+      .step-card-left:hover {
+        border-color: rgba(168, 85, 247, 0.5);
+        box-shadow: 0 25px 50px -12px rgba(168, 85, 247, 0.25);
+      }
+
+      .step-card-right {
+        border-color: rgba(59, 130, 246, 0.2);
+        transition: border-color 0.7s ease, box-shadow 0.7s ease;
+      }
+
+      .step-card-right:hover {
+        border-color: rgba(59, 130, 246, 0.5);
+        box-shadow: 0 25px 50px -12px rgba(59, 130, 246, 0.25);
+      }
+
+      .step-card-left:nth-of-type(3) {
+        border-color: rgba(236, 72, 153, 0.2);
+      }
+
+      .step-card-left:nth-of-type(3):hover {
+        border-color: rgba(236, 72, 153, 0.5);
+        box-shadow: 0 25px 50px -12px rgba(236, 72, 153, 0.25);
+      }
+    `}</style>
+  </motion.section>
 
 
 
       {/* Google Ads Section */}
       <section
         id="servizi"
-        className="py-16 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10 relative"
+        className="pt-16 pb-8 lg:pb-0 px-0 bg-gradient-to-br from-blue-50/15 via-white to-blue-100/10 relative"
         data-section="google-ads"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-blue-50/30 via-transparent to-purple-50/30"></div>
@@ -3364,7 +4093,7 @@ export default function HomePage() {
       {/* Meta Ads Section */}
       <section
         id="meta-ads"
-        className="py-10 lg:py-16 px-0 bg-gradient-to-br from-purple-50/15 via-white to-pink-50/10 relative overflow-hidden"
+        className="pt-2 pb-10 lg:pt-0 lg:pb-0 px-0 bg-gradient-to-br from-purple-50/15 via-white to-pink-50/10 relative overflow-hidden"
         data-section="meta-ads"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-purple-50/30 via-transparent to-pink-50/30"></div>
@@ -3622,9 +4351,9 @@ export default function HomePage() {
 
 
       {/* TikTok Ads Section */}
-      <section 
-        id="tiktok-ads" 
-        className="py-16 px-0 bg-gradient-to-br from-pink-50/15 via-white to-purple-50/10 relative"
+      <section
+        id="tiktok-ads"
+        className="pt-2 pb-16 lg:pt-0 lg:pb-16 px-0 bg-gradient-to-br from-pink-50/15 via-white to-purple-50/10 relative"
         data-section="tiktok-ads"
       >
         <div className="absolute inset-0 bg-gradient-to-r from-pink-50/30 via-transparent to-purple-50/30"></div>
