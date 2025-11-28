@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { FaEnvelope, FaPhone } from 'react-icons/fa';
+import { FaEnvelope } from 'react-icons/fa';
 
 export default function Footer() {
   return (
@@ -128,12 +128,6 @@ export default function Footer() {
                     info@safescaleagency.com
                   </a>
                 </div>
-                <div className="flex items-center justify-center gap-3 text-gray-400 group">
-                  <FaPhone className="text-indigo-500/70 group-hover:text-indigo-400 transition-colors" />
-                  <a href="tel:+390123456789" className="hover:text-white transition-colors">
-                    +39 012 345 6789
-                  </a>
-                </div>
               </div>
             </div>
 
@@ -141,8 +135,10 @@ export default function Footer() {
             <div className="text-center md:text-right">
               <h3 className="text-lg font-bold text-white/90 mb-6">Informazioni Legali</h3>
               <div className="space-y-3 text-gray-400">
-                <p>P.IVA: 12345678901</p>
-                <p>Sede Legale: Milano, Italia</p>
+                <p>SMARTUP SRL</p>
+                <p>Viale Delle Industrie 36</p>
+                <p>81100 Caserta, Italia</p>
+                <p>P.IVA: 09227760965</p>
                 <Link href="/privacy-policy" className="block text-indigo-500/70 hover:text-indigo-400 transition-colors font-medium">
                   Informativa Privacy
                 </Link>
@@ -157,6 +153,9 @@ export default function Footer() {
               <div className="text-center space-y-4">
                 <p className="text-sm text-gray-500">
                   © {new Date().getFullYear()} SafeScale Agency. Tutti i diritti riservati.
+                </p>
+                <p className="text-sm text-gray-500">
+                  Powered by SMARTUP SRL
                 </p>
                 <div className="flex justify-center items-center gap-6 text-sm">
                   <Link href="/privacy-policy" className="text-gray-500 hover:text-gray-300 transition-colors">
