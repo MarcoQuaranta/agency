@@ -853,7 +853,6 @@ export default function HomePage() {
   });
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [incompleteConfirmed, setIncompleteConfirmed] = useState(false);
-  const [openFaq, setOpenFaq] = useState<number[]>([]);
   const [modalData, setModalData] = useState<{
     isOpen: boolean;
     title: string;
@@ -4800,133 +4799,150 @@ export default function HomePage() {
         </div>
       </section>
 
-  {/* SafeScale Package Section - Pricing Card Style */}
-  <section className="w-full px-6 py-16 bg-gradient-to-br from-gray-50 via-white to-gray-50 relative" data-section="accelera-business">
-    <div className="max-w-4xl mx-auto relative z-10">
+  {/* What We Offer Section - Modern Bento Grid */}
+  <section className="w-full py-24 bg-white relative overflow-hidden" data-section="cosa-offriamo">
+    {/* Subtle background effects */}
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-purple-100/40 to-transparent rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-blue-100/40 to-transparent rounded-full blur-3xl"></div>
+    </div>
 
-      {/* Pricing Card Box */}
-      <div className="relative overflow-hidden rounded-[28px] border border-slate-800/50 p-8 sm:p-10 shadow-[0_12px_40px_rgba(0,0,0,0.35)]" style={{ background: '#0B0B0F' }}>
-
-        {/* Radial gradient overlay - top right */}
-        <div className="absolute inset-0 pointer-events-none" style={{
-          background: 'radial-gradient(circle at 86% 12%, rgba(236, 72, 153, 0.25) 0%, rgba(120, 60, 255, 0.30) 18%, rgba(60, 140, 255, 0.20) 35%, rgba(0, 0, 0, 0) 60%)'
-        }}></div>
-
-        {/* Title */}
-        <h2 className="relative text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white mb-8 z-10">
-          Sai cosa offriamo?<br />Una gestione 360°
+    <div className="max-w-7xl mx-auto px-6 relative z-10">
+      {/* Section Header */}
+      <div className="text-center mb-16">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-50 border border-purple-100 mb-6">
+          <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <span className="text-purple-600 text-sm font-medium">I Nostri Servizi</span>
+        </div>
+        <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+          Una gestione{' '}
+          <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            a 360°
+          </span>
         </h2>
+        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          Tutto ciò di cui hai bisogno per scalare il tuo business, in un unico partner.
+        </p>
+      </div>
 
-        {/* Feature List */}
-        <div className="relative grid md:grid-cols-2 gap-x-8 gap-y-5 my-12 z-10">
+      {/* Bento Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-1 shadow-[0_0_10px_rgba(34,197,94,0.3)]">
-              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
+        {/* Card 1 - Large */}
+        <div className="lg:col-span-2 group">
+          <div className="h-full p-8 rounded-3xl bg-gradient-to-br from-purple-600 to-blue-600 relative overflow-hidden transition-transform hover:scale-[1.02]">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+            <div className="relative z-10">
+              <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-6">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-3">Advertising Multi-Piattaforma</h3>
+              <p className="text-white/80 text-lg mb-6">
+                Campagne ottimizzate su Google, Meta e TikTok Ads. Investiamo noi, tu raccogli i risultati.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1 rounded-full bg-white/20 text-white text-sm">Google Ads</span>
+                <span className="px-3 py-1 rounded-full bg-white/20 text-white text-sm">Meta Ads</span>
+                <span className="px-3 py-1 rounded-full bg-white/20 text-white text-sm">TikTok Ads</span>
+              </div>
             </div>
-            <p className="text-white/85 text-lg">Gestione <span className="font-semibold text-white">e-commerce</span> completa</p>
           </div>
-
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-1 shadow-[0_0_10px_rgba(34,197,94,0.3)]">
-              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <p className="text-white/85 text-lg">Creatività e contenuti premium ottimizzati</p>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-1 shadow-[0_0_10px_rgba(34,197,94,0.3)]">
-              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <p className="text-white/85 text-lg"><span className="font-semibold text-white">Consulenza</span> strategica dedicata</p>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-1 shadow-[0_0_10px_rgba(34,197,94,0.3)]">
-              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <p className="text-white/85 text-lg"><span className="font-semibold text-white">Assistenza</span> 24/7 dedicata</p>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-1 shadow-[0_0_10px_rgba(34,197,94,0.3)]">
-              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <p className="text-white/85 text-lg"><span className="font-semibold text-white">Ads</span> su Google, Meta e TikTok</p>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-1 shadow-[0_0_10px_rgba(34,197,94,0.3)]">
-              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <p className="text-white/85 text-lg"><span className="font-semibold text-white">Logistica</span> Integrata</p>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-1 shadow-[0_0_10px_rgba(34,197,94,0.3)]">
-              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <p className="text-white/85 text-lg"><span className="font-semibold text-white">Dashboard</span> Trasparenza</p>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center mt-1 shadow-[0_0_10px_rgba(34,197,94,0.3)]">
-              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <p className="text-white/85 text-lg"><span className="font-semibold text-white">Automazione</span> e Ottimizzazione AI</p>
-          </div>
-
         </div>
 
-        {/* Divider line */}
-        <div className="relative border-t border-gray-700/50 mb-8 z-10"></div>
-
-        {/* "Tutto incluso" section - pricing style */}
-        <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 z-10">
-          <div>
-            <p className="text-3xl sm:text-4xl font-bold text-white mb-2" style={{
-              letterSpacing: '-0.02em'
-            }}>
-              Tutto incluso
+        {/* Card 2 */}
+        <div className="group">
+          <div className="h-full p-8 rounded-3xl bg-gray-50 border border-gray-100 hover:border-purple-200 hover:shadow-xl hover:shadow-purple-500/10 transition-all">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mb-6">
+              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">E-commerce Completo</h3>
+            <p className="text-gray-600">
+              Gestiamo il tuo store dalla A alla Z: setup, ottimizzazione e conversioni.
             </p>
-            <p className="text-sm text-gray-400">Un'unica soluzione completa per la tua crescita</p>
-          </div>
-          <div className="sm:ml-auto">
-            <button
-              onClick={scrollToContactForm}
-              className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-slate-900 font-semibold shadow hover:shadow-lg active:scale-[0.99] transition"
-            >
-              <span>Inizia ora</span>
-              <svg
-                viewBox="0 0 24 24"
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M5 12h14" />
-                <path d="M12 5l7 7-7 7" />
-              </svg>
-            </button>
           </div>
         </div>
 
+        {/* Card 3 */}
+        <div className="group">
+          <div className="h-full p-8 rounded-3xl bg-gray-50 border border-gray-100 hover:border-purple-200 hover:shadow-xl hover:shadow-purple-500/10 transition-all">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center mb-6">
+              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m-9 0h10m-10 0a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V6a2 2 0 00-2-2" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Creatività Premium</h3>
+            <p className="text-gray-600">
+              Contenuti che convertono: video, grafiche e copy ottimizzati per le performance.
+            </p>
+          </div>
+        </div>
+
+        {/* Card 4 */}
+        <div className="group">
+          <div className="h-full p-8 rounded-3xl bg-gray-50 border border-gray-100 hover:border-purple-200 hover:shadow-xl hover:shadow-purple-500/10 transition-all">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mb-6">
+              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Logistica Integrata</h3>
+            <p className="text-gray-600">
+              Magazzino, spedizioni e resi: pensiamo noi a tutto per consegne impeccabili.
+            </p>
+          </div>
+        </div>
+
+        {/* Card 5 - Large */}
+        <div className="lg:col-span-2 group">
+          <div className="h-full p-8 rounded-3xl bg-gradient-to-br from-gray-900 to-gray-800 relative overflow-hidden transition-transform hover:scale-[1.02]">
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-8">
+              <div className="flex-1">
+                <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center mb-6">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">Dashboard & Analytics</h3>
+                <p className="text-gray-400 text-lg">
+                  Trasparenza totale sui risultati. Monitora vendite, ROI e performance in tempo reale.
+                </p>
+              </div>
+              <div className="flex-shrink-0">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-4 rounded-2xl bg-white/5">
+                    <div className="text-3xl font-bold text-white">24/7</div>
+                    <div className="text-sm text-gray-400">Supporto</div>
+                  </div>
+                  <div className="text-center p-4 rounded-2xl bg-white/5">
+                    <div className="text-3xl font-bold text-white">100%</div>
+                    <div className="text-sm text-gray-400">Trasparenza</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* CTA */}
+      <div className="mt-16 text-center">
+        <button
+          onClick={scrollToContactForm}
+          className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold text-lg hover:scale-105 transition-transform shadow-lg shadow-purple-500/25"
+        >
+          <span>Scopri come possiamo aiutarti</span>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </button>
       </div>
     </div>
   </section>
@@ -5031,148 +5047,87 @@ export default function HomePage() {
       */}
 
       {/* FAQ Section */}
-      <section className="w-full py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-white via-gray-50 to-white"></div>
+      <section className="w-full py-24 relative overflow-hidden bg-white">
+        {/* Subtle glow effects */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-purple-200/30 rounded-full blur-[120px]"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-blue-200/30 rounded-full blur-[120px]"></div>
+        </div>
 
         <div className="max-w-4xl mx-auto px-6 lg:px-8 relative z-10">
           {/* Section Title */}
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-black">
-              Domande frequenti
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-50 border border-purple-100 mb-6">
+              <span className="text-purple-500">?</span>
+              <span className="text-purple-600 text-sm font-medium">FAQ</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 text-gray-900">
+              Domande{' '}
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Frequenti
+              </span>
             </h2>
             <p className="text-lg text-gray-600">
               Scopri tutto prima di candidarti con SafeScale.
             </p>
           </div>
 
-          {/* Single Container Box */}
-          <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-gray-100 overflow-hidden mb-12">
-
+          {/* FAQ Items */}
+          <div className="space-y-4">
             {/* FAQ 1 */}
-            <div className="border-b border-gray-100 last:border-0 py-4">
-              <button
-                onClick={() => setOpenFaq(prev => prev.includes(1) ? prev.filter(f => f !== 1) : [...prev, 1])}
-                className="w-full text-left px-8 py-4 flex items-center gap-4 hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-inset"
-                aria-expanded={openFaq.includes(1)}
-                aria-controls="faq-1-content"
-              >
-                <span className="text-2xl flex-shrink-0">💡</span>
-                <h3 className="flex-1 text-xl font-semibold text-slate-900">
-                  Cosa succede se la campagna non funziona?
-                </h3>
-                <svg className={`w-5 h-5 flex-shrink-0 text-gray-400 transition-transform duration-200 ${openFaq.includes(1) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {openFaq.includes(1) && (
-                <div id="faq-1-content" className="px-8 pb-4 pt-2 animate-in fade-in duration-200" style={{ paddingLeft: 'calc(2rem + 2.5rem + 1rem)' }}>
-                  <p className="text-gray-600 leading-relaxed text-lg">
-                    <strong className="text-purple-600 font-semibold">Nessun rischio.</strong> Se non generiamo profitti, non ti addebitiamo nulla.
-                  </p>
+            <div className="p-6 rounded-2xl bg-gray-50 border border-gray-100 hover:border-purple-200 hover:shadow-lg hover:shadow-purple-500/5 transition-all">
+              <div className="flex items-start gap-3">
+                <span className="text-purple-500 flex-shrink-0 mt-1 text-xl">💡</span>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2">Cosa succede se la campagna non funziona?</h3>
+                  <p className="text-gray-600 text-sm">Nessun rischio per te. Se non generiamo profitti, non ti addebitiamo nulla. Il rischio degli investimenti pubblicitari è interamente nostro.</p>
                 </div>
-              )}
+              </div>
             </div>
 
             {/* FAQ 2 */}
-            <div className="border-b border-gray-100 last:border-0 py-4">
-              <button
-                onClick={() => setOpenFaq(prev => prev.includes(2) ? prev.filter(f => f !== 2) : [...prev, 2])}
-                className="w-full text-left px-8 py-4 flex items-center gap-4 hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-inset"
-                aria-expanded={openFaq.includes(2)}
-                aria-controls="faq-2-content"
-              >
-                <span className="text-2xl flex-shrink-0">💰</span>
-                <h3 className="flex-1 text-xl font-semibold text-slate-900">
-                  Quanto devo investire per iniziare?
-                </h3>
-                <svg className={`w-5 h-5 flex-shrink-0 text-gray-400 transition-transform duration-200 ${openFaq.includes(2) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {openFaq.includes(2) && (
-                <div id="faq-2-content" className="px-8 pb-4 pt-2 animate-in fade-in duration-200" style={{ paddingLeft: 'calc(2rem + 2.5rem + 1rem)' }}>
-                  <p className="text-gray-600 leading-relaxed text-lg">
-                    <strong className="text-purple-600 font-semibold">Zero budget anticipato.</strong> Valutiamo il brand e finanziamo noi i test.
-                  </p>
+            <div className="p-6 rounded-2xl bg-gray-50 border border-gray-100 hover:border-purple-200 hover:shadow-lg hover:shadow-purple-500/5 transition-all">
+              <div className="flex items-start gap-3">
+                <span className="text-purple-500 flex-shrink-0 mt-1 text-xl">💰</span>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2">Devo investire in pubblicità?</h3>
+                  <p className="text-gray-600 text-sm">No, non devi preoccuparti degli investimenti pubblicitari. Siamo noi a coprire interamente i costi delle campagne ads. Tu non rischi capitali in advertising.</p>
                 </div>
-              )}
+              </div>
             </div>
 
             {/* FAQ 3 */}
-            <div className="border-b border-gray-100 last:border-0 py-4">
-              <button
-                onClick={() => setOpenFaq(prev => prev.includes(3) ? prev.filter(f => f !== 3) : [...prev, 3])}
-                className="w-full text-left px-8 py-4 flex items-center gap-4 hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-inset"
-                aria-expanded={openFaq.includes(3)}
-                aria-controls="faq-3-content"
-              >
-                <span className="text-2xl flex-shrink-0">🤝</span>
-                <h3 className="flex-1 text-xl font-semibold text-slate-900">
-                  Come funziona la divisione dei guadagni?
-                </h3>
-                <svg className={`w-5 h-5 flex-shrink-0 text-gray-400 transition-transform duration-200 ${openFaq.includes(3) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {openFaq.includes(3) && (
-                <div id="faq-3-content" className="px-8 pb-4 pt-2 animate-in fade-in duration-200" style={{ paddingLeft: 'calc(2rem + 2.5rem + 1rem)' }}>
-                  <p className="text-gray-600 leading-relaxed text-lg">
-                    <strong className="text-purple-600 font-semibold">Revenue share trasparente.</strong> Percentuale chiara su utili netti, concordata prima di partire.
-                  </p>
+            <div className="p-6 rounded-2xl bg-gray-50 border border-gray-100 hover:border-purple-200 hover:shadow-lg hover:shadow-purple-500/5 transition-all">
+              <div className="flex items-start gap-3">
+                <span className="text-purple-500 flex-shrink-0 mt-1 text-xl">🤝</span>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2">Come funziona la partnership?</h3>
+                  <p className="text-gray-600 text-sm">Ci occupiamo noi di tutti gli investimenti pubblicitari e gestiamo l'intero processo: ads, e-commerce e logistica. Tu ti concentri solo sul tuo prodotto. I profitti vengono divisi secondo percentuali concordate insieme.</p>
                 </div>
-              )}
+              </div>
             </div>
 
             {/* FAQ 4 */}
-            <div className="border-b border-gray-100 last:border-0 py-4">
-              <button
-                onClick={() => setOpenFaq(prev => prev.includes(4) ? prev.filter(f => f !== 4) : [...prev, 4])}
-                className="w-full text-left px-8 py-4 flex items-center gap-4 hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-inset"
-                aria-expanded={openFaq.includes(4)}
-                aria-controls="faq-4-content"
-              >
-                <span className="text-2xl flex-shrink-0">📦</span>
-                <h3 className="flex-1 text-xl font-semibold text-slate-900">
-                  Chi gestisce logistica e spedizioni?
-                </h3>
-                <svg className={`w-5 h-5 flex-shrink-0 text-gray-400 transition-transform duration-200 ${openFaq.includes(4) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {openFaq.includes(4) && (
-                <div id="faq-4-content" className="px-8 pb-4 pt-2 animate-in fade-in duration-200" style={{ paddingLeft: 'calc(2rem + 2.5rem + 1rem)' }}>
-                  <p className="text-gray-600 leading-relaxed text-lg">
-                    <strong className="text-purple-600 font-semibold">Pensiamo a tutto noi.</strong> Ci occupiamo al 100% di logistica, magazzino e spedizioni, garantendo consegne rapide e clienti soddisfatti.
-                  </p>
+            <div className="p-6 rounded-2xl bg-gray-50 border border-gray-100 hover:border-purple-200 hover:shadow-lg hover:shadow-purple-500/5 transition-all">
+              <div className="flex items-start gap-3">
+                <span className="text-purple-500 flex-shrink-0 mt-1 text-xl">📦</span>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2">Chi gestisce logistica e spedizioni?</h3>
+                  <p className="text-gray-600 text-sm">Pensiamo a tutto noi. Ci occupiamo al 100% di logistica, magazzino e spedizioni, garantendo consegne rapide e clienti soddisfatti.</p>
                 </div>
-              )}
+              </div>
             </div>
 
             {/* FAQ 5 */}
-            <div className="border-b border-gray-100 last:border-0 py-4">
-              <button
-                onClick={() => setOpenFaq(prev => prev.includes(5) ? prev.filter(f => f !== 5) : [...prev, 5])}
-                className="w-full text-left px-8 py-4 flex items-center gap-4 hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-inset"
-                aria-expanded={openFaq.includes(5)}
-                aria-controls="faq-5-content"
-              >
-                <span className="text-2xl flex-shrink-0">✨</span>
-                <h3 className="flex-1 text-xl font-semibold text-slate-900">
-                  Perché dovrei fidarmi di voi?
-                </h3>
-                <svg className={`w-5 h-5 flex-shrink-0 text-gray-400 transition-transform duration-200 ${openFaq.includes(5) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {openFaq.includes(5) && (
-                <div id="faq-5-content" className="px-8 pb-4 pt-2 animate-in fade-in duration-200" style={{ paddingLeft: 'calc(2rem + 2.5rem + 1rem)' }}>
-                  <p className="text-gray-600 leading-relaxed text-lg">
-                    <strong className="text-purple-600 font-semibold">Allineati ai risultati.</strong> Investiamo di tasca nostra: guadagni solo se guadagniamo anche noi.
-                  </p>
+            <div className="p-6 rounded-2xl bg-gray-50 border border-gray-100 hover:border-purple-200 hover:shadow-lg hover:shadow-purple-500/5 transition-all">
+              <div className="flex items-start gap-3">
+                <span className="text-purple-500 flex-shrink-0 mt-1 text-xl">✨</span>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-2">Perché dovrei fidarmi di voi?</h3>
+                  <p className="text-gray-600 text-sm">I nostri interessi sono allineati ai tuoi risultati. Investiamo di tasca nostra nelle campagne: guadagniamo solo se guadagni anche tu. È la garanzia più forte che possiamo darti.</p>
                 </div>
-              )}
+              </div>
             </div>
-
           </div>
 
         </div>

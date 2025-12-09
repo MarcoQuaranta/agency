@@ -3,15 +3,12 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { FaChevronDown,FaEnvelope } from 'react-icons/fa';
+import { FaEnvelope } from 'react-icons/fa';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
-  const [isHeaderSolid, setIsHeaderSolid] = useState(true); // Sempre solid/liquid
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const rafIdRef = useRef<number>(0);
-  const debounceTimerRef = useRef<NodeJS.Timeout>();
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const lastScrollY = useRef(0);
 
   const scrollToContactForm = () => {
     // Check if we're on the home page
@@ -31,34 +28,26 @@ export default function Header() {
     }
   };
 
-
-
-  // Header sempre solid/liquid - no scroll detection needed
-  // Manteniamo isHeaderSolid = true sempre
-
-
-  // Close dropdown when clicking outside
+  // Handle scroll to show/hide header
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setServicesDropdownOpen(false);
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+        // Scrolling down
+        setIsHeaderVisible(false);
+      } else {
+        // Scrolling up
+        setIsHeaderVisible(true);
       }
+
+      lastScrollY.current = currentScrollY;
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const services = [
-    { name: 'Google Ads', href: '/#google-ads' },
-    { name: 'Facebook Ads', href: '/#facebook-ads' },
-    { name: 'SEO', href: '/#seo' },
-    { name: 'Email Marketing', href: '/#email-marketing' },
-    { name: 'Social Media', href: '/#social-media' },
-    { name: 'Consulenza', href: '/#consulenza' }
-  ];
 
   return (
     <>
@@ -110,7 +99,7 @@ export default function Header() {
         }
       `}</style>
 
-      <header className="fixed top-0 w-full z-50">
+      <header className={`fixed top-0 w-full z-50 transition-transform duration-300 ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="hdr-glass" />
         <div className="hdr-dark" />
         <div className="header-shadow" />
@@ -137,45 +126,22 @@ export default function Header() {
               Home
             </Link>
 
-            {/* Services Dropdown */}
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setServicesDropdownOpen(!servicesDropdownOpen)}
-                className="flex items-center gap-1 text-white hover:text-purple-300 transition-colors font-medium text-lg"
-              >
-                Servizi
-                <FaChevronDown className={`text-xs text-white transition-transform ${servicesDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {servicesDropdownOpen && (
-                <div
-                  className="absolute top-full left-0 mt-2 w-48 rounded-lg shadow-lg py-2" style={{
-                    background: 'linear-gradient(135deg, #1a0f2e 0%, #2d1b69 100%)',
-                    border: '1px solid rgba(138, 43, 226, 0.3)'
-                  }}
-                >
-                  {services.map((service) => (
-                    <Link
-                      key={service.name}
-                      href={service.href}
-                      className="block px-4 py-2 text-white hover:bg-purple-800/30 transition-colors"
-                      onClick={() => setServicesDropdownOpen(false)}
-                    >
-                      {service.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Services Link */}
+            <Link
+              href="/servizi"
+              className="text-white hover:text-purple-300 transition-colors font-medium text-lg"
+            >
+              Servizi
+            </Link>
 
             <Link
-              href="/#chi-siamo"
+              href="/chi-siamo"
               className="text-white hover:text-purple-300 transition-colors font-medium text-lg"
             >
               Chi Siamo
             </Link>
             <Link
-              href="/#contatti"
+              href="/contatti"
               className="text-white hover:text-purple-300 transition-colors font-medium text-lg"
             >
               Contatti
@@ -217,38 +183,19 @@ export default function Header() {
             Home
           </Link>
 
-          {/* Mobile Services Dropdown */}
-          <div>
-            <button
-              onClick={() => setServicesDropdownOpen(!servicesDropdownOpen)}
-              className="flex items-center justify-between w-full text-white hover:text-purple-300 transition-colors font-medium py-2"
-            >
-              Servizi
-              <FaChevronDown className={`text-xs text-purple-300 transition-transform ${servicesDropdownOpen ? 'rotate-180' : ''}`} />
-            </button>
-            {servicesDropdownOpen && (
-              <div className="pl-4 space-y-2 mt-2">
-                {services.map((service) => (
-                  <Link
-                    key={service.name}
-                    href={service.href}
-                    className="block text-purple-200 hover:text-purple-100 transition-colors py-1"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      setServicesDropdownOpen(false);
-                    }}
-                  >
-                    {service.name}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Mobile Services Link */}
+          <Link
+            href="/servizi"
+            className="block text-white hover:text-purple-300 transition-colors font-medium py-2"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Servizi
+          </Link>
 
-          <Link href="/#chi-siamo" className="block text-white hover:text-purple-300 transition-colors font-medium py-2">
+          <Link href="/chi-siamo" className="block text-white hover:text-purple-300 transition-colors font-medium py-2">
             Chi Siamo
           </Link>
-          <Link href="/#contatti" className="block text-white hover:text-purple-300 transition-colors font-medium py-2">
+          <Link href="/contatti" className="block text-white hover:text-purple-300 transition-colors font-medium py-2">
             Contatti
           </Link>
 

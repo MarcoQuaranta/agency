@@ -103,13 +103,13 @@ export default function Footer() {
                 <Link href="/" className="block text-gray-400 hover:text-white transition-colors duration-200">
                   Home
                 </Link>
-                <Link href="/#servizi" className="block text-gray-400 hover:text-white transition-colors duration-200">
+                <Link href="/servizi" className="block text-gray-400 hover:text-white transition-colors duration-200">
                   Servizi
                 </Link>
-                <Link href="/#chi-siamo" className="block text-gray-400 hover:text-white transition-colors duration-200">
+                <Link href="/chi-siamo" className="block text-gray-400 hover:text-white transition-colors duration-200">
                   Chi Siamo
                 </Link>
-                <Link href="/#contatti" className="block text-gray-400 hover:text-white transition-colors duration-200">
+                <Link href="/contatti" className="block text-gray-400 hover:text-white transition-colors duration-200">
                   Contatti
                 </Link>
                 <Link href="/privacy-policy" className="block text-gray-400 hover:text-white transition-colors duration-200">
