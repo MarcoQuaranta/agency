@@ -1733,6 +1733,10 @@ export default function HomePage() {
 
       if (result.success) {
         // Success - already shown thank you message
+        // Traccia evento Google Analytics
+        if (typeof window !== 'undefined' && 'gtag' in window) {
+          (window as unknown as { gtag: (...args: unknown[]) => void }).gtag('event', 'form_questionario_inviato');
+        }
       } else {
         // Se c'è un errore, mostra il messaggio e rimuovi il thank you
         setQuestionnaireSubmitted(false);
