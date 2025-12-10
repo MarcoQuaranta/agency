@@ -36,7 +36,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# next-sitemap
-robots.txt
-sitemap.xml
-sitemap-*.xml
+# next-sitemap (generati durante build, inclusi per SEO)
+# robots.txt
+# sitemap.xml
+# sitemap-*.xml
