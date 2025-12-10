@@ -26,6 +26,11 @@ export default function ContattiPage() {
     // Simula invio (puoi collegare a un endpoint API reale)
     await new Promise(resolve => setTimeout(resolve, 1500));
 
+    // Traccia evento Google Analytics
+    if (typeof window !== 'undefined' && 'gtag' in window) {
+      (window as unknown as { gtag: (...args: unknown[]) => void }).gtag('event', 'form_questionario_inviato');
+    }
+
     setIsSubmitting(false);
     setIsSubmitted(true);
   };
