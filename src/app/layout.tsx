@@ -3,6 +3,7 @@ import { Inter, Roboto_Mono } from "next/font/google";
 import Script from "next/script";
 
 import "@/styles/globals.css";
+import ScrollTracker from "@/components/analytics/ScrollTracker";
 
 // import AuthProvider from "@/components/providers/AuthProvider";
 
@@ -89,6 +90,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {/* <AuthProvider> */}
+          <ScrollTracker />
           {children}
         {/* </AuthProvider> */}
       </body>

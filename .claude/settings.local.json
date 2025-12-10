@@ -227,7 +227,20 @@
       "Bash(npm ci:*)",
       "Bash(netstat:*)",
       "Bash(timeout:*)",
-      "Bash(npm config:*)"
+      "Bash(npm config:*)",
+      "Bash(rd:*)",
+      "Bash(Web Agency\"\n- Aggiungi meta description con keywords strategiche\n- Configura Open Graph per social sharing\n- Configura Twitter Card\n- Aggiungi robots index/follow\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(mkdir:*)",
+      "WebFetch(domain:localhost)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfix: Aggiorna Next.js a ^15.1.0 per compatibilità deploy Vercel\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(ls:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfix: Aggiungi favicon per desktop e mobile\n\n- Aggiunte icone per iOS (apple-touch-icon)\n- Aggiunte icone per Android (android-chrome)\n- Aggiunte favicon 16x16 e 32x32\n- Aggiornato layout con tutti i riferimenti alle icone\n- Aggiunto manifest per PWA\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(magick:*)",
+      "Bash(npx sharp-cli:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfix: Aggiorna favicon con logo SafeScale per tutte le piattaforme\n\n- Rigenerate tutte le icone dal logo SafeScale\n- apple-touch-icon 180x180 per iOS\n- android-chrome 192x192 e 512x512 per Android\n- favicon 16x16 e 32x32 per browser\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(npx icotool:*)",
+      "Bash(npx decode-ico:*)",
+      "Bash(npx ico-to-png:*)"
     ],
     "deny": [],
     "ask": []

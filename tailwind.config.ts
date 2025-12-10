@@ -6,7 +6,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        primary: ['Manrope', ...defaultTheme.fontFamily.sans],
+        primary: ['InterVariable', 'Inter', ...defaultTheme.fontFamily.sans],
       },
       colors: {
         primary: {

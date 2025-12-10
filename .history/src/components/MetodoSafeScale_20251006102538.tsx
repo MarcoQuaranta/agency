@@ -4,8 +4,8 @@
 // Fixed background video with scrolling text overlay
 // Large minimal text, no icons, centered background numbers
 
+import { useState, useEffect, useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
-import { useEffect, useRef,useState } from 'react'
 
 interface Step {
   id: number

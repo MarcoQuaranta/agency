@@ -1,7 +1,7 @@
 'use client'
 
+import { useState, useEffect, useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
-import { useEffect, useRef,useState } from 'react'
 import { FaEnvelope } from 'react-icons/fa'
 
 const steps = [
@@ -165,7 +165,7 @@ export default function HeroWithMethod({ scrollToContactForm }: HeroWithMethodPr
               transition={{ duration: 0.4 }}
             >
               <h2 className="text-[3.5rem] sm:text-7xl md:text-8xl lg:text-9xl font-bold mb-8 sm:mb-12 leading-[1.15] px-6">
-                <span className="block text-white">Noi investiamo,</span>
+                <span className="block text-white">in ,</span>
                 <span className="block text-white">tu guadagni,</span>
                 <span className="block text-white font-bold">zero rischi.</span>
               </h2>
