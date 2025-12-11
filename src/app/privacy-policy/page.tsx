@@ -38,8 +38,8 @@ export default function PrivacyPolicy() {
                   <h2 className="text-2xl font-bold text-gray-800">1. Titolare del Trattamento</h2>
                 </div>
                 <p className="text-gray-600 leading-relaxed">
-                  Il Titolare del trattamento dei dati personali è AGENCY, con sede legale in [Indirizzo],
-                  P.IVA [Numero], Email: privacy@agency.com. Il Titolare si impegna a garantire che il trattamento
+                  Il Titolare del trattamento dei dati personali è <strong>SMARTUP SRL</strong>, con sede legale in Viale Delle Industrie 36, 81100 Caserta (CE), Italia,
+                  P.IVA 09227760965, Email: info@safescale.it. Il Titolare si impegna a garantire che il trattamento
                   dei dati personali avvenga nel rispetto del Regolamento UE 2016/679 (GDPR).
                 </p>
               </section>
@@ -224,13 +224,10 @@ export default function PrivacyPolicy() {
                   </p>
                   <div className="space-y-2">
                     <p className="text-gray-700">
-                      <strong>Email:</strong> privacy@agency.com
+                      <strong>Email:</strong> info@safescale.it
                     </p>
                     <p className="text-gray-700">
-                      <strong>PEC:</strong> agency@pec.it
-                    </p>
-                    <p className="text-gray-700">
-                      <strong>Indirizzo:</strong> [Inserire indirizzo completo]
+                      <strong>Indirizzo:</strong> Viale Delle Industrie 36, 81100 Caserta (CE), Italia
                     </p>
                   </div>
                 </div>
